@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { api, type Pick, type Task } from '#lib/api.ts';
-	import { toasts } from '#lib/toasts.svelte.ts';
+	import { goto } from '$app/navigation';
+	import { execution } from '#lib/execution.svelte.ts';
+	import { type Pick, type Task } from '#lib/api.ts';
 
 	interface Props {
 		pick: Pick;
@@ -15,10 +16,11 @@
 	let explaining = $state(false);
 	let reason = $state('');
 
-	async function done() {
-		if (await toasts.track(`Done: ${task?.title}`, () => api.setStatus(pick.task_id, 'done'))) {
-			onclose();
-		}
+	const step = $derived(execution.view?.steps.find((s) => s.id === pick.step_id));
+	function begin() {
+		const destination = `/focus?task=${pick.task_id}${pick.step_id ? `&step=${pick.step_id}` : ''}`;
+		onclose();
+		goto(destination);
 	}
 
 	function notThis(e: SubmitEvent) {
@@ -31,8 +33,8 @@
 
 <section class="sticker whatnow" aria-live="polite" data-task={pick.task_id}>
 	<button class="close" aria-label="Close" onclick={onclose}>✕</button>
-	<p class="label">Do this now</p>
-	<h2>{task?.title ?? 'That task'}</h2>
+	<h2>{step?.description ?? task?.title ?? 'That task'}</h2>
+	{#if step}<p class="parent">{task?.title}</p>{/if}
 	<p>{pick.reason}</p>
 	{#if explaining}
 		<form onsubmit={notThis}>
@@ -41,7 +43,7 @@
 		</form>
 	{:else}
 		<div class="actions">
-			<button class="btn primary" onclick={done}>Done</button>
+			<button class="btn primary" onclick={begin}>Começar</button>
 			<button class="btn" disabled={asking} onclick={() => (explaining = true)}>
 				{asking ? 'Thinking…' : 'Not this one'}
 			</button>

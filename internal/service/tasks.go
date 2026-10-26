@@ -16,20 +16,24 @@ import (
 // original words, and edits never change it. An empty Title on create defaults to the raw text's
 // first line.
 type TaskFields struct {
-	Title     string         `json:"title"`
-	Notes     string         `json:"notes"`
-	RawText   string         `json:"raw_text"`
-	Size      *domain.Size   `json:"size"`
-	Energy    *domain.Energy `json:"energy"`
-	Feeling   string         `json:"feeling"`
-	DueOn     *domain.Date   `json:"due_on"`
-	NotBefore *domain.Date   `json:"not_before"`
-	Refs      []domain.Ref   `json:"refs"`
+	EstimateMinutes *int           `json:"estimate_minutes"`
+	Title           string         `json:"title"`
+	Notes           string         `json:"notes"`
+	RawText         string         `json:"raw_text"`
+	Size            *domain.Size   `json:"size"`
+	Energy          *domain.Energy `json:"energy"`
+	Feeling         string         `json:"feeling"`
+	DueOn           *domain.Date   `json:"due_on"`
+	NotBefore       *domain.Date   `json:"not_before"`
+	Refs            []domain.Ref   `json:"refs"`
 }
 
 const maxTitleRunes = 120
 
 func (f *TaskFields) normalize() error {
+	if err := validEstimate(f.EstimateMinutes); err != nil {
+		return err
+	}
 	f.Title = strings.TrimSpace(f.Title)
 	if f.Title == "" {
 		f.Title = titleFromRaw(f.RawText)
@@ -56,6 +60,7 @@ func (f *TaskFields) normalize() error {
 }
 
 func (f TaskFields) applyTo(t *domain.Task) {
+	t.EstimateMinutes = f.EstimateMinutes
 	t.Title = f.Title
 	t.Notes = f.Notes
 	t.Size = f.Size
@@ -183,6 +188,11 @@ func (s *Service) changeTask(ctx context.Context, batch, id int64, action string
 		if err := writeTask(ctx, tx, t); err != nil {
 			return err
 		}
+		if t.Status != domain.StatusOpen || t.DeletedAt != nil || (t.NotBefore != nil && string(*t.NotBefore) > s.now().In(s.loc).Format(time.DateOnly)) {
+			if err := stopFocusTargets(ctx, tx, t.ID, nil, s.now()); err != nil {
+				return err
+			}
+		}
 		return record(ctx, tx, batch, action, entityTask, id, before, t)
 	})
 	return t, err
@@ -237,7 +247,7 @@ func (s *Service) DoneBetween(ctx context.Context, from, to time.Time) ([]domain
 }
 
 const taskColumns = `id, title, notes, raw_text, size, energy, feeling, due_on, not_before, status, refs,
-	created_by, created_at, updated_at, deleted_at`
+	created_by, created_at, updated_at, deleted_at, estimate_minutes`
 
 func liveTask(ctx context.Context, q querier, id int64) (domain.Task, error) {
 	t, err := scanTask(q.QueryRowContext(ctx, `SELECT `+taskColumns+` FROM tasks WHERE id = ? AND deleted_at IS NULL`, id))
@@ -252,7 +262,7 @@ func scanTask(row scanner) (domain.Task, error) {
 	var size, energy, dueOn, notBefore, deletedAt sql.NullString
 	var refs, createdAt, updatedAt string
 	err := row.Scan(&t.ID, &t.Title, &t.Notes, &t.RawText, &size, &energy, &t.Feeling, &dueOn, &notBefore,
-		&t.Status, &refs, &t.CreatedBy, &createdAt, &updatedAt, &deletedAt)
+		&t.Status, &refs, &t.CreatedBy, &createdAt, &updatedAt, &deletedAt, &t.EstimateMinutes)
 	if err != nil {
 		return t, err
 	}
@@ -280,10 +290,10 @@ func insertTask(ctx context.Context, tx *sql.Tx, t *domain.Task) error {
 	}
 	res, err := tx.ExecContext(ctx,
 		`INSERT INTO tasks (title, notes, raw_text, size, energy, feeling, due_on, not_before, status, refs,
-		 created_by, created_at, updated_at, deleted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		 created_by, created_at, updated_at, deleted_at, estimate_minutes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		t.Title, t.Notes, t.RawText, toNull(t.Size), toNull(t.Energy), t.Feeling, toNull(t.DueOn), toNull(t.NotBefore),
 		string(t.Status), string(refs), string(t.CreatedBy), formatTime(t.CreatedAt), formatTime(t.UpdatedAt),
-		formatNullTime(t.DeletedAt))
+		formatNullTime(t.DeletedAt), t.EstimateMinutes)
 	if err != nil {
 		return err
 	}
@@ -299,10 +309,10 @@ func writeTask(ctx context.Context, tx *sql.Tx, t domain.Task) error {
 	}
 	_, err = tx.ExecContext(ctx,
 		`UPDATE tasks SET title = ?, notes = ?, raw_text = ?, size = ?, energy = ?, feeling = ?, due_on = ?,
-		 not_before = ?, status = ?, refs = ?, created_by = ?, created_at = ?, updated_at = ?, deleted_at = ?
+		 not_before = ?, status = ?, refs = ?, created_by = ?, created_at = ?, updated_at = ?, deleted_at = ?, estimate_minutes = ?
 		 WHERE id = ?`,
 		t.Title, t.Notes, t.RawText, toNull(t.Size), toNull(t.Energy), t.Feeling, toNull(t.DueOn), toNull(t.NotBefore),
 		string(t.Status), string(refs), string(t.CreatedBy), formatTime(t.CreatedAt), formatTime(t.UpdatedAt),
-		formatNullTime(t.DeletedAt), t.ID)
+		formatNullTime(t.DeletedAt), t.EstimateMinutes, t.ID)
 	return err
 }

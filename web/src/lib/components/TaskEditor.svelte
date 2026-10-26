@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ExecutionSteps from './ExecutionSteps.svelte';
 	import { api, type Task } from '#lib/api.ts';
 	import { editor } from '#lib/editor.svelte.ts';
 	import { blankForm, fieldsFrom, formFor } from '#lib/taskForm.ts';
@@ -14,6 +15,8 @@
 	// Seeded once: the sheet is keyed by task, so a refetch mid-edit doesn't wipe what's typed.
 	// svelte-ignore state_referenced_locally
 	let form = $state(task ? formFor(task) : blankForm());
+	// svelte-ignore state_referenced_locally
+	let estimate = $state<number | undefined>(task?.estimate_minutes ?? undefined);
 	let problem = $state('');
 	let saving = $state(false);
 	let adding = $state('');
@@ -36,7 +39,7 @@
 			return;
 		}
 		saving = true;
-		const { fields } = result;
+		const fields = {...result.fields, estimate_minutes: estimate ?? null};
 		const write = task
 			? toasts.track(`Saved: ${fields.title}`, () => api.updateTask(task.id, fields))
 			: toasts.track(`Added: ${fields.title}`, async () => {
@@ -97,6 +100,10 @@
 		</label>
 	</div>
 	<label>
+		<span class="label">Estimativa da tarefa (min, opcional)</span>
+		<input class="field" type="number" min="1" max="1440" step="1" bind:value={estimate} />
+	</label>
+	<label>
 		<span class="label">Feeling</span>
 		<input class="field" bind:value={form.feeling} placeholder="How does this one feel?" />
 	</label>
@@ -145,6 +152,7 @@
 		<button type="button" class="btn" onclick={() => editor.close()}>Cancel</button>
 	</div>
 </form>
+{#if task}<ExecutionSteps taskId={task.id} />{/if}
 
 <style>
 	form {

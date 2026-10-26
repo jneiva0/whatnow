@@ -11,7 +11,7 @@ test('menus close on an outside click and on Escape', async ({ page }) => {
 
 	await page.getByLabel('Menu').click();
 	await expect(allTasks).toBeVisible();
-	await page.getByRole('heading', { name: 'must' }).click();
+	await page.getByRole('heading', { name: 'Must (Essencial)' }).click();
 	await expect(allTasks).toBeHidden();
 
 	await page.getByLabel('Menu').click();
@@ -22,7 +22,7 @@ test('menus close on an outside click and on Escape', async ({ page }) => {
 	const push = page.getByRole('button', { name: 'Push to tomorrow' }).first();
 	await page.getByLabel('More actions').first().click();
 	await expect(push).toBeVisible();
-	await page.getByRole('heading', { name: 'must' }).click();
+	await page.getByRole('heading', { name: 'Must (Essencial)' }).click();
 	await expect(push).toBeHidden();
 });
 
@@ -87,7 +87,7 @@ test('the end-of-day label stays inside the strip on a phone', async ({ page, re
 	await page.goto('/');
 
 	const strip = await page.getByLabel("Today's events").boundingBox();
-	const label = await page.getByText('11:59').boundingBox();
+	const label = await page.getByText('23:59', { exact: true }).boundingBox();
 	expect(label!.x + label!.width).toBeLessThanOrEqual(strip!.x + strip!.width);
 });
 
@@ -108,14 +108,14 @@ test("an event's × removes it from the strip, and Undo brings it back", async (
 
 test('Move puts a card in another tier, or the tray', async ({ page }) => {
 	await page.goto('/');
-	const must = page.locator('section').filter({ has: page.getByRole('heading', { name: 'must' }) });
+	const must = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Must (Essencial)' }) });
 	const card = page.locator('article').filter({ hasText: 'call mom' });
 
 	await card.getByLabel('More actions').click();
 	await card.getByText('Move ›').click();
-	await expect(card.getByRole('button', { name: 'Should' })).toBeDisabled();
-	await card.getByRole('button', { name: 'Must' }).click();
-	await expect(page.getByRole('status').filter({ hasText: 'Moved to Must: call mom' })).toBeVisible();
+	await expect(card.getByRole('button', { name: 'Should (Importante)' })).toBeDisabled();
+	await card.getByRole('button', { name: 'Must (Essencial)' }).click();
+	await expect(page.getByRole('status').filter({ hasText: 'Moved to Must (Essencial): call mom' })).toBeVisible();
 	await expect(must.getByText('call mom')).toBeVisible();
 
 	await card.getByLabel('More actions').click();

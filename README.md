@@ -35,6 +35,11 @@ odd koan"). *About me* tells the planner how you work ("my focus peaks before lu
 drain me"). *Theme* swaps the look: the default sticker style, plain 90s, Neon Nights, Terminal,
 Paper, or Vaporwave.
 
+The web header uses Brazilian Portuguese dates (for example, `Sexta, 23 Out`), the **E agora?**
+button, and a **Pique** selector: *só o pó*, *pegando leve*, *de boa*, *runfando*, and *Go hard*.
+Timeline and imported-event times use the 24-hour `HH:mm` format.
+Plan tiers are labeled **Must (Essencial)**, **Should (Importante)**, and **Could (Se der)**.
+
 ## A day, in pictures
 
 All of these come from one made-up Thursday run against a live model, with the *About me* above

@@ -20,6 +20,7 @@ var whatNowSchema = js.Object(
 // Pick is the answer to "what now?". Fallback means code picked because the model couldn't.
 type Pick struct {
 	TaskID   int64  `json:"task_id"`
+	StepID   *int64 `json:"step_id"`
 	Reason   string `json:"reason"`
 	Fallback bool   `json:"fallback"`
 }
@@ -44,9 +45,9 @@ func (p *Planner) WhatNow(ctx context.Context, exclude int64) (Pick, error) {
 
 	pick, err := p.askPick(ctx, st, exclude)
 	if err != nil {
-		return Pick{TaskID: first, Reason: fallbackNote(err), Fallback: true}, nil
+		return p.pickAction(ctx, Pick{TaskID: first, Reason: fallbackNote(err), Fallback: true})
 	}
-	return pick, nil
+	return p.pickAction(ctx, pick)
 }
 
 func (p *Planner) askPick(ctx context.Context, st state, exclude int64) (Pick, error) {
@@ -75,4 +76,19 @@ func checkPick(pk Pick, f facts.Facts, exclude int64) error {
 		return fmt.Errorf("#%d is the task the user just passed on", pk.TaskID)
 	}
 	return nil
+}
+
+// The next pending action is deterministic, so both model and fallback picks honor progress.
+func (p *Planner) pickAction(ctx context.Context, pick Pick) (Pick, error) {
+	steps, err := p.svc.ListSteps(ctx, pick.TaskID)
+	if err != nil {
+		return pick, err
+	}
+	for _, st := range steps {
+		if !st.Done {
+			pick.StepID = &st.ID
+			break
+		}
+	}
+	return pick, nil
 }

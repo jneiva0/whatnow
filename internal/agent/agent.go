@@ -64,6 +64,29 @@ func (a *Agent) today() domain.Date { return facts.Today(a.now(), a.loc) }
 // published as chat.message, and the reply's text as chat.delta while it's written. A provider
 // error is not returned: it becomes a reply that says what went wrong.
 func (a *Agent) Send(ctx context.Context, text string) (domain.Message, error) {
+	return a.send(ctx, text, 0)
+}
+
+// DecomposeTask uses the existing chat turn and history, but restricts its tools to
+// reading/adding steps of this exact task. It cannot alter other tasks or completed progress.
+func (a *Agent) DecomposeTask(ctx context.Context, taskID int64) (domain.Message, error) {
+	task, err := a.svc.GetTask(ctx, taskID)
+	if err != nil {
+		return domain.Message{}, err
+	}
+	if task.Status != domain.StatusOpen {
+		return domain.Message{}, fmt.Errorf("%w: only an open task can be divided into steps", service.ErrConflict)
+	}
+	request := fmt.Sprintf("Divida a tarefa #%d em passos concretos e pequenos usando list_steps e add_step desta tarefa. Preserve os passos já existentes, especialmente os concluídos, sem duplicar ações já representadas. Não crie tarefas independentes, não conclua nada, não mude o foco ou tempo e não replaneje. Inclua estimativas curtas quando houver base; use 0 quando desconhecida. Tarefa: %q. Detalhes: %q.", task.ID, task.Title, task.Notes)
+	// Task details can be long; keep this contextual request within the existing chat bound.
+	runes := []rune(request)
+	if len(runes) > maxMessageRunes {
+		request = string(runes[:maxMessageRunes])
+	}
+	return a.send(ctx, request, taskID)
+}
+
+func (a *Agent) send(ctx context.Context, text string, taskScope int64) (domain.Message, error) {
 	text = strings.TrimSpace(text)
 	if text == "" {
 		return domain.Message{}, fmt.Errorf("%w: the message is empty", service.ErrInvalid)
@@ -83,7 +106,7 @@ func (a *Agent) Send(ctx context.Context, text string) (domain.Message, error) {
 	}
 	a.publish(sent)
 
-	t := &turn{agent: a}
+	t := &turn{agent: a, taskScope: taskScope}
 	reply := domain.Message{Date: date, Role: domain.RoleAssistant}
 	reply.Text, err = t.run(ctx, date)
 	if err != nil {
@@ -138,9 +161,10 @@ func joinText(a, b string) string {
 
 // turn is one reply in progress. Its writes share a batch, made on the first write.
 type turn struct {
-	agent   *Agent
-	batchID int64
-	uses    []domain.ToolUse
+	agent     *Agent
+	batchID   int64
+	taskScope int64
+	uses      []domain.ToolUse
 }
 
 // run talks to the model until it stops calling tools or runs out of rounds, and returns what it
@@ -166,7 +190,7 @@ func (t *turn) run(ctx context.Context, date domain.Date) (string, error) {
 		Model:     sit.Config.MainModel,
 		System:    system,
 		Messages:  history.messages,
-		Tools:     toolDefs(),
+		Tools:     t.toolDefs(),
 		MaxTokens: maxTokens,
 		Fallback:  true,
 	}

@@ -70,7 +70,7 @@ func Open(o Options) (*App, error) {
 		return nil, err
 	}
 
-	svc := service.New(db, o.Now)
+	svc := service.New(db, o.Now, o.Loc)
 	hub := stream.NewHub()
 	active := func(ctx context.Context) (llm.Client, settings.ProviderConfig, settings.Settings, error) {
 		s, err := settings.Load(ctx, db)

@@ -1,6 +1,12 @@
 import type { Blocker, Task, Tier, Today } from './api';
 import { localDate } from './time';
 
+export const tierLabels: Record<Tier, string> = {
+	must: 'Must (Essencial)',
+	should: 'Should (Importante)',
+	could: 'Could (Se der)'
+};
+
 export interface Card {
 	task: Task;
 	rationale: string;

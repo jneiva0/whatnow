@@ -7,7 +7,7 @@
 	import Working from '#lib/components/Working.svelte';
 	import Tagline from '#lib/components/Tagline.svelte';
 	import TriageList from '#lib/components/TriageList.svelte';
-	import { tiers } from '#lib/plan.ts';
+	import { tierLabels, tiers } from '#lib/plan.ts';
 	import { ritualOver } from '#lib/rituals.ts';
 	import { addDays } from '#lib/time.ts';
 	import { toasts } from '#lib/toasts.svelte.ts';
@@ -127,7 +127,7 @@
 	<div class="sticker reveal">
 		{#each tierNames as tier (tier)}
 			{#if revealed[tier].length}
-				<p class="label">{tier}</p>
+				<p class="label">{tierLabels[tier]}</p>
 				<ul>
 					{#each revealed[tier] as card (card.task.id)}<li>{card.task.title}</li>{/each}
 				</ul>

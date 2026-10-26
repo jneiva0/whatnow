@@ -10,10 +10,7 @@
 <div class="stack" aria-live="polite">
 	{#each toasts.items as toast (toast.id)}
 		<div
-			class="sticker toast"
-			class:error={toast.error}
-			class:nudge={toast.nudge}
-			class:paused={toast.paused}
+			class={['sticker toast', {error: toast.error, nudge: toast.nudge, paused: toast.paused}]}
 			style:--lifetime="{toast.life}ms"
 			role="status"
 			onpointerenter={() => toasts.pause(toast.id)}
@@ -48,7 +45,8 @@
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
-		z-index: 30;
+		/* Step edits save while the edit sheet stays open; their Undo must remain reachable. */
+		z-index: 50;
 		max-width: min(420px, calc(100vw - 32px));
 	}
 	.toast {

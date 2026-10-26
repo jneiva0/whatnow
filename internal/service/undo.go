@@ -50,14 +50,40 @@ func (s *Service) Undo(ctx context.Context, batch int64) error {
 
 func revert(ctx context.Context, tx *sql.Tx, a domain.Activity, now time.Time) error {
 	switch a.Entity {
+	case "step":
+		if a.Before == nil {
+			if err := stopStepFocus(ctx, tx, a.EntityID, now); err != nil {
+				return err
+			}
+			_, err := tx.ExecContext(ctx, `UPDATE steps SET deleted_at = ? WHERE id = ?`, formatTime(now), a.EntityID)
+			return err
+		}
+		var step domain.Step
+		if err := json.Unmarshal(a.Before, &step); err != nil {
+			return err
+		}
+		if step.DeletedAt != nil || step.Done {
+			if err := stopStepFocus(ctx, tx, step.ID, now); err != nil {
+				return err
+			}
+		}
+		return writeStep(ctx, tx, step)
 	case entityTask:
 		if a.Before == nil {
+			if err := stopFocusTargets(ctx, tx, a.EntityID, nil, now); err != nil {
+				return err
+			}
 			_, err := tx.ExecContext(ctx, `UPDATE tasks SET deleted_at = ? WHERE id = ?`, formatTime(now), a.EntityID)
 			return err
 		}
 		var t domain.Task
 		if err := json.Unmarshal(a.Before, &t); err != nil {
 			return err
+		}
+		if t.Status != domain.StatusOpen || t.DeletedAt != nil {
+			if err := stopFocusTargets(ctx, tx, t.ID, nil, now); err != nil {
+				return err
+			}
 		}
 		return writeTask(ctx, tx, t)
 	case entityEvent:

@@ -47,7 +47,7 @@ export interface StripItem {
 
 export interface StripTick {
 	left: number;
-	/** Like "9a" or "12p". */
+	/** Local time in HH:mm format. */
 	label: string;
 }
 
@@ -67,7 +67,7 @@ function floorHour(ms: number): number {
 }
 
 function hourLabel(h: number): string {
-	return `${h % 12 || 12}${h < 12 ? 'a' : 'p'}`;
+	return `${String(h).padStart(2, '0')}:00`;
 }
 
 /**

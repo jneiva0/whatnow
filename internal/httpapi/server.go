@@ -61,6 +61,15 @@ type Mutation struct {
 func New(d Deps) http.Handler {
 	s := &Server{Deps: d}
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /api/v1/execution", s.execution)
+	mux.HandleFunc("POST /api/v1/tasks/{id}/steps", s.stepWrite)
+	mux.HandleFunc("POST /api/v1/tasks/{id}/decompose", s.decomposeTask)
+	mux.HandleFunc("PUT /api/v1/tasks/{id}/steps/{step}", s.stepWrite)
+	mux.HandleFunc("DELETE /api/v1/tasks/{id}/steps/{step}", s.stepWrite)
+	mux.HandleFunc("POST /api/v1/tasks/{id}/steps/reorder", s.reorderSteps)
+	mux.HandleFunc("POST /api/v1/tasks/{id}/steps/{step}/split", s.splitStep)
+	mux.HandleFunc("POST /api/v1/focus/start", s.startFocus)
+	mux.HandleFunc("POST /api/v1/focus/{id}/{action}", s.changeFocus)
 	mux.HandleFunc("GET /api/v1/tasks", s.listTasks)
 	mux.HandleFunc("POST /api/v1/tasks", s.createTask)
 	mux.HandleFunc("PUT /api/v1/tasks/{id}", s.updateTask)

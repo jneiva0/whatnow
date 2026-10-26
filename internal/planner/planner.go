@@ -56,15 +56,16 @@ func New(svc *service.Service, hub *stream.Hub, client ClientFunc, loc *time.Loc
 // model is nil when no client could be built, and modelErr says why.
 type state struct {
 	// last is the most recent day before today, if any.
-	last     *domain.Day
-	day      *domain.Day
-	plan     *domain.Plan
-	moves    []string // today's moves by hand, oldest first, as their plans' reasons
-	facts    facts.Facts
-	settings settings.Settings
-	model    llm.Client
-	cfg      settings.ProviderConfig
-	modelErr error
+	last      *domain.Day
+	day       *domain.Day
+	plan      *domain.Plan
+	execution string
+	moves     []string // today's moves by hand, oldest first, as their plans' reasons
+	facts     facts.Facts
+	settings  settings.Settings
+	model     llm.Client
+	cfg       settings.ProviderConfig
+	modelErr  error
 }
 
 // Date is today's date in the user's time zone.
@@ -133,6 +134,15 @@ func (p *Planner) gather(ctx context.Context, withModel bool) (state, error) {
 	}
 	st.facts = facts.Compute(facts.Input{Now: now, Loc: p.loc, EndOfDay: st.settings.EndOfDay, Tasks: tasks,
 		Blockers: blockers, Events: events, PushCounts: pushes, Musts: musts})
+	execution, err := p.svc.Execution(ctx)
+	if err != nil {
+		return st, err
+	}
+	encoded, err := json.Marshal(execution)
+	if err != nil {
+		return st, err
+	}
+	st.execution = string(encoded)
 	return st, nil
 }
 
@@ -164,6 +174,9 @@ func (st state) live() string {
 		b.WriteByte('\n')
 	}
 	b.WriteString(prompt.Facts(st.facts))
+	if st.execution != "" {
+		b.WriteString("\nExecution progress and focus (action estimates and accumulated actual time; no independent session budget):\n" + st.execution + "\n")
+	}
 	if st.plan == nil {
 		return b.String()
 	}

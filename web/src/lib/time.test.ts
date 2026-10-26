@@ -41,7 +41,6 @@ describe('countdown', () => {
 
 describe('strip', () => {
 	const eod = at('17:30');
-	const labels = (s: ReturnType<typeof strip>) => s.ticks.map((t) => t.label);
 
 	it('Should start at the day start, so the now line moves across as the day goes on', () => {
 		const early = strip([], at('09:00'), eod, at('08:40').toISOString());
@@ -80,15 +79,18 @@ describe('strip', () => {
 	});
 
 	it('Should tick every third clock hour on a long strip', () => {
-		expect(labels(strip([], at('09:00'), eod, at('08:40').toISOString()))).toEqual(['9a', '12p', '3p']);
+		expect(strip([], at('09:00'), eod, at('08:40').toISOString()).ticks.map((tick) => tick.left)).toEqual([10, 40, 70]);
 	});
 
 	it('Should tick every hour on a strip of 6 hours or less', () => {
-		expect(labels(strip([], at('13:10'), eod, at('13:05').toISOString()))).toEqual(['2p', '3p', '4p', '5p']);
+		expect(strip([], at('13:10'), eod, at('13:05').toISOString()).ticks.map((tick) => tick.left)).toEqual([20, 40, 60, 80]);
 	});
 
-	it('Should label noon 12p', () => {
-		expect(labels(strip([], at('11:10'), at('14:00'), at('11:05').toISOString()))).toContain('12p');
+	it('Should use 24-hour times across midnight and noon', () => {
+		const ticks = strip([], at('00:00'), at('23:59'), '2026-10-04T23:00:00').ticks;
+		expect(ticks.map((tick) => tick.label)).toContain('00:00');
+		expect(ticks.map((tick) => tick.label)).toContain('12:00');
+		for (const tick of ticks) expect(tick.label).toMatch(/^(?:[01]\d|2[0-3]):00$/);
 	});
 });
 

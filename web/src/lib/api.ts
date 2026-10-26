@@ -16,6 +16,7 @@ export interface Ref {
 }
 
 export interface Task {
+	estimate_minutes?: number | null;
 	id: number;
 	title: string;
 	notes: string;
@@ -34,6 +35,7 @@ export interface Task {
 
 /** What a task write sends. Every field is sent; null clears one. */
 export interface TaskFields {
+	estimate_minutes?: number | null;
 	title: string;
 	notes: string;
 	size: Size | null;
@@ -94,8 +96,8 @@ export interface Triage {
 	until: string | null;
 }
 
-/** The five pace levels, 1 to 5, as the server labels them. */
-export const paceLabels = ['running on fumes', 'gentle', 'steady', 'full steam', 'go hard'];
+/** Brazilian Portuguese labels for the server's five pace levels, 1 to 5. */
+export const paceLabels = ['só o pó', 'pegando leve', 'de boa', 'runfando', 'Go hard'];
 
 export interface PlanEntry {
 	task_id: number;
@@ -118,8 +120,42 @@ export interface Today {
 }
 
 export interface Pick {
+	step_id?: number | null;
 	task_id: number;
 	reason: string;
+}
+
+export interface Step {
+ id: number;
+ task_id: number;
+ description: string;
+ estimate_minutes: number | null;
+ position: number;
+ done: boolean;
+ deleted_at: string | null;
+}
+
+export interface StepFields {
+ description: string;
+ estimate_minutes: number | null;
+}
+
+export interface FocusSession {
+ id: number;
+ task_id: number;
+ step_id: number | null;
+ state: 'running' | 'paused' | 'ended';
+ segment_started_at: string | null;
+ accumulated_ms: number;
+ created_at: string;
+ ended_at: string | null;
+}
+
+export interface ExecutionState {
+ server_now: string;
+ steps: Step[];
+ sessions: FocusSession[];
+ selected_id: number | null;
 }
 
 export interface ToolUse {
@@ -302,6 +338,16 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 }
 
 export const api = {
+ decomposeTask: (id: number) => request<Message>('POST', `/tasks/${id}/decompose`),
+ correctFocus: (id: number, total_ms: number, reason: string, request_id: string) => request<ExecutionState>('POST', `/focus/${id}/correct`, {total_ms, reason, request_id}),
+ execution: () => request<ExecutionState>('GET', '/execution'),
+ addStep: (id: number, fields: StepFields) => request<Mutation>('POST', `/tasks/${id}/steps`, fields),
+ updateStep: (id: number, step: number, fields: StepFields & {done: boolean}) => request<Mutation>('PUT', `/tasks/${id}/steps/${step}`, fields),
+ deleteStep: (id: number, step: number) => request<Mutation>('DELETE', `/tasks/${id}/steps/${step}`),
+ reorderSteps: (id: number, ids: number[]) => request<Mutation>('POST', `/tasks/${id}/steps/reorder`, {ids}),
+ splitStep: (id: number, step: number, steps: StepFields[]) => request<Mutation>('POST', `/tasks/${id}/steps/${step}/split`, {steps}),
+ startFocus: (task_id: number, step_id: number | null, request_id: string) => request<ExecutionState>('POST', '/focus/start', {task_id, step_id, request_id}),
+ focusAction: (id: number, action: 'pause' | 'resume' | 'end' | 'complete') => request<ExecutionState>('POST', `/focus/${id}/${action}`),
 	today: () => request<Today>('GET', '/today'),
 	events: (date: string) => request<CalendarEvent[]>('GET', `/events?date=${date}`),
 	deleteEvent: (id: number) => request<Mutation>('DELETE', `/events/${id}`),
