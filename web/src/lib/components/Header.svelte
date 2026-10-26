@@ -19,17 +19,17 @@
 	const next = $derived(countdown(todayState.events, live.now));
 	const wrapped = $derived(today.day?.wrapped_at != null);
 	const canWrap = $derived(today.day !== null && !wrapped);
-	const date = $derived(
-		new Date(`${today.date}T12:00:00`).toLocaleDateString(undefined, {
-			weekday: 'long',
-			month: 'short',
-			day: 'numeric'
-		})
-	);
+	const date = $derived.by(() => {
+		const day = new Date(`${today.date}T12:00:00`);
+		const weekday = day.toLocaleDateString('pt-BR', { weekday: 'long' }).replace('-feira', '');
+		const month = day.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+		const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+		return `${capitalize(weekday)}, ${day.getDate()} ${capitalize(month)}`;
+	});
 
 	function setPace(pace: number) {
 		paceOpen = false;
-		toasts.track(`Pace: ${paceLabels[pace - 1]}`, () => api.setPace(pace));
+		toasts.track(`Pique: ${paceLabels[pace - 1]}`, () => api.setPace(pace));
 	}
 </script>
 
@@ -38,10 +38,10 @@
 		<h1>{date}</h1>
 		{#if today.day}
 			<details class="pace" bind:open={paceOpen} {@attach dismiss}>
-				<summary class="chip">pace: {paceLabels[today.day.pace - 1]}</summary>
+				<summary class="chip">Pique: {paceLabels[today.day.pace - 1]}</summary>
 				<div class="sticker menu">
 					{#each paceLabels as label, i (label)}
-						<button class="item" class:current={i + 1 === today.day.pace} onclick={() => setPace(i + 1)}>
+						<button class={['item', {current: i + 1 === today.day.pace}]} onclick={() => setPace(i + 1)}>
 							{label}
 						</button>
 					{/each}
@@ -53,6 +53,7 @@
 		{/if}
 	</div>
 	<div class="right">
+		<a class="btn" href="/focus">Foco</a>
 		{#if next}
 			<span class="next">{next}</span>
 		{/if}
@@ -61,7 +62,7 @@
 		{/if}
 		{#if onwhatnow && !wrapped}
 			<button class="btn primary" disabled={asking || !today.day} onclick={onwhatnow}>
-				{asking ? 'Thinking…' : 'What now?'}
+				{asking ? 'Pensando…' : 'E agora?'}
 			</button>
 		{/if}
 		<details class="more" bind:open={menuOpen} {@attach dismiss}>

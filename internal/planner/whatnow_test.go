@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jameynakama/whatnow/internal/domain"
 	"github.com/jameynakama/whatnow/internal/planner"
 	"github.com/jameynakama/whatnow/internal/service"
 )
@@ -100,5 +101,46 @@ func TestWhatNowWithNothingFree(t *testing.T) {
 	}
 	if len(f.model.sent) != 0 {
 		t.Error("the model was asked with nothing to pick")
+	}
+}
+
+func TestWhatNowNextActionAndReplanPreserveExecution(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	task := f.task(t, service.TaskFields{Title: "Write"})
+	f.configured = false
+	batch, err := f.svc.NewBatch(ctx, domain.ActorUser)
+	if err != nil {
+		t.Fatal(err)
+	}
+	done, err := f.svc.CreateStep(ctx, batch, task.ID, service.StepFields{Description: "Open", Done: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	next, err := f.svc.CreateStep(ctx, batch, task.ID, service.StepFields{Description: "Write a sentence"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	pick, err := f.planner.WhatNow(ctx, 0)
+	if err != nil || pick.StepID == nil || *pick.StepID != next.ID || !pick.Fallback {
+		t.Fatalf("pick=%+v err=%v", pick, err)
+	}
+	focus, err := f.svc.StartFocus(ctx, service.StartFocusFields{TaskID: task.ID, StepID: &next.ID, RequestID: "plan-focus-start"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.svc.CorrectFocus(ctx, *focus.SelectedID, 70000, "Already worked", "plan-correct-time", domain.ActorUser); err != nil {
+		t.Fatal(err)
+	}
+	f.start(t, 3, "")
+	if _, err := f.planner.Replan(ctx, domain.TriggerUser, "Keep progress"); err != nil {
+		t.Fatal(err)
+	}
+	after, err := f.svc.Execution(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if *after.SelectedID != *focus.SelectedID || after.Sessions[0].AccumulatedMS != 70000 || after.Sessions[0].State != "running" || len(after.Steps) != 2 || after.Steps[0].ID != done.ID || !after.Steps[0].Done {
+		t.Fatalf("replan changed execution: %+v", after)
 	}
 }

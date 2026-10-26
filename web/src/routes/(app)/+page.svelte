@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { api, ApiError, type Pick, type Tier } from '#lib/api.ts';
 	import { live } from '#lib/live.svelte.ts';
-	import { doneOn, tiers, unplanned } from '#lib/plan.ts';
+	import { doneOn, tierLabels, tiers, unplanned } from '#lib/plan.ts';
 	import { survived } from '#lib/time.ts';
 	import { toasts } from '#lib/toasts.svelte.ts';
 	import { editor } from '#lib/editor.svelte.ts';
@@ -104,7 +104,7 @@
 		{/if}
 		{#each tierNames as tier (tier)}
 			<section>
-				<h2 class="label">{tier}</h2>
+				<h2 class="label">{tierLabels[tier]}</h2>
 				{#each planned[tier] as card (card.task.id)}
 					<TaskCard {card} {tier} date={t.date} />
 				{:else}

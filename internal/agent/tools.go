@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -65,7 +66,7 @@ var tools = []tool{
 	{"create_task", "Add a task. It waits in the unplanned tray until the next replan.", js.Object(taskProps...), createTask},
 	{"update_task", "Change some of a task's fields. To put a task off, use push_task instead.",
 		js.Object(js.Prop("task_id", taskID),
-			js.Prop("changes", changes("title", "notes", "size", "energy", "feeling", "due_on", "not_before"))), updateTask},
+			js.Prop("changes", changes("title", "notes", "size", "energy", "feeling", "due_on", "not_before", "estimate_minutes"))), updateTask},
 	{"complete_task", "Mark a task done.", js.Object(js.Prop("task_id", taskID)), statusTool(domain.StatusDone, "Done")},
 	{"drop_task", "Stop carrying a task without doing it.", js.Object(js.Prop("task_id", taskID)), statusTool(domain.StatusDropped, "Dropped")},
 	{"push_task", "Put a task off until a later date. Pushes are counted.",
@@ -99,6 +100,20 @@ func toolDefs() []llm.Tool {
 	return defs
 }
 
+// A contextual decomposition request advertises only the same two tools its dispatcher allows.
+func (t *turn) toolDefs() []llm.Tool {
+	if t.taskScope == 0 {
+		return toolDefs()
+	}
+	out := []llm.Tool{}
+	for _, tl := range tools {
+		if tl.name == "list_steps" || tl.name == "add_step" {
+			out = append(out, llm.Tool{Name: tl.name, Description: tl.description, Schema: tl.schema})
+		}
+	}
+	return out
+}
+
 // runTool runs one call and records its chip. The model gets the result as JSON, or the error.
 func (t *turn) runTool(ctx context.Context, c llm.ToolCall) llm.ToolResult {
 	use := domain.ToolUse{Tool: c.Name}
@@ -120,6 +135,21 @@ func (t *turn) runTool(ctx context.Context, c llm.ToolCall) llm.ToolResult {
 }
 
 func (t *turn) dispatch(ctx context.Context, c llm.ToolCall) (string, any, error) {
+	if t.taskScope != 0 {
+		if c.Name != "list_steps" && c.Name != "add_step" {
+			return "", nil, fmt.Errorf("%w: task decomposition can only read/add steps of its task", service.ErrInvalid)
+		}
+		in, err := args[struct {
+			TaskID int64 `json:"task_id"`
+		}](c.Input)
+		if err != nil {
+			return "", nil, err
+		}
+		if in.TaskID != t.taskScope {
+			return "", nil, fmt.Errorf("%w: decomposition is limited to task #%d", service.ErrInvalid, t.taskScope)
+		}
+	}
+
 	for _, tl := range tools {
 		if tl.name == c.Name {
 			return tl.run(ctx, t, c.Input)
@@ -225,9 +255,19 @@ func updateTask(ctx context.Context, t *turn, input json.RawMessage) (string, an
 		return "", nil, err
 	}
 	f := service.TaskFields{Title: task.Title, Notes: task.Notes, Size: task.Size, Energy: task.Energy, Feeling: task.Feeling,
-		DueOn: task.DueOn, NotBefore: task.NotBefore, Refs: task.Refs}
+		DueOn: task.DueOn, NotBefore: task.NotBefore, Refs: task.Refs, EstimateMinutes: task.EstimateMinutes}
 	for _, c := range in.Changes {
 		switch c.Field {
+		case "estimate_minutes":
+			if c.Value == "" {
+				f.EstimateMinutes = nil
+			} else {
+				n, err := strconv.Atoi(c.Value)
+				if err != nil {
+					return "", nil, fmt.Errorf("%w: estimate_minutes must be an integer", service.ErrInvalid)
+				}
+				f.EstimateMinutes = &n
+			}
 		case "title":
 			f.Title = c.Value
 		case "notes":

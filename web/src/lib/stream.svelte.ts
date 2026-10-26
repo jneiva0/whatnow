@@ -10,6 +10,7 @@ export interface Handlers {
 	'chat.message': (d: Message) => void;
 	'data.reset': () => void;
 	'work.started': (d: { kind: WorkKind }) => void;
+	'focus.changed'?: () => void;
 	'work.finished': (d: { kind: WorkKind }) => void;
 }
 
@@ -32,7 +33,8 @@ export class Stream {
 	constructor(
 		private handlers: Handlers,
 		private onReconnect: () => void,
-		private connect: () => Source = () => new EventSource('/api/v1/stream')
+		private connect: () => Source = () => new EventSource('/api/v1/stream'),
+		private onConnection: (connected: boolean) => void = () => {}
 	) {}
 
 	open(): void {
@@ -42,9 +44,11 @@ export class Stream {
 			if (opened) this.onReconnect();
 			opened = true;
 			this.connected = true;
+			this.onConnection(true);
 		});
 		source.addEventListener('error', () => {
 			this.connected = false;
+			this.onConnection(false);
 		});
 		for (const [name, handle] of Object.entries(this.handlers)) {
 			source.addEventListener(name, (e) => handle(JSON.parse(e.data)));

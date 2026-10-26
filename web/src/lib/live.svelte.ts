@@ -1,3 +1,4 @@
+import { execution } from './execution.svelte';
 import { goto } from '$app/navigation';
 import { api, type SettingsView } from './api';
 import { celebration } from './celebrate';
@@ -28,14 +29,17 @@ class Live {
 				const size = celebration(d, today.today, today.tasks);
 				if (size) cheer(size, d.activity.filter((a) => a.entity === 'task').map((a) => a.entity_id));
 				today.changed();
+				void execution.refresh();
 				toasts.applied(d);
 			},
 			'batch.undone': (d) => {
 				today.changed();
+				void execution.refresh();
 				toasts.undone(d.batch_id);
 				chat.markUndone(d.batch_id);
 			},
 			'plan.updated': () => today.changed(),
+			'focus.changed': () => { void execution.refresh(); today.changed(); },
 			'chat.delta': (d) => chat.delta(d.text),
 			'chat.tool': (d) => chat.tool(d),
 			'chat.message': (d) => chat.message(d),
@@ -48,7 +52,10 @@ class Live {
 			work.reset();
 			today.changed();
 			chat.load().catch((err) => toasts.error(err));
-		}
+			void execution.refresh();
+		},
+		undefined,
+		(connected) => execution.connected(connected)
 	);
 
 	get connected(): boolean {
@@ -63,6 +70,7 @@ class Live {
 
 	/** Connects once for the life of the page. Returns the disconnect. */
 	start(): () => void {
+		const stopExecution = execution.startLive();
 		Promise.all([today.refresh(), chat.load(), api.settings().then((v) => (this.view = v))]).catch(
 			(err) => toasts.error(err)
 		);
@@ -73,6 +81,7 @@ class Live {
 		window.addEventListener('focus', focus);
 		return () => {
 			clearInterval(clock);
+			stopExecution();
 			window.removeEventListener('focus', focus);
 			this.#stream.close();
 		};
@@ -134,7 +143,7 @@ function deliver(n: Nudge): void {
 			note.close();
 		};
 	} else {
-		toasts.nudge(n.text, open && { label: 'What now?', run: open });
+		toasts.nudge(n.text, open && { label: 'E agora?', run: open });
 	}
 }
 

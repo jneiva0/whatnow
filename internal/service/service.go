@@ -37,10 +37,15 @@ const (
 type Service struct {
 	db  *sql.DB
 	now func() time.Time
+	loc *time.Location
 }
 
-func New(db *sql.DB, now func() time.Time) *Service {
-	return &Service{db: db, now: now}
+func New(db *sql.DB, now func() time.Time, locations ...*time.Location) *Service {
+	loc := now().Location()
+	if len(locations) > 0 && locations[0] != nil {
+		loc = locations[0]
+	}
+	return &Service{db: db, now: now, loc: loc}
 }
 
 // NewBatch starts a batch. Every write names one, and undo reverts a whole batch at once.

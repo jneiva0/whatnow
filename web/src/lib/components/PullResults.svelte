@@ -15,7 +15,8 @@
 	/** The recurring event whose × is asking whether to skip just today or the whole series. */
 	let asking = $state<number | null>(null);
 
-	const time = (d: string) => new Date(d).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+	const time = (d: string) =>
+		new Date(d).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 
 	async function removeToday(e: PulledEvent) {
 		asking = null;

@@ -1,10 +1,16 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { execution } from '#lib/execution.svelte.ts';
+	import TaskMetadata from './TaskMetadata.svelte';
+	import PlayToggle from './PlayToggle.svelte';
+	import ExecutionSteps from './ExecutionSteps.svelte';
+	import { available, taskActual, taskEstimate, timerText } from '#lib/execution.ts';
 	import { api, type Tier } from '#lib/api.ts';
 	import { dismiss } from '#lib/dismiss.ts';
 	import { editor } from '#lib/editor.svelte.ts';
 	import { linked } from '#lib/linked.svelte.ts';
 	import { linkify } from '#lib/linkify.ts';
-	import { links, type Card } from '#lib/plan.ts';
+	import { links, tierLabels, type Card } from '#lib/plan.ts';
 	import { addDays } from '#lib/time.ts';
 	import { toasts } from '#lib/toasts.svelte.ts';
 	import { today } from '#lib/today.svelte.ts';
@@ -23,12 +29,18 @@
 	let menuOpen = $state(false);
 	let expanded = $state(false);
 	const task = $derived(card.task);
+	const steps = $derived(execution.steps(task.id));
+	const nextStep = $derived(steps.find((s) => !s.done));
+	const completed = $derived(steps.filter((s) => s.done).length);
+	const actual = $derived(taskActual(execution.view?.sessions ?? [], task.id, execution.now));
+	const estimate = $derived(taskEstimate(task, execution.view?.steps ?? []));
+	const canStart = $derived(available(task, today.tasks, today.blockers, date));
 	const chain = $derived(links(task.id, today.blockers, today.tasks));
 	const movable = $derived(!listed && !!today.today?.plan && !today.today.day?.wrapped_at);
 	const moves: { to: Tier | null; label: string }[] = [
-		{ to: 'must', label: 'Must' },
-		{ to: 'should', label: 'Should' },
-		{ to: 'could', label: 'Could' },
+		{ to: 'must', label: tierLabels.must },
+		{ to: 'should', label: tierLabels.should },
+		{ to: 'could', label: tierLabels.could },
 		{ to: null, label: 'Unplanned' }
 	];
 	const showingLinks = $derived(linked.source === task.id);
@@ -67,9 +79,7 @@
 
 <article
 	data-task={task.id}
-	class="sticker card {tier ?? (listed ? 'listed' : 'unplanned')}"
-	class:closed={task.status !== 'open'}
-	class:linked={linked.ids.includes(task.id)}
+	class={['sticker card', tier ?? (listed ? 'listed' : 'unplanned'), {closed: task.status !== 'open', linked: linked.ids.includes(task.id)}]}
 >
 	{#if task.status === 'open'}
 		<input type="checkbox" aria-label="Mark done" onchange={complete} />
@@ -84,16 +94,10 @@
 			aria-expanded={listed ? undefined : expanded}
 		>
 			<span class="title">{task.title}</span>
-			<span class="badges">
-				{#if task.size}<span class="badge">{task.size}</span>{/if}
-				{#if task.energy}<span class="badge">{task.energy} energy</span>{/if}
-				{#if listed && task.due_on}<span class="badge">due {short(task.due_on)}</span>{/if}
-				{#if listed && task.not_before}<span class="badge">from {short(task.not_before)}</span>{/if}
-			</span>
-			{#if task.feeling}<span class="feeling">"{task.feeling}"</span>{/if}
-			{#if task.notes && !expanded}<span class="notes">{task.notes}</span>{/if}
-			{#if card.rationale}<span class="why" class:shown={expanded}>{card.rationale}</span>{/if}
 		</button>
+		<TaskMetadata {task} />
+			{#if task.notes && !expanded}<span class="notes">{task.notes}</span>{/if}
+			{#if card.rationale}<span class={['why', {shown: expanded}]}>{card.rationale}</span>{/if}
 		<!-- Expanded notes sit outside the button, so their links work and their text can be copied. -->
 		{#if task.notes && expanded}
 			<p class="notes shown">{#each linkify(task.notes) as s, i (i)}{#if s.href}<a href={s.href} target="_blank" rel="noopener noreferrer">{s.text}</a>{:else}{s.text}{/if}{/each}</p>
@@ -126,6 +130,15 @@
 				</p>
 			{/if}
 		{/if}
+
+        {#if task.status === 'open'}
+            <div class="execution">
+                <span class="step-progress">{timerText(actual)} / {estimate.minutes == null ? '—' : timerText(estimate.minutes * 60000)}{estimate.partial ? ' (parcial)' : ''}</span>
+                {#if !steps.length || nextStep}<PlayToggle running={execution.selected?.task_id === task.id && execution.selected.state === 'running'} disabled={!canStart || execution.busy} label={execution.selected?.task_id === task.id && execution.selected.state === 'running' ? `Pausar ${task.title}` : `Começar ${task.title}`} onclick={async () => { if (execution.selected?.task_id === task.id && execution.selected.state === 'running') await execution.action(execution.selected.id, 'pause'); else if (await execution.start(task.id, nextStep?.id ?? null)) goto(`/focus?task=${task.id}${nextStep ? `&step=${nextStep.id}` : ''}`); }} />{/if}
+                <a class="focus-icon" href={`/focus?task=${task.id}${nextStep ? `&step=${nextStep.id}` : ''}`} aria-label={`Abrir foco de ${task.title}`} title="Abrir foco"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M8 21H3v-5"/><circle cx="12" cy="12" r="3"/></svg></a>
+            </div>
+            <details class="card-steps"><summary>{completed}/{steps.length} passos{nextStep ? ` · Próximo: ${nextStep.description}` : steps.length ? ' · Todos concluídos' : ' · Adicionar ou dividir com IA'}</summary><ExecutionSteps taskId={task.id} eligible={canStart} /></details>
+        {/if}
 	</div>
 	{#if task.status === 'dropped'}
 		<button class="btn" onclick={restore}>Restore</button>
@@ -150,6 +163,13 @@
 </article>
 
 <style>
+ .focus-icon { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; color: var(--ink); }
+	.execution { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+	.step-progress { flex: 1; min-width: 0; font-size: 13px; }
+	.card-steps { font-size: 13px; }
+	.card-steps summary { cursor: pointer; min-height: 36px; padding-block: 7px; overflow-wrap: anywhere; }
+	.start { min-height: 44px; }
+	.start:disabled { opacity: .5; cursor: default; }
 	.card {
 		display: flex;
 		align-items: flex-start;
