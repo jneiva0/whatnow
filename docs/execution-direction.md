@@ -29,6 +29,14 @@ A migração ampla e a calibração histórica continuam adiadas enquanto não h
 nova direção. O objetivo autônomo permanece ativo; não usar testes verdes como
 justificativa para acrescentar funcionalidades sem necessidade.
 
+**Diagnóstico de instalação Android, somente leitura:** `web/static` contém
+apenas robots.txt; não há manifesto, ícones de instalação ou service worker no
+fonte. O HTML servido por HTTPS7001 não contém link de manifesto. HTTPS respondeu
+200. Isso identifica uma lacuna de implementação, não uma falha comprovada do
+aparelho. Caso PWA seja priorizado, separar instalação/abertura em janela própria
+de operação offline: os comandos continuam dependendo da API Go. Nenhum cache,
+worker, permissão ou promessa de alarmes em segundo plano foi adicionado.
+
 **Retomada e entrega corrigida — 27/10:** João confirmou o overflow horizontal
 corrigido no Android. A correção está registrada no [changelog](../CHANGELOG.md).
 A conferência anterior abaixo que declarava a versão atual em uso estava errada:
