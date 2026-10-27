@@ -48,3 +48,17 @@ Na branch `codex/execution-direction`, sem worktree:
 Verificação: suíte Go completa passou com permissão para portas locais dos servidores de teste; o primeiro ensaio restrito falhou por bind não permitido. Testes direcionados cobrem captura com passos, continuação de intenção com progresso/undo, rollback de captura inválida, piso de estimativa, minutos na criação por chat e rejeição de passo concluído/estrangeiro na sugestão. Check Svelte sem erros/avisos. Testes usam respostas simuladas, não um provedor real. Nenhum dado real, deploy ou processo do aplicativo foi alterado.
 
 Ainda aberto: avaliação qualitativa com IA real; substituição visual de S/M/L por minutos; apresentação simples de próximas ações; consolidação de cartões/formulários/controles. As falhas visuais relatadas continuam na etapa 3, sem repriorização automática. Próxima ação: avaliar os cenários de intenção/estimativa/decomposição com o provedor real em dados descartáveis antes de considerar esta integração validada em uso.
+
+
+## Avaliação com provedor real — 27/10/2026
+
+Executadas duas rodadas delimitadas com o provedor OpenAI-compatible já configurado (light `gpt-6-luna`, main `gpt-6.1-sol`), em SQLite temporário criado do zero. Somente configuração de provedor/modelos foi lida; não foram copiados tarefas, mensagens, perfil pessoal ou integrações. Cenários fictícios, sem servidor de preview/deploy. O banco temporário foi removido ao final.
+
+- Continuação de arrumação: nova captura dizendo que recolher o chão ficou urgente foi associada à tarefa existente; permaneceu um cartão e os dois passos originais, incluindo o concluído.
+- Captura de apresentação com dificuldade para iniciar: criou três passos com 15 minutos cada, total de 45 minutos.
+- Chat pedindo primeiro movimento menor: usou `list_steps` e `split_step`, preservou slides/ensaio e não criou outra tarefa. Primeira ação virou abrir uma nota e escrever uma frase (2 minutos).
+- E agora selecionou esse passo de 2 minutos, com justificativa ligada ao prazo de amanhã; não utilizou fallback.
+
+A inspeção identificou que o contexto principal omitia notas e captura original. `internal/prompt/facts.go` agora inclui ambas, com teste de regressão; os três pacotes afetados (prompt/planner/agent) passaram. A segunda rodada com o código corrigido manteve os resultados acima. Isso é evidência qualitativa limitada aos cenários exercitados, não garantia geral de classificação, deduplicação ou adequação clínica.
+
+A integração da IA está implementada e esses cenários reais foram avaliados. Próxima etapa permanece apresentação da execução (minutos no lugar de S/M/L, contexto tarefa/passos e próximos movimentos), seguida de consolidação visual, sem transformar comentários isolados em novas prioridades. O aplicativo em uso não foi atualizado nesta rodada.

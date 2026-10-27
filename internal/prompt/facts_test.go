@@ -1,6 +1,7 @@
 package prompt_test
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -61,5 +62,15 @@ Eligible tasks, as #<id> title:
 `
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s", got, want)
+	}
+}
+
+func TestTaskContextPreservesMeaningBeyondTitle(t *testing.T) {
+	f := facts.Facts{Tasks: []facts.TaskFacts{{Task: domain.Task{ID: 1, Title: "Organize room", Notes: "Picking up the floor is now urgent", RawText: "I feel stuck and want a small start"}}}}
+	got := prompt.Facts(f)
+	for _, want := range []string{"Picking up the floor is now urgent", "I feel stuck and want a small start"} {
+		if !strings.Contains(got, want) {
+			t.Fatalf("task context missing %q: %s", want, got)
+		}
 	}
 }

@@ -61,6 +61,12 @@ func Facts(f facts.Facts) string {
 			fmt.Fprintf(&b, " feeling: %q", t.Feeling)
 		}
 		b.WriteByte('\n')
+		if t.Notes != "" {
+			fmt.Fprintf(&b, "  Notes: %q\n", t.Notes)
+		}
+		if t.RawText != "" && t.RawText != t.Title && t.RawText != t.Notes {
+			fmt.Fprintf(&b, "  Original capture: %q\n", t.RawText)
+		}
 		for _, a := range tf.Annotations {
 			fmt.Fprintf(&b, "  - %s\n", a)
 		}
