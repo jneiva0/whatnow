@@ -1,5 +1,5 @@
 <script lang="ts">
- import { goto } from '$app/navigation';
+ import { startAndOpenFocus } from '#lib/focus-navigation.ts';
  import InlineEdit from './InlineEdit.svelte';
  import PlayToggle from './PlayToggle.svelte';
  import TaskDecompose from './TaskDecompose.svelte';
@@ -38,7 +38,17 @@
  }
  async function add(e: SubmitEvent) { e.preventDefault(); if (description.trim() && await write('Passo adicionado', () => api.addStep(taskId, {description: description.trim(), estimate_minutes: null}))) description = ''; }
  async function split(step: Step) { const parts = splitText.split('\n').map((s) => s.trim()).filter(Boolean); if (parts.length < 2) { problem = 'Escreva pelo menos dois passos, um por linha.'; return; } if (await write('Passo dividido', () => api.splitStep(taskId, step.id, parts.map((description) => ({description, estimate_minutes: null}))))) splitting = null; }
- async function start(step: Step) { if (await execution.start(taskId, step.id)) goto(`/focus?task=${taskId}&step=${step.id}${preview ? '&from=actions' : ''}`); }
+ async function toggleFocus(step: Step) {
+  if (execution.busy) return;
+  problem = '';
+  const running = execution.view?.sessions.find((s) => s.task_id === taskId && s.step_id === step.id && s.state === 'running');
+  if (running) {
+   if (!await execution.action(running.id, 'pause')) problem = execution.problem;
+  } else {
+   problem = await startAndOpenFocus({task_id: taskId, step_id: step.id}, preview) ?? '';
+  }
+ }
+
  async function reorder(id: number, destination: number) {
   const ids = reorderStepIDs(steps.map((s) => s.id), id, destination); if (!ids) return;
   const to = ids.indexOf(id);
@@ -68,7 +78,7 @@
     <button type="button" class="check" aria-label={`${step.done ? 'Reabrir' : 'Concluir'} ${step.description}`} aria-pressed={step.done} disabled={saving || execution.busy} onclick={() => toggle(step)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2" />{#if step.done}<path d="m7 12 3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" />{/if}</svg></button>
     <div class="description"><InlineEdit value={step.description} label={`Editar ${step.description}`} disabled={saving} onsave={(description) => editField(step, {description})} /></div>
     <div class="time-pair"><span class="actual">{timerText(actual)}</span><span class="divider">/</span><div class="estimate"><InlineEdit numeric value={step.estimate_minutes == null ? '' : String(step.estimate_minutes)} display={step.estimate_minutes == null ? '—' : timerText(step.estimate_minutes * 60000)} label={`Estimativa de ${step.description} em minutos`} disabled={saving} onsave={(value) => editField(step, {estimate_minutes: value ? Number(value) : null})} /></div></div>
-    {#if !step.done}<PlayToggle running={!!running} disabled={(!eligible && !running) || saving || execution.busy} label={`${running ? 'Pausar' : 'Começar'} ${step.description}`} onclick={() => {if (running) void execution.action(running.id, 'pause'); else void start(step);}} />{/if}
+    {#if !step.done}<PlayToggle running={!!running} disabled={(!eligible && !running) || saving || execution.busy} label={`${running ? 'Pausar' : 'Começar'} ${step.description}`} onclick={() => {void toggleFocus(step);}} />{/if}
     <div class="more">
      <DropdownMenu.Root>
       <DropdownMenu.Trigger class={buttonVariants({variant: 'ghost', size: 'icon'})} aria-label={`Mais ações para ${step.description}`} disabled={saving}>

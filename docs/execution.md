@@ -24,6 +24,16 @@ A deliberate correction supplies an absolute recorded-work total `total_ms`, a r
 
 ## Task continuity in Day and Focus
 
+Confirmed by João on 2026-10-27: a running action always owns focus selection.
+When nothing is running, the first pending step is an acceptable default; pressing
+play on another action switches focus through the service and preserves prior time.
+Opening/editing a row does not switch the running action.
+
+Web entry points share `focus-navigation.ts` for start-confirmation-navigation.
+It adds no execution rules: the Go service remains usable by the terminal client
+and future integrations independently of browser routes. Components own error
+presentation; `Execution` owns synchronized server state and request retries.
+
 Day is the place to choose a different task. Its cards expose a visible start/focus action, actual/planned time, and a compact collapsible step list with completion/reopen and start controls. A previously finished action can be marked done without starting a timer. Focus shows the task context, accessible details/editing, selected action, a prominent time counter/progress indicator with sticky play/pause, and the complete ordered step list. Energy, size and free-text feeling are compact editable values immediately beneath the task title in both surfaces; a discrete pencil opens the full editor. Completion uses each task/step checkbox, including before any timer is started, and play/pause is a single accessible icon toggle. Completing a step leaves its parent open and offers the next action without starting it. When all steps are done the task remains available for explicit parent completion; no extra action is invented. Ver dia navigates without pausing; starting another action pauses the prior one through the unchanged service.
 
 ## REST and live updates

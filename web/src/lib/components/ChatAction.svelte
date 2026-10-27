@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { startAndOpenFocus } from '#lib/focus-navigation.ts';
 	import type { ActionRef } from '#lib/api.ts';
 	import { chat } from '#lib/chat.svelte.ts';
 	import { execution } from '#lib/execution.svelte.ts';
@@ -20,14 +20,9 @@
 		if (!ready || starting || execution.busy || chat.busy) return;
 		starting = true;
 		try {
-			if (!await execution.start(action.task_id, action.step_id)) {
-				toasts.error(execution.problem);
-				return;
-			}
-			await goto(`/focus?task=${action.task_id}${action.step_id === null ? '&direct=1' : `&step=${action.step_id}`}`);
-			chat.open = false;
-		} catch {
-			toasts.error('O foco iniciou, mas a tela não abriu. Abra Foco para continuar.');
+			const error = await startAndOpenFocus(action);
+			if (error) toasts.error(error);
+			else chat.open = false;
 		} finally {
 			starting = false;
 		}

@@ -2,6 +2,20 @@
 
 ## 2026-10-27
 
+### Entrada de foco compartilhada e erros visíveis
+
+- Cartões, passos, chat e E agora compartilham `focus-navigation.ts` para iniciar
+  pela operação existente e navegar somente após confirmação. Falha de navegação
+  informa que o foco iniciou, sem repetir ou desfazer a operação.
+- Falhas de play/pausa nos cartões e passos agora aparecem onde ocorreu o clique;
+  o último estado confirmado permanece disponível.
+- Mantidas as fronteiras: Go possui regras/tempo/dados, estado frontend possui
+  sincronização, componentes apresentam resultados. Documentado em AGENTS.md
+  para preservar uso pelo terminal e futuras integrações de contexto.
+- 177 testes frontend e Svelte check passaram; autofixer sem pendências nos
+  quatro componentes. Testes novos verificam falha sem navegação, confirmação
+  antes de navegar e falha de navegação sem duplicar o início.
+
 ### Continuidade após concluir um passo
 
 - Corrigida a escolha no Foco após concluir a ação selecionada: abrir outro passo

@@ -1,5 +1,16 @@
 # Whatnow development
 
+## Layer boundaries
+
+- Keep execution rules, eligibility, time, persistence and undo in the Go service.
+  The web UI, terminal client and future context integrations must be able to use
+  the same operations and data without depending on Svelte or browser navigation.
+- Frontend state owns synchronization and confirmed server snapshots. Components
+  own interaction and presentation; shared web navigation belongs in a small web
+  helper, not in domain/service code. Do not duplicate execution rules per screen.
+- Prefer cohesive changes with relevant contract tests and a project changelog.
+  Consolidate demonstrated duplication; do not add speculative abstractions.
+
 ## Codebase navigation
 
 Use current source files and checked-in project docs as the primary evidence.

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { startAndOpenFocus } from '#lib/focus-navigation.ts';
 	import { execution } from '#lib/execution.svelte.ts';
 	import TaskMetadata from './TaskMetadata.svelte';
 	import PlayToggle from './PlayToggle.svelte';
@@ -45,6 +45,16 @@
 	const showingLinks = $derived(linked.source === task.id);
 	const titles = (tasks: { title: string }[]) => tasks.map((t) => t.title).join(', ');
 	const toggleLinks = () => linked.toggle(task.id, [...chain.waitingOn, ...chain.unblocks].map((t) => t.id));
+
+	async function toggleFocus() {
+		if (execution.busy) return;
+		if (running) {
+			if (!await execution.action(running.id, 'pause')) toasts.error(execution.problem);
+			return;
+		}
+		const error = await startAndOpenFocus({task_id: task.id, step_id: nextStep?.id ?? null}, actionView);
+		if (error) toasts.error(error);
+	}
 
 	// The card leaves once the refetch lands. If the write failed, untick it again.
 	async function complete(e: Event & { currentTarget: HTMLInputElement }) {
@@ -132,7 +142,7 @@
           {:else}
             <div class="execution">
                 <div class="step-progress">{#if nextStep}<span class="next-action">{nextStep.description}</span><span class="next-time">{timerText(nextActual)} / {nextStep.estimate_minutes == null ? '—' : timerText(nextStep.estimate_minutes * 60000)}{running ? ' · Em foco' : ''}</span>{/if}<span class={['total-time', {secondary: !!nextStep}]}>{nextStep ? 'Total ' : ''}{timerText(actual)} / {estimate.minutes == null ? '—' : timerText(estimate.minutes * 60000)}{estimate.partial ? '+' : ''}</span></div>
-                {#if !steps.length || nextStep || running}<PlayToggle running={!!running} disabled={(!canStart && !running) || execution.busy} label={running ? `Pausar ${task.title}` : `Começar ${task.title}`} onclick={async () => { if (running) await execution.action(running.id, 'pause'); else if (await execution.start(task.id, nextStep?.id ?? null)) goto(`/focus?task=${task.id}${nextStep ? `&step=${nextStep.id}` : '&direct=1'}${actionView ? '&from=actions' : ''}`); }} />{/if}
+                {#if !steps.length || nextStep || running}<PlayToggle running={!!running} disabled={(!canStart && !running) || execution.busy} label={running ? `Pausar ${task.title}` : `Começar ${task.title}`} onclick={toggleFocus} />{/if}
                 <a class="focus-icon" href={`/focus?task=${task.id}${nextStep ? `&step=${nextStep.id}` : ''}`} aria-label={`Abrir foco de ${task.title}`} title="Abrir foco"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M8 21H3v-5"/><circle cx="12" cy="12" r="3"/></svg></a>
             </div>
             <details class="card-steps"><summary>{steps.length ? `${completed}/${steps.length} passos` : 'Adicionar passos'}{steps.length && !nextStep ? ' · Todos concluídos' : ''}</summary><ExecutionSteps taskId={task.id} eligible={canStart} /></details>

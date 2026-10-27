@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { startAndOpenFocus } from '#lib/focus-navigation.ts';
 	import { execution } from '#lib/execution.svelte.ts';
 	import { type Pick, type Task } from '#lib/api.ts';
 
@@ -23,16 +23,10 @@
 		if (starting || execution.busy || asking) return;
 		starting = true;
 		problem = '';
-		const {task_id, step_id} = pick;
 		try {
-			if (!await execution.start(task_id, step_id ?? null)) {
-				problem = execution.problem;
-				return;
-			}
-			await goto(`/focus?task=${task_id}${step_id ? `&step=${step_id}` : '&direct=1'}`);
-			onclose();
-		} catch {
-			problem = 'O foco iniciou, mas a tela não abriu. Abra Foco para continuar.';
+			const error = await startAndOpenFocus({task_id: pick.task_id, step_id: pick.step_id ?? null});
+			if (error) problem = error;
+			else onclose();
 		} finally {
 			starting = false;
 		}
