@@ -1,5 +1,9 @@
 <script lang="ts">
+ import { Button } from '#lib/components/ui/button/index.js';
+ import PlayIcon from '@lucide/svelte/icons/play';
+ import PauseIcon from '@lucide/svelte/icons/pause';
  let {running = false, disabled = false, label, onclick}: {running?: boolean; disabled?: boolean; label: string; onclick: () => void} = $props();
 </script>
-<button class={['play-toggle', {running}]} {disabled} aria-label={label} title={label} {onclick}><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">{#if running}<path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="3" stroke-linecap="round" />{:else}<path d="m9 5 11 7-11 7Z" fill="currentColor" />{/if}</svg></button>
-<style>.play-toggle { min-width: var(--play-size, 44px); height: var(--play-size, 44px); display: inline-grid; place-items: center; border: 0; border-radius: var(--pill); background: var(--play-background, transparent); color: var(--play-ink, var(--ink)); flex-shrink: 0; } .play-toggle:hover { background: var(--chip); } .running { color: var(--play-ink, var(--primary)); background: var(--play-background, color-mix(in srgb, var(--primary) 10%, transparent)); } button:disabled { opacity: .45; cursor: default; } button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }</style>
+<Button variant={running ? 'playback-active' : 'playback'} size="playback" {disabled} aria-pressed={running} aria-label={label} title={label} {onclick}>
+ {#if running}<PauseIcon aria-hidden="true" />{:else}<PlayIcon aria-hidden="true" />{/if}
+</Button>

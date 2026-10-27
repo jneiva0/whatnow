@@ -1,0 +1,67 @@
+# UI migration to shadcn-svelte
+
+## Direction
+
+Use the installed shadcn-svelte CLI and skill as the common component foundation.
+Keep Whatnow's Sticker identity: cream canvas, dark ink, tier fills, purple primary
+actions, chunky outlines and offset shadows. Existing alternative themes remain
+available. A separate theme package is not required.
+
+The source skill is `web/.agents/skills/shadcn-svelte/SKILL.md`. The repository-root
+`.agents/skills/shadcn-svelte` symlink points there, and root/frontend `AGENTS.md`
+explicitly require reading it. This makes the entry point available from either
+working directory; a running agent may need a new session to refresh its automatic
+skill catalog. The checked-in instructions work without relying on that refresh.
+
+## Theme compatibility
+
+`web/src/routes/layout.css` is the single stylesheet entry point configured in
+`web/components.json`. It loads Tailwind, the existing token/theme sources and
+the semantic bridge. The old sources still own their current values; the bridge
+maps them to the shadcn-svelte contract rather than duplicating the palette.
+
+| Whatnow source | Semantic token / utility |
+| --- | --- |
+| `--paper`, `--ink` | `--background`, `--foreground` / `bg-background`, `text-foreground` |
+| `--card`, `--ink` | `bg-card`, `text-card-foreground` |
+| `--primary`, `--on-primary` | `bg-primary`, `text-primary-foreground` |
+| `--paper-deep`, `--ink-soft` | `bg-muted`, `text-muted-foreground` |
+| `--chip`, `--ink` | `bg-accent`, `text-accent-foreground` |
+| `--border-color`, `--stroke` | `border-border` and the shared outline width |
+| `--shadow-sm`, `--radius-sm` | `shadow-control`, `rounded-md` |
+
+Aliases are declared on both `:root` and `[data-theme]` so nested theme previews
+resolve their own colors. Neon/Terminal variants use the existing theme attribute;
+there is no second theme state to synchronize. Font follows the existing `--font`
+token. The CLI-installed font remains available but does not replace it implicitly.
+
+Legacy base rules live in Tailwind's `base` layer; `.btn`, `.field` and `.sticker`
+live in `components`. Existing special theme treatments keep their specificity;
+Plain's legacy anchor rules exclude the new `data-slot` primitives. New utilities
+can style primitives without fighting the old global button/input reset.
+
+## First migrated controls
+
+- `ui/button` and `ui/input` were added by the official CLI, then customized in
+  their source to share Whatnow tokens, outlines, radii and accessible focus.
+- `PlayToggle` composes `Button` and configured Lucide icons. Normal lines and the
+  large focus control share the same component, with the existing size variables.
+- `InlineEdit` composes `Button` and `Input`: Enter/blur save, Escape cancels,
+  pending state remains visible and failed writes retain the draft. No persistence
+  logic moved into the UI primitives.
+
+Keep the registry's bindable element references: `bind:this` in these primitives
+is the public `ref` API, not incidental DOM manipulation to rewrite mechanically.
+
+## Next slices
+
+Migrate task/step menus and metadata controls, then the task editor's fields and
+dialog composition. Use one primitive in every surface that has the same intent.
+Add each component through `bunx --bun shadcn-svelte add <component>` from `web/`
+and read the generated source. Consult https://shadcn-svelte-extras.com/ when a
+specific interaction is missing from the official collection; don't add an entire
+secondary registry just to restyle the app.
+
+Keep task/step/timer operations, capture, chat, SSE and undo independent of this
+visual migration. João continues visual acceptance through actual use; build and
+static checks do not establish visual approval or a physical-device test.

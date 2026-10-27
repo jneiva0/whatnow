@@ -1,4 +1,7 @@
 <script lang="ts">
+ import { Button } from '#lib/components/ui/button/index.js';
+ import { Input } from '#lib/components/ui/input/index.js';
+ import { cn } from '#lib/utils.js';
  let {value, display, label, numeric = false, disabled = false, onsave}: {
   value: string; display?: string; label: string; numeric?: boolean; disabled?: boolean;
   onsave: (value: string) => Promise<void>;
@@ -29,25 +32,12 @@
   if (e.key === 'Enter') { e.preventDefault(); void save(); }
  }
 </script>
-<span class={['inline-edit', {numeric}]} aria-busy={pending}>
+<span class={cn('relative block w-full min-w-0', numeric && 'tabular-nums')} aria-busy={pending}>
  {#if editing}
-  <input {@attach (node) => { node.focus(); node.select(); }} bind:value={draft} aria-label={label} aria-invalid={!!error} inputmode={numeric ? 'numeric' : 'text'} readonly={pending} onkeydown={keydown} onblur={() => {void save();}} />
+  <Input variant="inline" textAlign={numeric ? 'end' : 'start'} {@attach (node: HTMLInputElement) => { node.focus(); node.select(); }} bind:value={draft} aria-label={label} aria-invalid={!!error} inputmode={numeric ? 'numeric' : 'text'} readonly={pending} onkeydown={keydown} onblur={() => {void save();}} />
  {:else}
-  <button type="button" {disabled} aria-label={label} title={label} onclick={open}>{display ?? value}</button>
+  <Button variant={numeric ? 'inline-number' : 'inline'} size="inline" {disabled} aria-label={label} title={label} onclick={open}>{display ?? value}</Button>
  {/if}
- {#if pending}<span class="pending" role="status" aria-label="Salvando">…</span>{/if}
- {#if error}<span class="error" role="alert">{error}</span>{/if}
+ {#if pending}<span class="absolute -top-2 right-1 text-xs" role="status" aria-label="Salvando">…</span>{/if}
+ {#if error}<span class="block min-w-0 text-xs wrap-anywhere text-destructive" role="alert">{error}</span>{/if}
 </span>
-<style>
- .inline-edit { display: block; position: relative; min-width: 0; width: 100%; }
- button, input { box-sizing: border-box; min-height: 44px; width: 100%; font: inherit; color: var(--ink); border: 1px solid transparent; border-radius: var(--radius-sm); padding: 6px; text-align: left; background: transparent; }
- button { overflow-wrap: anywhere; cursor: text; }
- button:hover { background: color-mix(in srgb, var(--card) 60%, transparent); border-color: var(--ink-soft); }
- input { min-width: 0; background: var(--card); border-color: var(--ink); }
- .numeric { font-variant-numeric: tabular-nums; }
- .numeric button, .numeric input { text-align: right; }
- button:focus-visible, input:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
- button:disabled { opacity: .5; cursor: default; }
- .pending { position: absolute; right: 4px; top: -8px; font-size: 12px; }
- .error { display: block; min-width: 0; overflow-wrap: anywhere; font-size: 12px; color: var(--danger); }
-</style>

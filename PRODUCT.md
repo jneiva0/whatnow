@@ -18,6 +18,15 @@ Keep capture, planning, chat, and replanning together with a lightweight executi
 
 Go, SQLite, REST, SSE, and Svelte are established constraints. Mobile focus is essential. Simple synchronization between open clients is sufficient; there is no Passos integration or stack migration.
 
+### UI foundation — 2026-10-27
+
+João installed shadcn-svelte, its project skill and Tailwind, then authorized the
+initial theme migration. Use `web/components.json` and the local shadcn-svelte
+skill/CLI for UI primitives; consult shadcn-svelte-extras when a concrete need is
+not covered by the official components. Migrate gradually through shared controls,
+preserving Whatnow's Sticker identity and existing theme choices through semantic
+tokens. `docs/ui-migration.md` records the compatibility bridge and next slices.
+
 ## Capabilities and Constraints
 
 ### Direction update — 2026-10-27

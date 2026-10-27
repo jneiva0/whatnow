@@ -1,9 +1,8 @@
 <script lang="ts">
+	import './layout.css';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import '#lib/tokens.css';
-	import '#lib/themes.css';
 	import favicon from '#lib/assets/favicon.svg';
 	import Toasts from '#lib/components/Toasts.svelte';
 	import { editor } from '#lib/editor.svelte.ts';

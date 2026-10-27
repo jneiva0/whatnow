@@ -5,6 +5,16 @@ run scripts with `bun run <script>`, and invoke package CLIs with `bunx`.
 Run the Vitest suite with `bun run test`; `bun test` invokes a different test runner.
 Keep `bun.lock` as the frontend lockfile and respect the Bun version in `package.json`.
 
+## UI system
+
+Read `.agents/skills/shadcn-svelte/SKILL.md` in this frontend directory (also exposed
+at the repository root). Use shadcn-svelte primitives and its CLI according to
+`components.json`; consult https://shadcn-svelte-extras.com/ when the official
+collection lacks a needed interaction. Preserve the Whatnow themes through the
+semantic token bridge in `src/routes/layout.css`. Follow `../docs/ui-migration.md`.
+Do not recreate shared buttons, menus, dialogs or form controls in individual
+product components when an installed primitive can provide the interaction.
+
 ## Available Svelte MCP Tools:
 
 ### 1. list-sections

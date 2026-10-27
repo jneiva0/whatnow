@@ -110,3 +110,23 @@ Após João confirmar que reiniciou e gostou das mudanças, autorizou continuar 
 EditSheet usa dialog.showModal, com foco modal e Escape nativos. Toasts são renderizados dentro do diálogo enquanto aberto para que erros e Undo não fiquem atrás da camada modal; fora dele continuam no layout raiz. Sem duplicação simultânea. Falha de salvar tarefa mantém o formulário e também informa erro nele. Não alterados IA, tempo, banco ou sincronização. Nenhuma biblioteca nova foi necessária para esta etapa.
 
 Validação: 165 testes existentes passaram, Svelte check zero erros/avisos, build passou. Autofixer dos componentes modificados sem problemas; sugestões sobre efeitos preexistentes do layout foram inspecionadas: applyTheme escreve DOM/storage e welcomeDue é função pura, navegação continua efeito legítimo. Detector Impeccable sem achados. Não foi executado QA de browser/celular, conforme escolha de João. Servidor em uso não foi reiniciado. Próximo aceite útil: abrir uma tarefa com passos e editar/reordenar sem percorrer o formulário inteiro.
+
+## Fundação shadcn-svelte — 27/10/2026
+
+João instalou shadcn-svelte, Tailwind e a skill em `web/.agents`, depois autorizou
+a migração inicial. Essa decisão substitui o adiamento anterior da biblioteca.
+Skill exposta na raiz por symlink relativo, com instruções em ambos os níveis.
+`docs/ui-migration.md` descreve tokens, componentes e a sequência incremental.
+
+Button/Input oficiais adicionados pela CLI com Bun e adaptados nos próprios fontes
+ao tema Whatnow. PlayToggle e InlineEdit agora os compõem. A ponte semântica em
+layout.css usa os tokens existentes para cores, bordas, raios, fontes e sombras;
+evita introduzir um tema neutro paralelo. Menus e editor completo são as próximas
+fatias. Extras permanece referência para interações ausentes, sem dependência
+adicionada nesta etapa. Persistência, IA e SSE não foram alterados.
+
+Verificação: 167 testes existentes passaram, Svelte check sem erros/avisos e build
+estático passou. Autofixer aprovou os componentes de produto; sugestões sobre
+bind:this nos primitivos oficiais foram mantidas por integrarem a API pública de
+ref. Detector encontrou apenas o gradiente preexistente do tema Vaporwave,
+preservado por ser uma opção visual estabelecida. Sem QA de navegador ou aparelho.
