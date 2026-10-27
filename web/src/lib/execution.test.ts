@@ -83,6 +83,14 @@ describe('action estimate and total time', () => {
 
 
 describe('focus representation', () => {
+ it('honors an explicit sibling or direct-task choice after the selected step has finished', () => {
+  const steps: Step[] = [9, 10, 11].map((id, position) => ({id, task_id: 2, description: `Step ${id}`, done: id === 9, position, estimate_minutes: null, deleted_at: null}));
+  const view: ExecutionState = {server_now: '', selected_id: 1, sessions: [{...session, step_id: 9, state: 'ended'}], steps};
+  expect(focusTarget(view, {taskID: 2, stepID: 11})).toEqual({taskID: 2, stepID: 11, ready: false});
+  expect(focusTarget(view, {taskID: 2, stepID: null})).toEqual({taskID: 2, stepID: null, ready: false});
+  expect(focusTarget(view, null)).toEqual({taskID: 2, stepID: 10, ready: true});
+  expect(view.sessions[0].state).toBe('ended');
+ });
  it('keeps the real running target when another task or completed step is requested', () => {
   const view = {server_now: '', selected_id: 99, sessions: [{...session, id: 99, task_id: 7, step_id: 1, state: 'paused' as const}, {...session, task_id: 2, step_id: 9}], steps: []};
   expect(focusTarget(view, {taskID: 7, stepID: 1})).toEqual({taskID: 2, stepID: 9, ready: false});

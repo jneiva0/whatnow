@@ -94,7 +94,9 @@ export function focusTarget(view: import('./api').ExecutionState | null, request
  const running = view.sessions.find((s) => s.state === 'running');
  if (running) return {taskID: running.task_id, stepID: running.step_id, ready: false};
  const selected = view.sessions.find((s) => s.id === view.selected_id);
- if ((!requested || requested.taskID === selected?.task_id) && selected?.step_id != null && view.steps.some((s) => s.id === selected.step_id && (s.done || s.deleted_at))) {
+ // Only advance the old selection when navigation did not choose a target.
+ // An explicit target (including direct execution) is resolved below instead.
+ if (!requested && selected?.step_id != null && view.steps.some((s) => s.id === selected.step_id && (s.done || s.deleted_at))) {
   const next = orderedSteps(view.steps, selected.task_id).find((s) => !s.done);
   if (next) return {taskID: selected.task_id, stepID: next.id, ready: true};
   return {taskID: selected.task_id, stepID: null, ready: true};

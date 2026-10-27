@@ -13,9 +13,14 @@ substituído por `just dev` no tmux, usando o banco existente. O Vite atende em
 encaminha para o Vite e respondeu200. Alterações frontend usam HMR; alterações
 Go precisam de reinício da receita, que não contém watcher.
 
-A organização pela IA já recebeu feedback positivo de João. O próximo aceite
-é a ligação “Começar esta ação” → alvo correto no Foco → contador rodando;
-o teste foi solicitado nesta conversa. Não retomar a migração ampla da UI
+A organização pela IA já recebeu feedback positivo de João. Nesta retomada ele
+também confirmou o botão “Começar esta ação” e a abertura/início correto no Foco.
+O caminho chat → ação → foco está aceito em uso. A revisão de continuidade
+reproduziu e corrigiu a seleção explícita ignorada após concluir um passo:
+outro passo da mesma tarefa e execução direta agora respeitam a escolha,
+preservando a prioridade de um timer rodando e o próximo passo parado.
+Teste de regressão falhou antes da correção;174 testes frontend, check Svelte
+e testes Go direcionados de execução passaram. Não retomar a migração ampla da UI
 nem calibração histórica como substitutos desse ciclo. Manter detalhes técnicos
 e mudanças neste repositório, com commits por fatia.
 
