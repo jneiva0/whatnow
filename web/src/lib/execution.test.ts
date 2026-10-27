@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { FocusSession, Step, Task } from './api';
-import { elapsedMs, orderedSteps, timerText, available, actionClock, actionActual, taskActual, taskEstimate, focusTarget, reorderStepIDs } from './execution';
+import { elapsedMs, orderedSteps, timerText, available, actionClock, actionActual, taskActual, draftTaskEstimate, focusTarget, reorderStepIDs } from './execution';
 
 const session: FocusSession = {id: 1, task_id: 2, step_id: null, state: 'running', segment_started_at: '2026-10-25T10:00:00Z', accumulated_ms: 120000, created_at: '2026-10-25T09:58:00Z', ended_at: null};
 
@@ -49,7 +49,7 @@ describe('action estimate and total time', () => {
   expect(actionActual(sessions, 2, 9, Date.now())).toBe(70000);
   expect(taskActual(sessions, 2, Date.now())).toBe(90000);
   const task = {id: 2, estimate_minutes: null} as Task;
-  expect(taskEstimate(task, [])).toEqual({minutes: null, partial: false});
+  expect(draftTaskEstimate(task, [])).toEqual({minutes: null, partial: false});
  });
 });
 
@@ -87,12 +87,12 @@ describe('reorder sibling identity', () => {
  });
 });
 
-describe('task estimate floor', () => {
+describe('draft task estimate preview', () => {
  it('keeps the sum of all live steps including completed ones, and marks missing estimates', () => {
   const task = {id: 1, estimate_minutes: 5} as Task;
   const steps = [1,2,3].map((id) => ({id, task_id: 1, description: 'Action', estimate_minutes: 15, done: id === 1, position: id, deleted_at: null}));
-  expect(taskEstimate(task, steps)).toEqual({minutes:45,partial:false});
-  expect(taskEstimate({...task,estimate_minutes:60}, steps)).toEqual({minutes:60,partial:false});
-  expect(taskEstimate(task, [...steps, {...steps[0],id:4,estimate_minutes:null}])).toEqual({minutes:45,partial:true});
+  expect(draftTaskEstimate(task, steps)).toEqual({minutes:45,partial:false});
+  expect(draftTaskEstimate({...task,estimate_minutes:60}, steps)).toEqual({minutes:60,partial:false});
+  expect(draftTaskEstimate(task, [...steps, {...steps[0],id:4,estimate_minutes:null}])).toEqual({minutes:45,partial:true});
  });
 });

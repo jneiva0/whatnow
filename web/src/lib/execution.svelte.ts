@@ -1,4 +1,4 @@
-import { api, type ExecutionState, type FocusSession } from './api';
+import { api, type Estimate, type ExecutionState, type FocusSession } from './api';
 import { elapsedMs, orderedSteps, requestID } from './execution';
 import { today } from './today.svelte';
 
@@ -18,6 +18,8 @@ export class Execution {
   return this.view?.sessions.find((s) => s.id === this.view?.selected_id);
  }
  steps(taskID: number) { return orderedSteps(this.view?.steps ?? [], taskID); }
+ /** Saved totals are authoritative server facts, not a second client calculation. */
+ estimate(taskID: number): Estimate { return this.view?.estimates?.[taskID] ?? {minutes: null, partial: false}; }
  elapsed(session: FocusSession): number { return elapsedMs(session, this.now); }
 
  #accept(view: ExecutionState, sent: number) {

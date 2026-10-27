@@ -16,7 +16,6 @@
 	import XIcon from '@lucide/svelte/icons/x';
 	import InlineEdit from './InlineEdit.svelte';
 	import { execution } from '#lib/execution.svelte.ts';
-	import { taskEstimate } from '#lib/execution.ts';
 	import { today } from '#lib/today.svelte.ts';
 	import { toasts } from '#lib/toasts.svelte.ts';
 	import { cn } from '#lib/utils.js';
@@ -28,7 +27,7 @@
 	let feeling = $state('');
 	let feelingError = $state('');
 	let energyError = $state('');
-	const estimate = $derived(taskEstimate(task, execution.view?.steps ?? []));
+	const estimate = $derived(execution.estimate(task.id));
 	const energyOptions = [
 		{ value: 'none', label: 'Não definida', icon: ZapIcon },
 		{ value: 'low', label: 'Baixa', icon: BatteryLowIcon },

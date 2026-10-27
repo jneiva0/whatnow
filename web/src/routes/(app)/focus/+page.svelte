@@ -5,7 +5,7 @@
  import { page } from '$app/state';
  import { api, type FocusSession } from '#lib/api.ts';
  import { execution } from '#lib/execution.svelte.ts';
- import { available, timerText, actionActual, taskActual, taskEstimate, actionClock, focusTarget } from '#lib/execution.ts';
+ import { available, timerText, actionActual, taskActual, actionClock, focusTarget } from '#lib/execution.ts';
  import { today } from '#lib/today.svelte.ts';
  import { live } from '#lib/live.svelte.ts';
  import { editor } from '#lib/editor.svelte.ts';
@@ -32,7 +32,7 @@
  const allSessions = $derived(execution.view?.sessions ?? []);
  const actual = $derived(taskID ? stepID ? actionActual(allSessions, taskID, stepID, execution.now) : taskActual(allSessions, taskID, execution.now) : 0);
  const aggregate = $derived(taskID ? taskActual(allSessions, taskID, execution.now) : 0);
- const planned = $derived(task ? taskEstimate(task, execution.view?.steps ?? []) : {minutes: null, partial: false});
+ const planned = $derived(task ? execution.estimate(task.id) : {minutes: null, partial: false});
  const targetEstimate = $derived(step ? step.estimate_minutes : planned.minutes);
  const clock = $derived(actionClock(targetEstimate, actual));
  const progress = $derived(targetEstimate ? Math.min(100, actual / (targetEstimate * 60000) * 100) : null);

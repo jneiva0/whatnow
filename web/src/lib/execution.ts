@@ -1,4 +1,4 @@
-import type { FocusSession, Step, Task, Blocker } from './api';
+import type { Estimate, FocusSession, Step, Task, Blocker } from './api';
 
 /** Derived from server timestamps, so sleeping tabs need no missed ticks replayed. */
 export function elapsedMs(session: FocusSession, serverNow: number): number {
@@ -41,7 +41,9 @@ export function taskActual(sessions: FocusSession[], taskID: number, now: number
  return sessions.filter((s) => s.task_id === taskID).reduce((sum, s) => sum + elapsedMs(s, now), 0);
 }
 
-export function taskEstimate(task: Task, steps: Step[]): {minutes: number | null; partial: boolean} {
+/** Preview only: an unsaved editor draft cannot use the server's saved total yet.
+ * Saved task surfaces read execution.estimate instead; Go validates on save. */
+export function draftTaskEstimate(task: Task, steps: Step[]): Estimate {
  const live = orderedSteps(steps, task.id);
  const estimated = live.filter((s) => s.estimate_minutes != null);
  const sum = estimated.reduce((sum, s) => sum + s.estimate_minutes!, 0);

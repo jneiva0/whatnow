@@ -4,7 +4,7 @@
 	import TaskMetadata from './TaskMetadata.svelte';
 	import PlayToggle from './PlayToggle.svelte';
 	import ExecutionSteps from './ExecutionSteps.svelte';
-	import { available, actionActual, taskActual, taskEstimate, timerText } from '#lib/execution.ts';
+	import { available, actionActual, taskActual, timerText } from '#lib/execution.ts';
 	import { api, type Tier } from '#lib/api.ts';
 	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.js';
 	import * as ContextMenu from '#lib/components/ui/context-menu/index.js';
@@ -39,7 +39,7 @@
  const nextActual = $derived(nextStep ? actionActual(execution.view?.sessions ?? [], task.id, nextStep.id, execution.now) : 0);
 	const completed = $derived(steps.filter((s) => s.done).length);
 	const actual = $derived(taskActual(execution.view?.sessions ?? [], task.id, execution.now));
-	const estimate = $derived(taskEstimate(task, execution.view?.steps ?? []));
+	const estimate = $derived(execution.estimate(task.id));
 	const canStart = $derived(available(task, today.tasks, today.blockers, date));
 	const chain = $derived(links(task.id, today.blockers, today.tasks));
 	const showingLinks = $derived(linked.source === task.id);

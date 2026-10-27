@@ -1,7 +1,7 @@
 <script lang="ts">
 	import ExecutionSteps from './ExecutionSteps.svelte';
 	import { execution } from '#lib/execution.svelte.ts';
-	import { taskEstimate } from '#lib/execution.ts';
+	import { draftTaskEstimate } from '#lib/execution.ts';
 	import { api, type Task } from '#lib/api.ts';
 	import { editor } from '#lib/editor.svelte.ts';
 	import { blankForm, fieldsFrom, formFor } from '#lib/taskForm.ts';
@@ -19,7 +19,7 @@
 	let form = $state(task ? formFor(task) : blankForm());
 	// svelte-ignore state_referenced_locally
 	let estimate = $state<number | undefined>(task?.estimate_minutes ?? undefined);
-	const total = $derived(task ? taskEstimate({...task, estimate_minutes: estimate ?? null}, execution.view?.steps ?? []) : null);
+	const total = $derived(task ? draftTaskEstimate({...task, estimate_minutes: estimate ?? null}, execution.view?.steps ?? []) : null);
 	let problem = $state('');
 	let saving = $state(false);
 	let adding = $state('');

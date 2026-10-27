@@ -8,14 +8,18 @@ afterEach(() => {vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers()
 
 describe('execution authority and recovery', () => {
  it('compensates server clock skew and retains the last confirmed state after a failure', async () => {
-  vi.spyOn(api, 'execution').mockResolvedValue(view());
+  const snapshot = {...view(), estimates: {2: {minutes: 45, partial: true}}};
+  vi.spyOn(api, 'execution').mockResolvedValue(snapshot);
   const state = new Execution();
   await state.refresh();
   expect(Math.abs(state.now - Date.now() - 120000)).toBeLessThan(100);
+  // Render the server total even while the separate step list is empty/stale.
+  expect(state.estimate(2)).toEqual({minutes: 45, partial: true});
   const confirmed = state.view;
   vi.spyOn(api, 'focusAction').mockRejectedValue(new Error('offline'));
   expect(await state.action(1, 'pause')).toBe(false);
   expect(state.view).toBe(confirmed);
+  expect(state.estimate(2)).toEqual({minutes: 45, partial: true});
   expect(state.problem).toContain('não foi confirmada');
  });
  it('reuses the same request token after an uncertain start and clears it after confirmation', async () => {

@@ -4,6 +4,20 @@ Atualizado em 27/10/2026. Fonte: feedback direto de João nesta conversa e leitu
 
 ## Estado atual — voltar ao produto
 
+**Fatos na apresentação — 27/10:** cartões, metadados e foco agora leem a
+estimativa agregada de `ExecutionState.estimates`, calculada no Go. Não refazem
+a regra do total a partir de listas de tarefas/passos que podem atualizar em
+momentos distintos. Ausência do snapshot permanece desconhecida. O cálculo local
+foi delimitado como `draftTaskEstimate`, usado apenas na prévia do editor enquanto
+o valor ainda é um rascunho; o servidor continua validando a gravação. O contador
+por segundo segue derivado dos horários confirmados, como antes.
+
+Verificação: 167 testes frontend, check Svelte sem erros/avisos, autofixer oficial
+dos cinco componentes/módulos tocados sem achados e build passaram. O teste de
+recuperação existente foi ampliado para confirmar o total/indicador parcial do
+servidor mesmo com a lista de passos ainda vazia e depois de uma falha de API.
+Nenhum novo teste cosmético, mudança visual ou mecanismo de sincronização.
+
 **Fatia de fatos compartilhados — 27/10:** `facts.Execution` calcula estimativa
 total, estimativas pendentes conhecidas, passos concluídos, tempo registrado por
 ação, foco em execução e próxima referência. A API, planejamento, captura,

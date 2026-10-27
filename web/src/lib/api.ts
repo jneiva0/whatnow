@@ -152,10 +152,17 @@ export interface FocusSession {
 }
 
 export interface ExecutionState {
+ /** Server-derived totals. Older cached snapshots may omit these; absence stays unknown. */
+ estimates?: Record<number, Estimate>;
  server_now: string;
  steps: Step[];
  sessions: FocusSession[];
  selected_id: number | null;
+}
+
+export interface Estimate {
+	minutes: number | null;
+	partial: boolean;
 }
 
 export interface ActionRef {
