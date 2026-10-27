@@ -76,3 +76,9 @@ Próxima unidade: revisar o caminho completo Dia → sugestão → execução e 
 Corrigido `WhatNow.svelte`: “Começar” antes somente navegava; com outro foco rodando, a representação autoritativa mantinha a ação anterior. Agora inicia o alvo sugerido pela operação existente do servidor, que pausa o anterior preservando tempo, e só navega após confirmação. Falha mantém a sugestão e apresenta erro; cliques repetidos ficam bloqueados enquanto aguarda. Sem passo, a URL marca execução direta para não escolher um filho diferente silenciosamente. Falha de navegação informa que o foco já iniciou.
 
 Check Svelte sem erros/avisos, autofixer sem pendências, 16 testes existentes de representação/estado passaram. Verificação direcionada do servidor cobre troca, idempotência, undo, elegibilidade e inícios concorrentes. Sem novo teste que apenas espelhe o handler e sem QA visual automatizado.
+
+### Composição da tela de foco
+
+A superfície de foco agora aproveita a largura disponível, em vez do limite fixo de 900px. Ordem preservada: tarefa/metadados → timer/controle → passos/contexto → correções. Timer e play/pause recebem ênfase; `PlayToggle` aceita variáveis CSS de tamanho e cores, mantendo o mesmo componente e interação das linhas. O painel do timer continua sticky, com fundo da superfície para não competir com ela. Em contêineres largos (1000px ou mais), notas, referências e captura original ocupam uma coluna secundária; em espaços menores seguem os passos. Sem contexto, não se reserva uma coluna vazia. Correções continuam recolhidas abaixo.
+
+Verificação estática: Svelte check sem erros/avisos, autofixer nos dois componentes sem pendências, build passou e detector de layout sem achados. Os tokens existentes e temas foram preservados. Não houve screenshot, QA visual ou teste em celular físico; essa validação continua com João. Esta rodada só altera apresentação, sem mudanças na persistência/sincronização.

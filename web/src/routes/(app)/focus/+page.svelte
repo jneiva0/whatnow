@@ -75,7 +75,7 @@
   {#if !allStepsDone || step}
   <div class="current-action">
    <div class="action-heading"><h2>{step?.description ?? 'Executar tarefa'}</h2><span class="state">{status}</span></div>
-   <div class="timer-controls"><div class="clock"><strong role="timer" aria-label={clock.label}>{clock.text}</strong><span>{clock.label}</span></div>{#if !done}<PlayToggle running={session?.state === 'running'} disabled={busy || !eligible} label={session?.state === 'running' ? 'Pausar foco' : 'Iniciar ou retomar foco'} onclick={() => {void toggle();}} />{/if}</div>
+   <div class="timer-controls"><div class="clock"><strong role="timer" aria-label={clock.label}>{clock.text}</strong><span>{clock.label}</span></div>{#if !done}<PlayToggle --play-size="64px" --play-background="var(--chip)" --play-ink="var(--ink)" running={session?.state === 'running'} disabled={busy || !eligible} label={session?.state === 'running' ? 'Pausar foco' : 'Iniciar ou retomar foco'} onclick={() => {void toggle();}} />{/if}</div>
    {#if progress !== null}<progress max="100" value={progress} aria-label="Tempo dedicado em relação à estimativa"></progress>{/if}
    <p class="action-time">{timerText(actual)} / {targetEstimate == null ? '—' : timerText(targetEstimate * 60000)}{clock.label === 'Tempo excedido' ? ' · O registro continua; nada é concluído automaticamente.' : ''}</p>
 
@@ -83,12 +83,20 @@
 
   </div>
   {/if}
+  <div class="task-body">
+  <section class="task-steps" aria-label="Passos da tarefa">
   <div class="steps-heading"><h2>Passos</h2><span>{completed}/{steps.length} concluídos</span>{#if step}<button class="text-button" onclick={() => choose(null)}>Executar tarefa principal</button>{/if}</div>
    <ExecutionSteps taskId={task.id} selectedId={step?.id ?? null} {eligible} />
    {#if allStepsDone && task.status === 'open'}<div class="finish-task"><p>Todos os passos concluídos. Marque a tarefa quando estiver pronta.</p></div>{/if}
+  </section>
+  {#if task.notes || task.refs?.length || task.raw_text}
+  <aside class="task-context" aria-label="Contexto da tarefa">
   {#if task.notes}<div class="task-notes"><h2>Notas</h2><p>{#each linkify(task.notes) as part, i (i)}{#if part.href}<a href={part.href} target="_blank" rel="noopener noreferrer">{part.text}</a>{:else}{part.text}{/if}{/each}</p></div>{/if}
   {#if task.refs?.length}<div class="task-refs">{#each task.refs as ref, i (i)}{#if ref.url}<a href={ref.url} target="_blank" rel="noopener noreferrer">{ref.label}</a>{:else}<span>{ref.label}</span>{/if}{/each}</div>{/if}
   {#if task.raw_text}<details class="raw"><summary>Captura original</summary><p>{task.raw_text}</p></details>{/if}
+  </aside>
+  {/if}
+  </div>
   {#if history.length}<details class="time-ledger"><summary>Corrigir tempo registrado</summary><p class="muted">A correção é explícita e preserva o histórico. Desfazer tarefas não desfaz tempo.</p>
    {#each history.slice(0, 5) as previous (previous.id)}<div class="ledger-row"><span>{sessionTitle(previous)}<small>{timerText(execution.elapsed(previous))} · {previous.state === 'running' ? 'Em foco' : previous.state === 'paused' ? 'Pausado' : 'Encerrado'}</small></span><button class="text-button" onclick={() => openCorrection(previous)}>Corrigir tempo</button></div>{/each}
   </details>{/if}
@@ -97,19 +105,21 @@
 {/if}
 <style>
  .focus-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; padding: 4px 0; } .focus-nav a { color: var(--ink); }
- .focus-surface { padding: 20px 24px; max-width: 900px; width: 100%; overflow-wrap: anywhere; }
+ .focus-surface { padding: 20px 24px; width: 100%; min-width: 0; container-type: inline-size; overflow-wrap: anywhere; }
  .task-header { display: flex; align-items: start; gap: 16px; justify-content: space-between; } h1 { margin: 0; font-size: 26px; line-height: 1.2; font-weight: var(--heavy); }
  .edit-icon { min-width: 44px; min-height: 44px; display: grid; place-items: center; background: none; border: 0; flex-shrink: 0; } .task-check { display: flex; gap: 10px; align-items: flex-start; min-width: 0; } .task-check input { width: 20px; height: 20px; margin-top: 5px; accent-color: var(--primary); flex-shrink: 0; } progress { width: 100%; height: 6px; border: 0; accent-color: var(--primary); margin-top: 10px; }
  .task-facts { display: flex; gap: 8px 16px; flex-wrap: wrap; font-size: 13px; margin-top: 10px; font-variant-numeric: tabular-nums; }
- .current-action { position: sticky; top: 0; z-index: 5; background: var(--paper); border-block: 1px solid color-mix(in srgb, var(--ink) 25%, transparent); padding: 16px 0; margin-top: 18px; } .action-heading { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; } h2 { font-size: 17px; margin: 0; font-weight: var(--heavy); } .state { font-size: 12px; color: var(--ink-soft); }
- .timer-controls { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-top: 12px; } .clock { display: flex; flex-direction: column; } .clock strong { font-size: 72px; line-height: 1.1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; } .clock span { font-size: 12px; margin-top: 3px; } .controls { display: flex; gap: 8px; flex-wrap: wrap; } .btn { min-height: 44px; } button:disabled { opacity: .5; cursor: default; }
+ .current-action { position: sticky; top: 0; z-index: 5; background: var(--card); border-block: 1px solid color-mix(in srgb, var(--ink) 25%, transparent); padding: 16px 0; margin-top: 18px; } .action-heading { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; } h2 { font-size: 17px; margin: 0; font-weight: var(--heavy); } .state { font-size: 12px; color: var(--ink-soft); }
+ .timer-controls { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-top: 12px; } .clock { display: flex; flex-direction: column; } .clock strong { font-size: clamp(60px, 10vw, 96px); line-height: 1.1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; } .clock span { font-size: 12px; margin-top: 3px; } .controls { display: flex; gap: 8px; flex-wrap: wrap; } .btn { min-height: 44px; } button:disabled { opacity: .5; cursor: default; }
  .action-time { font-size: 13px; margin: 10px 0 0; font-variant-numeric: tabular-nums; } .text-button { background: none; border: 0; padding: 8px 0; min-height: 44px; text-align: left; text-decoration: underline; text-underline-offset: 3px; font-size: 13px; }
  .steps-heading { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; margin-top: 18px; } .steps-heading span { font-size: 12px; } .steps-heading .text-button { margin-left: auto; }
  .finish-task { padding-top: 12px; } .finish-task p { font-size: 13px; }
  .task-refs { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; margin-top: 12px; }
- .task-notes { margin-top: 18px; } .task-notes p, .raw p { white-space: pre-wrap; font-size: 14px; max-width: 70ch; margin: 8px 0; } details { margin-top: 12px; font-size: 13px; } summary { cursor: pointer; min-height: 36px; padding-block: 8px; }
+ .task-notes { margin-top: 0; } .task-notes p, .raw p { white-space: pre-wrap; font-size: 14px; max-width: 70ch; margin: 8px 0; } details { margin-top: 12px; font-size: 13px; } summary { cursor: pointer; min-height: 36px; padding-block: 8px; }
+ .task-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; padding-top: 24px; } .task-steps, .task-context { min-width: 0; } .task-body .steps-heading { margin-top: 0; }
+ @container (min-width: 1000px) { .task-body:has(.task-context) { grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr); gap: 32px; } .task-context { border-left: 1px solid var(--paper-deep); padding-left: 24px; } }
  .time-ledger { border-top: 1px solid color-mix(in srgb, var(--ink) 25%, transparent); padding-top: 8px; } .ledger-row { display: flex; gap: 12px; justify-content: space-between; align-items: center; } .ledger-row span { min-width: 0; } small { display: block; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
  .correction { display: flex; flex-direction: column; gap: 10px; max-width: 65ch; } .correction label { display: flex; flex-direction: column; gap: 4px; } .problem { padding: 12px; background: var(--must); } .connection { font-size: 13px; margin: 0; } .empty { padding: 20px; } .empty h1 { margin-bottom: 16px; }
  button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
- @media (max-width: 800px) { .focus-surface { padding: 16px; } .task-header { gap: 6px; } .clock strong { font-size: 60px; } h1 { font-size: 23px; } .focus-nav { align-items: start; } .focus-nav span { max-width: 24ch; text-align: right; } .timer-controls { gap: 14px; } }
+ @media (max-width: 800px) { .focus-surface { padding: 16px; } .task-header { gap: 6px; } .clock strong { font-size: clamp(60px, 16vw, 80px); } h1 { font-size: 23px; } .focus-nav { align-items: start; } .focus-nav span { max-width: 24ch; text-align: right; } .timer-controls { gap: 14px; } }
 </style>
