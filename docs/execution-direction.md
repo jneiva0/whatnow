@@ -4,6 +4,21 @@ Atualizado em 27/10/2026. Fonte: feedback direto de João nesta conversa e leitu
 
 ## Estado atual — voltar ao produto
 
+**Retomada e entrega corrigida — 27/10:** João confirmou o overflow horizontal
+corrigido no Android. A correção está registrada no [changelog](../CHANGELOG.md).
+A conferência anterior abaixo que declarava a versão atual em uso estava errada:
+o processo ainda executava `~/go/bin/whatnow` antigo. Nesta retomada ele foi
+substituído por `just dev` no tmux, usando o banco existente. O Vite atende em
+5173 e a API recompilada em7777 agora retorna `progress`. HTTPS Tailscale7001
+encaminha para o Vite e respondeu200. Alterações frontend usam HMR; alterações
+Go precisam de reinício da receita, que não contém watcher.
+
+A organização pela IA já recebeu feedback positivo de João. O próximo aceite
+é a ligação “Começar esta ação” → alvo correto no Foco → contador rodando;
+o teste foi solicitado nesta conversa. Não retomar a migração ampla da UI
+nem calibração histórica como substitutos desse ciclo. Manter detalhes técnicos
+e mudanças neste repositório, com commits por fatia.
+
 **Aviso da estimativa — 27/10:** o cliente acompanha a mesma estimativa e tempo
 acumulado usados no Foco, inclusive segmentos anteriores. Ao atingir o tempo
 previsto de uma ação que estava sendo acompanhada, avisa uma vez e oferece Ver

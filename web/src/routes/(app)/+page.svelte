@@ -164,7 +164,7 @@
 	.day-view a[aria-current='page'] { background: var(--chip); }
 	.day-view a:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 	.action-hint { margin: 0 0 12px; color: var(--ink-soft); font-size: 13px; }
-	.lower.actions { grid-template-columns: 1fr; }
+	.lower.actions { grid-template-columns: minmax(0, 1fr); }
 	h2 {
 		margin: 6px 0 8px;
 	}
@@ -188,6 +188,7 @@
 	}
 	.add > :global(:first-child) {
 		flex: 1;
+		min-width: 0;
 	}
 	.tray-head {
 		display: flex;
@@ -197,27 +198,14 @@
 	}
 	.lower {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 16px;
 		align-items: start;
 	}
 
 	@media (max-width: 800px) {
-		.add {
-		display: flex;
-		gap: 10px;
-		align-items: center;
-	}
-	.add > :global(:first-child) {
-		flex: 1;
-	}
-	.tray-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-	.lower {
-			grid-template-columns: 1fr;
+		.lower {
+			grid-template-columns: minmax(0, 1fr);
 		}
 	}
 </style>

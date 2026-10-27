@@ -17,6 +17,7 @@ export default defineConfig({
 		})
 	],
 	server: {
+		allowedHosts: ['mac.antelope-garibaldi.ts.net'],
 		// `just serve` runs the API here. The SSE stream goes through the same proxy.
 		proxy: { '/api': 'http://127.0.0.1:7777' }
 	},

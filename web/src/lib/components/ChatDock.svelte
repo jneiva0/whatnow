@@ -129,6 +129,8 @@
 		display: flex;
 		flex-direction: column;
 		width: 360px;
+		min-width: 0;
+		max-width: 100%;
 		height: calc(100vh - 32px);
 		position: sticky;
 		top: 16px;
@@ -143,6 +145,8 @@
 	}
 	.log {
 		flex: 1;
+		min-height: 0;
+		min-width: 0;
 		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
@@ -152,6 +156,8 @@
 		border-radius: var(--radius);
 		padding: 8px 12px;
 		max-width: 90%;
+		min-width: 0;
+		overflow-wrap: anywhere;
 		margin: 0;
 		display: flex;
 		flex-direction: column;
@@ -176,6 +182,7 @@
 		color: var(--ink-soft);
 	}
 	.toolchip {
+		max-width: 100%;
 		font-size: 11px;
 		font-weight: var(--heavy);
 		background: var(--chip);
