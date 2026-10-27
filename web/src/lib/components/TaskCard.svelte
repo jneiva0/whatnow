@@ -23,15 +23,17 @@
 		date: string;
 		/** All tasks shows dates, and opens the editor on a click instead of expanding the card. */
 		listed?: boolean;
+		/** Present one executable action using the shared step controls. */
+		actionView?: boolean;
 	}
-	let { card, tier, date, listed = false }: Props = $props();
+	let { card, tier, date, listed = false, actionView = false }: Props = $props();
 
 	let menuOpen = $state(false);
 	let expanded = $state(false);
 	const task = $derived(card.task);
 	const steps = $derived(execution.steps(task.id));
 	const running = $derived(execution.view?.sessions.find((s) => s.task_id === task.id && s.state === 'running'));
- const nextStep = $derived(steps.find((s) => s.id === running?.step_id) ?? steps.find((s) => !s.done));
+ const nextStep = $derived(running ? steps.find((s) => s.id === running.step_id) : steps.find((s) => !s.done));
  const nextActual = $derived(nextStep ? actionActual(execution.view?.sessions ?? [], task.id, nextStep.id, execution.now) : 0);
 	const completed = $derived(steps.filter((s) => s.done).length);
 	const actual = $derived(taskActual(execution.view?.sessions ?? [], task.id, execution.now));
@@ -84,7 +86,7 @@
 	class={['sticker card', tier ?? (listed ? 'listed' : 'unplanned'), {closed: task.status !== 'open', linked: linked.ids.includes(task.id)}]}
 >
 	{#if task.status === 'open'}
-		<input type="checkbox" aria-label="Mark done" onchange={complete} />
+		<input type="checkbox" aria-label={actionView ? `Concluir tarefa: ${task.title}` : 'Mark done'} onchange={complete} />
 	{:else}
 		<span class="mark" aria-label={task.status}>{task.status === 'done' ? '✓' : '✕'}</span>
 	{/if}
@@ -134,12 +136,17 @@
 		{/if}
 
         {#if task.status === 'open'}
+          {#if actionView && steps.length && !(running && running.step_id === null)}
+            {#if !nextStep}<p class="steps-ready">Passos concluídos. Marque a tarefa quando estiver pronta.</p>{/if}
+            <ExecutionSteps taskId={task.id} eligible={canStart} preview />
+          {:else}
             <div class="execution">
                 <div class="step-progress">{#if nextStep}<span class="next-action">{nextStep.description}</span><span class="next-time">{timerText(nextActual)} / {nextStep.estimate_minutes == null ? '—' : timerText(nextStep.estimate_minutes * 60000)}{running ? ' · Em foco' : ''}</span>{/if}<span class={['total-time', {secondary: !!nextStep}]}>{nextStep ? 'Total ' : ''}{timerText(actual)} / {estimate.minutes == null ? '—' : timerText(estimate.minutes * 60000)}{estimate.partial ? '+' : ''}</span></div>
-                {#if !steps.length || nextStep}<PlayToggle running={execution.selected?.task_id === task.id && execution.selected.state === 'running'} disabled={!canStart || execution.busy} label={execution.selected?.task_id === task.id && execution.selected.state === 'running' ? `Pausar ${task.title}` : `Começar ${task.title}`} onclick={async () => { if (execution.selected?.task_id === task.id && execution.selected.state === 'running') await execution.action(execution.selected.id, 'pause'); else if (await execution.start(task.id, nextStep?.id ?? null)) goto(`/focus?task=${task.id}${nextStep ? `&step=${nextStep.id}` : ''}`); }} />{/if}
+                {#if !steps.length || nextStep || running}<PlayToggle running={!!running} disabled={(!canStart && !running) || execution.busy} label={running ? `Pausar ${task.title}` : `Começar ${task.title}`} onclick={async () => { if (running) await execution.action(running.id, 'pause'); else if (await execution.start(task.id, nextStep?.id ?? null)) goto(`/focus?task=${task.id}${nextStep ? `&step=${nextStep.id}` : '&direct=1'}${actionView ? '&from=actions' : ''}`); }} />{/if}
                 <a class="focus-icon" href={`/focus?task=${task.id}${nextStep ? `&step=${nextStep.id}` : ''}`} aria-label={`Abrir foco de ${task.title}`} title="Abrir foco"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M8 21H3v-5"/><circle cx="12" cy="12" r="3"/></svg></a>
             </div>
             <details class="card-steps"><summary>{steps.length ? `${completed}/${steps.length} passos` : 'Adicionar passos'}{steps.length && !nextStep ? ' · Todos concluídos' : ''}</summary><ExecutionSteps taskId={task.id} eligible={canStart} /></details>
+          {/if}
         {/if}
 	</div>
 	{#if task.status === 'dropped'}
@@ -165,6 +172,7 @@
 </article>
 
 <style>
+ .steps-ready { margin: 8px 0 0; font-size: 13px; }
  .focus-icon { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; color: var(--ink); }
 	.execution { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
 	.step-progress { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; font-variant-numeric: tabular-nums; }

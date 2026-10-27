@@ -19,6 +19,7 @@
  let correctedMinutes = $state<number | undefined>();
  let correctionReason = $state('');
  const selected = $derived(execution.selected);
+ const dayURL = $derived(page.url.searchParams.get('from') === 'actions' ? '/?view=actions' : '/');
  const requestedTask = $derived(Number(page.url.searchParams.get('task')) || null);
  const requestedStep = $derived(Number(page.url.searchParams.get('step')) || null);
  const target = $derived(focusTarget(execution.view, requestedTask ? {taskID: requestedTask, stepID: requestedStep ?? (page.url.searchParams.has('direct') ? null : execution.steps(requestedTask).find((s) => !s.done)?.id ?? null)} : null));
@@ -60,7 +61,7 @@
  }
 </script>
 <svelte:head><title>Foco · whatnow</title></svelte:head>
-<nav class="focus-nav" aria-label="Navegação do foco"><a href="/">Ver dia</a><span class="muted">O foco continua ao sair desta tela.</span></nav>
+<nav class="focus-nav" aria-label="Navegação do foco"><a href={dayURL}>Ver dia</a><span class="muted">O foco continua ao sair desta tela.</span></nav>
 {#if execution.problem}<div class="sticker problem" role="alert"><p>{execution.problem}</p><button class="btn" onclick={() => execution.refresh()}>Tentar atualizar</button></div>{/if}
 {#if !live.connected}<p class="connection" role="status">Reconectando. O tempo já confirmado está preservado.</p>{/if}
 {#if !execution.view}
@@ -75,7 +76,7 @@
   {#if !allStepsDone || step}
   <div class="current-action">
    <div class="action-heading"><h2>{step?.description ?? 'Executar tarefa'}</h2><span class="state">{status}</span></div>
-   <div class="timer-controls"><div class="clock"><strong role="timer" aria-label={clock.label}>{clock.text}</strong><span>{clock.label}</span></div>{#if !done}<PlayToggle --play-size="64px" --play-background="var(--chip)" --play-ink="var(--ink)" running={session?.state === 'running'} disabled={busy || !eligible} label={session?.state === 'running' ? 'Pausar foco' : 'Iniciar ou retomar foco'} onclick={() => {void toggle();}} />{/if}</div>
+   <div class="timer-controls"><div class="clock"><strong role="timer" aria-label={clock.label}>{clock.text}</strong><span>{clock.label}</span></div>{#if !done}<PlayToggle --play-size="64px" --play-background="var(--chip)" --play-ink="var(--ink)" running={session?.state === 'running'} disabled={busy || (!eligible && session?.state !== 'running')} label={session?.state === 'running' ? 'Pausar foco' : 'Iniciar ou retomar foco'} onclick={() => {void toggle();}} />{/if}</div>
    {#if progress !== null}<progress max="100" value={progress} aria-label="Tempo dedicado em relação à estimativa"></progress>{/if}
    <p class="action-time">{timerText(actual)} / {targetEstimate == null ? '—' : timerText(targetEstimate * 60000)}{clock.label === 'Tempo excedido' ? ' · O registro continua; nada é concluído automaticamente.' : ''}</p>
 

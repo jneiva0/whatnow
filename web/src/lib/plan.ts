@@ -1,5 +1,6 @@
 import type { Blocker, Task, Tier, Today } from './api';
 import { localDate } from './time';
+import { available } from './execution';
 
 export const tierLabels: Record<Tier, string> = {
 	must: 'Must (Essencial)',
@@ -13,6 +14,32 @@ export interface Card {
 }
 
 export type Tiers = Record<Tier, Card[]>;
+
+export interface ActionCard {
+	card: Card;
+	tier?: Tier;
+}
+
+/** Another view of the current plan, not a separate queue to maintain. */
+export function actionCards(today: Today, tasks: Task[], blockers: Blocker[], runningTaskID?: number): ActionCard[] {
+	const grouped = tiers(today, tasks);
+	const candidates: ActionCard[] = [
+		...(['must', 'should', 'could'] as const).flatMap((tier) => grouped[tier].map((card) => ({card, tier}))),
+		...unplanned(today, tasks).map((card) => ({card}))
+	];
+	// A live focus remains reachable even while the plan catches up with a recent change.
+	const running = tasks.find((task) => task.id === runningTaskID && task.status === 'open');
+	if (running && !candidates.some(({card}) => card.task.id === running.id)) candidates.unshift({card: {task: running, rationale: ''}});
+	const seen = new Set<number>();
+	const eligible = candidates.filter(({card}) => {
+		if (seen.has(card.task.id) || (!available(card.task, tasks, blockers, today.date) && card.task.id !== running?.id)) return false;
+		seen.add(card.task.id);
+		return true;
+	});
+	const active = eligible.findIndex(({card}) => card.task.id === running?.id);
+	if (active > 0) eligible.unshift(...eligible.splice(active, 1));
+	return eligible;
+}
 
 /**
  * The plan's open tasks by tier, in plan order. A task the plan names but that is finished,

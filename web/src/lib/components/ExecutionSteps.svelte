@@ -7,11 +7,15 @@
  import { execution } from '#lib/execution.svelte.ts';
  import { actionActual, timerText, reorderStepIDs } from '#lib/execution.ts';
  import { toasts } from '#lib/toasts.svelte.ts';
- let {taskId, selectedId = null, eligible = true}: {taskId: number; selectedId?: number | null; eligible?: boolean} = $props();
+ let {taskId, selectedId = null, eligible = true, preview = false}: {taskId: number; selectedId?: number | null; eligible?: boolean; preview?: boolean} = $props();
+ let showAll = $state(false);
  let saving = $state(false); let problem = $state(''); let description = $state('');
  let splitting = $state<number | null>(null); let splitText = $state('');
  let dragged = $state<number | null>(null); let over = $state<number | null>(null); let announcement = $state('');
  const steps = $derived(execution.steps(taskId));
+ const current = $derived(steps.find((step) => execution.view?.sessions.some((s) => s.task_id === taskId && s.step_id === step.id && s.state === 'running')) ?? steps.find((step) => !step.done));
+ const compact = $derived(preview && !showAll);
+ const visibleSteps = $derived(compact ? current ? [current] : [] : steps);
  async function write(label: string, op: () => Promise<Mutation>) {
   if (saving) return false; saving = true; problem = '';
   try { const result = await op(); await execution.refresh(); toasts.show(label, result.batch_id); return true; }
@@ -29,7 +33,7 @@
  }
  async function add(e: SubmitEvent) { e.preventDefault(); if (description.trim() && await write('Passo adicionado', () => api.addStep(taskId, {description: description.trim(), estimate_minutes: null}))) description = ''; }
  async function split(step: Step) { const parts = splitText.split('\n').map((s) => s.trim()).filter(Boolean); if (parts.length < 2) { problem = 'Escreva pelo menos dois passos, um por linha.'; return; } if (await write('Passo dividido', () => api.splitStep(taskId, step.id, parts.map((description) => ({description, estimate_minutes: null}))))) splitting = null; }
- async function start(step: Step) { if (await execution.start(taskId, step.id)) goto(`/focus?task=${taskId}&step=${step.id}`); }
+ async function start(step: Step) { if (await execution.start(taskId, step.id)) goto(`/focus?task=${taskId}&step=${step.id}${preview ? '&from=actions' : ''}`); }
  async function reorder(id: number, destination: number) {
   const ids = reorderStepIDs(steps.map((s) => s.id), id, destination); if (!ids) return;
   const to = ids.indexOf(id);
@@ -49,8 +53,8 @@
 </script>
 <p class="sr-only" aria-live="polite">{announcement}</p>
 {#if problem}<p class="problem" role="alert">{problem}</p>{/if}
-<ol class="step-list">
- {#each steps as step (step.id)}
+<ol class={['step-list', {compact}]}>
+ {#each visibleSteps as step (step.id)}
   {@const actual = actionActual(execution.view?.sessions ?? [], taskId, step.id, execution.now)}
   {@const running = execution.view?.sessions.find((s) => s.task_id === taskId && s.step_id === step.id && s.state === 'running')}
   <li data-step-row={step.id} data-task={taskId} class={{selected: selectedId === step.id || running, done: step.done, dragging: dragged === step.id, over: dragged !== null && over === step.id}}>
@@ -59,16 +63,20 @@
     <button type="button" class="check" aria-label={`${step.done ? 'Reabrir' : 'Concluir'} ${step.description}`} aria-pressed={step.done} disabled={saving || execution.busy} onclick={() => toggle(step)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2" />{#if step.done}<path d="m7 12 3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" />{/if}</svg></button>
     <div class="description"><InlineEdit value={step.description} label={`Editar ${step.description}`} disabled={saving} onsave={(description) => editField(step, {description})} /></div>
     <div class="time-pair"><span class="actual">{timerText(actual)}</span><span class="divider">/</span><div class="estimate"><InlineEdit numeric value={step.estimate_minutes == null ? '' : String(step.estimate_minutes)} display={step.estimate_minutes == null ? '—' : timerText(step.estimate_minutes * 60000)} label={`Estimativa de ${step.description} em minutos`} disabled={saving} onsave={(value) => editField(step, {estimate_minutes: value ? Number(value) : null})} /></div></div>
-    {#if !step.done}<PlayToggle running={!!running} disabled={!eligible || saving || execution.busy} label={`${running ? 'Pausar' : 'Começar'} ${step.description}`} onclick={() => {if (running) void execution.action(running.id, 'pause'); else void start(step);}} />{/if}
+    {#if !step.done}<PlayToggle running={!!running} disabled={(!eligible && !running) || saving || execution.busy} label={`${running ? 'Pausar' : 'Começar'} ${step.description}`} onclick={() => {if (running) void execution.action(running.id, 'pause'); else void start(step);}} />{/if}
     <details class="more"><summary aria-label={`Mais ações para ${step.description}`}>⋯</summary><div class="step-menu">{#if !step.done}<button type="button" onclick={() => {splitting = step.id; splitText = '';}}>Dividir este passo</button>{/if}<button type="button" disabled={saving} onclick={() => write('Passo removido', () => api.deleteStep(taskId, step.id))}>Remover passo</button></div></details>
    </div>
    {#if splitting === step.id}<form class="split" onsubmit={(e) => {e.preventDefault(); void split(step);}}><label>Substituir este passo por ações menores<textarea class="field" rows="3" bind:value={splitText}></textarea></label><p>Um passo por linha. Substitui só esta ação pendente; preserva tempo e passos concluídos.</p><button disabled={saving}>Dividir passo</button><button type="button" onclick={() => splitting = null}>Cancelar</button></form>{/if}
   </li>
  {/each}
 </ol>
+{#if preview}<button type="button" class="show-steps" aria-expanded={showAll} onclick={() => showAll = !showAll}>{showAll ? 'Mostrar só a próxima ação' : `Ver todos os passos · ${steps.filter((s) => s.done).length}/${steps.length}`}</button>{/if}
+{#if !compact}
 <form class="add-step" onsubmit={add}><input class="field" aria-label="Novo passo" placeholder="+ Adicionar passo" bind:value={description} /><button disabled={saving || !description.trim()} aria-label="Adicionar passo">Adicionar</button></form>
 <TaskDecompose {taskId} />
+{/if}
 <style>
+ .compact .grip { visibility: hidden; pointer-events: none; } .show-steps { font-size: 12px; color: var(--ink-soft); text-decoration: underline; text-underline-offset: 3px; padding-inline: 0; }
  .step-list { list-style: none; padding: 0; margin: 8px 0 0; } li { border-top: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); border-radius: var(--radius-sm); } .step-row { display: grid; grid-template-columns: 24px 36px minmax(0, 1fr) auto 44px 28px; align-items: center; gap: 4px; min-width: 0; padding-block: 4px; } .selected { background: color-mix(in srgb, var(--chip) 35%, transparent); } .dragging { opacity: .6; } .over { outline: 2px dashed var(--primary); }
  button { background: none; border: 0; min-height: 44px; } .grip { touch-action: none; cursor: grab; padding: 4px; width: 24px; flex-shrink: 0; } .check { display: grid; place-items: center; min-width: 36px; padding: 6px; } .description { flex: 1; min-width: 40px; text-align: left; padding: 6px 2px; overflow-wrap: anywhere; } .done .description { text-decoration: line-through; }
  .time-pair { display: flex; align-items: center; gap: 2px; font-size: 14px; font-variant-numeric: tabular-nums; }

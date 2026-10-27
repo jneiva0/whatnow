@@ -3,7 +3,8 @@
 	import { page } from '$app/state';
 	import { api, ApiError, type Pick, type Tier } from '#lib/api.ts';
 	import { live } from '#lib/live.svelte.ts';
-	import { doneOn, tierLabels, tiers, unplanned } from '#lib/plan.ts';
+	import { actionCards, doneOn, tierLabels, tiers, unplanned } from '#lib/plan.ts';
+	import { execution } from '#lib/execution.svelte.ts';
 	import { survived } from '#lib/time.ts';
 	import { toasts } from '#lib/toasts.svelte.ts';
 	import { editor } from '#lib/editor.svelte.ts';
@@ -30,6 +31,8 @@
 	const tray = $derived(t ? unplanned(t, today.tasks) : []);
 	const done = $derived(t ? doneOn(t.date, today.tasks) : []);
 	const pickTask = $derived(pick ? today.tasks.find((x) => x.id === pick?.task_id) : undefined);
+	const actionView = $derived(page.url.searchParams.get('view') === 'actions');
+	const actions = $derived(t ? actionCards(t, today.tasks, today.blockers, execution.view?.sessions.find((s) => s.state === 'running')?.task_id) : []);
 	const tierNames: Tier[] = ['must', 'should', 'could'];
 	// A replan can come from anywhere: this button, a pace change, the agent, or an edit that matters.
 	const replanBusy = $derived(replanning || work.busy('replan'));
@@ -42,7 +45,7 @@
 	// A nudge's What now? arrives as ?whatnow, from any page.
 	$effect(() => {
 		if (t?.plan && page.url.searchParams.has('whatnow')) {
-			goto('/', { replaceState: true });
+			goto(actionView ? '/?view=actions' : '/', { replaceState: true });
 			if (!t.day?.wrapped_at) whatNow();
 		}
 	});
@@ -98,10 +101,24 @@
 	{#if t.day?.wrapped_at}
 		<DaysDone day={t.day} done={done.length} meetings={survived(today.events, live.now)} />
 	{:else if planned}
+		<nav class="day-view" aria-label="Visualização do dia">
+			<a href="/" aria-current={!actionView ? 'page' : undefined}>Prioridades</a>
+			<a href="/?view=actions" aria-current={actionView ? 'page' : undefined}>Ações</a>
+		</nav>
 		{#if replanBusy}<Working label="Replanning…" />{/if}
 		{#if t.plan.fallback}
 			<p class="chip rough">rough plan, model was out</p>
 		{/if}
+		{#if actionView}
+			<section aria-label="Próximas ações">
+				<p class="action-hint">Uma ação por tarefa, na ordem do plano. O que está em foco vem primeiro.</p>
+				{#each actions as item (item.card.task.id)}
+					<TaskCard card={item.card} tier={item.tier} date={t.date} actionView />
+				{:else}
+					<p class="muted empty">Nenhuma ação disponível agora. Veja as tarefas em Prioridades.</p>
+				{/each}
+			</section>
+		{:else}
 		{#each tierNames as tier (tier)}
 			<section>
 				<h2 class="label">{tierLabels[tier]}</h2>
@@ -112,9 +129,11 @@
 				{/each}
 			</section>
 		{/each}
+		{/if}
 	{/if}
 
-	<div class="lower">
+	<div class={['lower', {actions: actionView && !t.day?.wrapped_at}]}>
+		{#if !actionView || t.day?.wrapped_at}
 		<section>
 			<div class="tray-head">
 				<h2 class="label">Unplanned</h2>
@@ -130,6 +149,7 @@
 				<p class="muted empty">Tray's empty.</p>
 			{/each}
 		</section>
+		{/if}
 		<section>
 			<DoneToday {done} meetings={survived(today.events, live.now)} />
 		</section>
@@ -139,6 +159,12 @@
 {/if}
 
 <style>
+	.day-view { display: flex; gap: 4px; align-self: flex-start; padding: 4px; border: var(--line); border-radius: var(--radius-sm); background: var(--card); }
+	.day-view a { display: inline-flex; align-items: center; min-height: 44px; padding: 6px 16px; color: var(--ink); text-decoration: none; border-radius: calc(var(--radius-sm) / 2); }
+	.day-view a[aria-current='page'] { background: var(--chip); }
+	.day-view a:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+	.action-hint { margin: 0 0 12px; color: var(--ink-soft); font-size: 13px; }
+	.lower.actions { grid-template-columns: 1fr; }
 	h2 {
 		margin: 6px 0 8px;
 	}
