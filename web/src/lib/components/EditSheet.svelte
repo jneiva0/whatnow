@@ -2,38 +2,25 @@
 	import { editor } from '#lib/editor.svelte.ts';
 	import { today } from '#lib/today.svelte.ts';
 	import TaskEditor from './TaskEditor.svelte';
+	import Toasts from './Toasts.svelte';
 
 	const task = $derived(today.tasks.find((t) => t.id === editor.taskId));
 </script>
 
-<svelte:window onkeydown={(e) => e.key === 'Escape' && editor.close()} />
+
 
 {#if task || editor.creating}
-	<div class="scrim" role="presentation" onclick={() => editor.close()}></div>
-	<div class="sticker sheet" role="dialog" aria-modal="true" aria-label={task ? 'Edit task' : 'New task'}>
+	<dialog class={['sticker sheet', {existing: !!task}]} aria-label={task ? 'Edit task' : 'New task'} oncancel={() => editor.close()} {@attach (node) => { node.showModal(); return () => node.close(); }}>
 		{#key task?.id ?? 'new'}
 			<TaskEditor task={task ?? null} />
 		{/key}
-	</div>
+		<Toasts />
+	</dialog>
 {/if}
 
 <style>
-	.scrim {
-		position: fixed;
-		inset: 0;
-		background: color-mix(in srgb, var(--ink) 40%, transparent);
-		z-index: 40;
-	}
-	.sheet {
-		position: fixed;
-		top: 5vh;
-		left: 50%;
-		transform: translateX(-50%);
-		width: min(560px, calc(100vw - 32px));
-		max-height: 90vh;
-		overflow-y: auto;
-		z-index: 41;
-		background: var(--paper);
-		padding: 18px 20px;
-	}
+ .sheet { margin: auto; width: min(560px, calc(100vw - 32px)); max-width: none; max-height: 90dvh; overflow-y: auto; background: var(--paper); padding: 0 24px; color: var(--ink); }
+ .sheet.existing { width: min(1040px, calc(100vw - 48px)); }
+ .sheet::backdrop { background: color-mix(in srgb, var(--ink) 40%, transparent); }
+ @media(max-width: 600px) { .sheet, .sheet.existing { width: 100%; max-height: 100dvh; height: 100dvh; border-radius: 0; border: 0; padding-inline: 16px; } }
 </style>

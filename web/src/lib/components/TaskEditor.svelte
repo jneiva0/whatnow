@@ -1,5 +1,7 @@
 <script lang="ts">
 	import ExecutionSteps from './ExecutionSteps.svelte';
+	import { execution } from '#lib/execution.svelte.ts';
+	import { taskEstimate } from '#lib/execution.ts';
 	import { api, type Task } from '#lib/api.ts';
 	import { editor } from '#lib/editor.svelte.ts';
 	import { blankForm, fieldsFrom, formFor } from '#lib/taskForm.ts';
@@ -17,6 +19,7 @@
 	let form = $state(task ? formFor(task) : blankForm());
 	// svelte-ignore state_referenced_locally
 	let estimate = $state<number | undefined>(task?.estimate_minutes ?? undefined);
+	const total = $derived(task ? taskEstimate({...task, estimate_minutes: estimate ?? null}, execution.view?.steps ?? []) : null);
 	let problem = $state('');
 	let saving = $state(false);
 	let adding = $state('');
@@ -48,6 +51,7 @@
 					return created;
 				});
 		if (await write) editor.close();
+		else problem = 'Não foi possível salvar a tarefa. Suas alterações continuam aqui.';
 		saving = false;
 	}
 
@@ -65,16 +69,17 @@
 	}
 </script>
 
-<form onsubmit={save}>
-	<header>
-		<h2>{task ? 'Edit task' : 'New task'}</h2>
-		<button type="button" class="close" aria-label="Close" onclick={() => editor.close()}>✕</button>
-	</header>
+<header>
+ <h2>{task ? 'Edit task' : 'New task'}</h2>
+ <button type="button" class="close" aria-label="Close" onclick={() => editor.close()}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+</header>
+<div class={['editor-body', {existing: !!task}]}>
+<form id="task-fields" onsubmit={save}>
 	<label>
 		<span class="label">Title</span>
 		<input class="field" bind:value={form.title} />
 	</label>
-	{#if problem}<p class="problem">{problem}</p>{/if}
+	{#if problem}<p role="alert" class="problem">{problem}</p>{/if}
 	<label>
 		<span class="label">Notes</span>
 		<textarea class="field" rows="3" bind:value={form.notes}></textarea>
@@ -99,6 +104,8 @@
 		<span class="label">Feeling</span>
 		<input class="field" bind:value={form.feeling} placeholder="How does this one feel?" />
 	</label>
+	<details class="advanced" open={!!form.due_on || !!form.not_before || blockedBy.length > 0}>
+	<summary>Datas e dependências</summary>
 	<div class="row">
 		<label>
 			<span class="label">Due</span>
@@ -132,21 +139,34 @@
 		{/if}
 	</section>
 
+	</details>
 	{#if task?.raw_text}
-		<section>
-			<span class="label">As captured</span>
+		<details class="raw-details">
+			<summary>Captura original</summary>
 			<p class="raw">{task.raw_text}</p>
-		</section>
+		</details>
 	{/if}
 
-	<div class="actions">
-		<button class="btn primary" disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
-		<button type="button" class="btn" onclick={() => editor.close()}>Cancel</button>
-	</div>
 </form>
-{#if task}<ExecutionSteps taskId={task.id} />{/if}
+{#if task}<section class="steps-panel" aria-label="Passos da tarefa"><div class="steps-title"><h3>Passos</h3>{#if total?.minutes != null}<span>{total.minutes}{total.partial ? '+' : ''} min</span>{/if}</div><p class="save-hint">Alterações nos passos são salvas na hora.</p><ExecutionSteps taskId={task.id} /></section>{/if}
+</div>
+<footer class="actions">
+ <button form="task-fields" class="btn primary" disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
+ <button type="button" class="btn" onclick={() => editor.close()}>Cancel</button>
+</footer>
 
 <style>
+ .editor-body { display: grid; gap: 24px; padding-block: 20px; }
+ .steps-panel { min-width: 0; border-top: 1px solid var(--paper-deep); padding-top: 20px; }
+ .steps-title { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+ h3 { margin: 0; font-size: 18px; } .steps-title span { font-variant-numeric: tabular-nums; }
+ .save-hint { font-size: 12px; color: var(--ink-soft); margin: 4px 0 12px; }
+ summary { cursor: pointer; padding-block: 12px; min-height: 44px; }
+ .advanced, .raw-details { border-top: 1px solid var(--paper-deep); }
+ header { position: sticky; top: 0; z-index: 2; background: var(--paper); padding-block: 12px; border-bottom: 1px solid var(--paper-deep); }
+ .actions { position: sticky; bottom: 0; background: var(--paper); padding-block: 16px; border-top: 1px solid var(--paper-deep); z-index: 2; }
+ @media(min-width: 900px) { .editor-body.existing { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 32px; } .steps-panel { border-top: 0; border-left: 1px solid var(--paper-deep); padding: 0 0 0 24px; } }
+ @media(max-width: 480px) { .row { flex-wrap: wrap; } .row label { min-width: 120px; } }
 	form {
 		display: flex;
 		flex-direction: column;
@@ -166,6 +186,7 @@
 		flex-direction: column;
 		gap: 4px;
 		flex: 1;
+		min-width: 0;
 	}
 	.row {
 		display: flex;
@@ -176,6 +197,7 @@
 		padding-left: 18px;
 	}
 	.close {
+        min-width: 44px; min-height: 44px; display: inline-grid; place-items: center;
 		background: none;
 		border: none;
 	}

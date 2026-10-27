@@ -6,6 +6,7 @@
 	import '#lib/themes.css';
 	import favicon from '#lib/assets/favicon.svg';
 	import Toasts from '#lib/components/Toasts.svelte';
+	import { editor } from '#lib/editor.svelte.ts';
 	import { live } from '#lib/live.svelte.ts';
 	import { applyTheme } from '#lib/theme.ts';
 	import { welcomeDue } from '#lib/welcome.ts';
@@ -30,4 +31,4 @@
 </svelte:head>
 
 {@render children()}
-<Toasts />
+{#if !editor.creating && editor.taskId === null}<Toasts />{/if}
