@@ -94,14 +94,29 @@ draft and shows an inline error. A failed refresh after a confirmed write is
 reported as a refresh failure, not an unsaved edit. Undo batch handling is intact;
 no timer, step, priority or capture operations changed.
 
-## Next slices
+## Remaining work — parked on 2026-10-27
 
-Migrate the task editor's fields and dialog composition. Use one primitive in
-every surface that has the same intent.
-Add each component through `bunx --bun shadcn-svelte add <component>` from `web/`
-and read the generated source. Consult https://shadcn-svelte-extras.com/ when a
-specific interaction is missing from the official collection; don't add an entire
-secondary registry just to restyle the app.
+João considers the UI sufficient for now and asked to return to the overall
+product direction. Keep these follow-ups for a near-term UI pass; do not start
+another migration slice automatically. The current controls remain usable while
+the product discussion resumes in [execution-direction.md](execution-direction.md).
+
+| Order | Cohesive slice | Keep / intended result |
+| --- | --- | --- |
+| 1 | Task editor fields and dialog composition | Compose the existing editor with shared Input, Textarea, Field, Select and Button. Evaluate moving its native dialog to Bits UI only when it simplifies focus, overlays and maintenance. Preserve drafts across refreshes, explicit task save, immediate step saves, blockers, original capture and responsive layout. Do not create another step editor. |
+| 2 | Day cards and shared execution rows | Polish density, hierarchy, long content, inline editing, reorder affordances and compact actual/estimate presentation as a set. Retain one ExecutionSteps interaction across Day, Focus and editor, and keep the main focus timer prominent/reachable on mobile. Known feedback is in feedback.md; João does not need to repeat it. |
+| 3 | Remaining recurring controls and consistency | Consolidate remaining manual controls in capture/suggestion/chat/navigation when the shared primitives remove code or interaction friction. Check labels, icons, focus/error/pending states and existing themes together. Avoid converting every native element merely for library coverage. |
+
+When resuming, use one primitive in every surface with the same intent. Add
+missing components through `bunx --bun shadcn-svelte add <component>` from `web/`
+and review their source. Consult https://shadcn-svelte-extras.com/ only for a
+concrete missing interaction.
+
+Separately, the architecture review identified estimate aggregation mirrored in
+Go and TypeScript. Evaluate consuming the API's authoritative estimate consistently
+when returning to that boundary; it is not a reason to interrupt product work or
+change the agreed estimate meaning. This is a refactoring candidate, not a new
+feature or a newly confirmed bug.
 
 Keep task/step/timer operations, capture, chat, SSE and undo independent of this
 visual migration. João continues visual acceptance through actual use; build and

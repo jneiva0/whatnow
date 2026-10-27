@@ -1,6 +1,33 @@
 # Execução assistida — direção e diagnóstico
 
-Atualizado em 27/10/2026. Fonte: feedback direto de João nesta conversa e leitura estática do código. Este documento organiza a próxima entrega; não declara implementação ou validação em uso.
+Atualizado em 27/10/2026. Fonte: feedback direto de João nesta conversa e leitura do código. O estado atual está na seção abaixo; as seções de diagnóstico e entregas posteriores preservam o histórico e suas evidências, sem transformar antigas próximas ações em pendências atuais.
+
+## Estado atual — voltar ao produto
+
+João considera a UI suficiente por enquanto e pediu guardar o restante para retomar
+em breve. **A migração visual fica estacionada**, sem iniciar agora a próxima
+fatia do editor. O objetivo continua ajudar a decidir, começar e continuar; a
+biblioteca de componentes é um meio de reduzir atrito e manutenção.
+
+| Frente | Estado em 27/10 | O que ainda precisa de atenção |
+| --- | --- | --- |
+| Planejamento e IA | Captura/chat trabalham com passos e minutos, podem continuar uma intenção existente e E agora pode escolher um passo. Integração implementada e avaliada nos cenários fictícios com provedor real descritos abaixo. | Qualidade no uso cotidiano: reconhecer contexto, evitar fragmentação e sugerir uma ação que ajude a começar. Os cenários exercitados não garantem isso em toda conversa. |
+| Execução | Tarefa direta ou passos, estimativas, tempo real persistente, conclusão explícita e próxima ação apresentada parada. João confirmou sincronização fluida entre computador e celular. | Acompanhar o uso e corrigir quebras reais de continuidade; não reconstruir o timer nem introduzir duração de sessão separada. |
+| Apresentação | Prioridades e Ações são duas perspectivas do mesmo plano; tarefa/passos compartilham controles. Ações filtra elegibilidade, mantém a ordem do plano e apresenta o foco ativo primeiro. | Ações ainda não é uma sequência contextual sugerida pela IA. Essa escolha contextual ocorre no E agora; a relação entre escolher, executar e continuar é o próximo ponto de discussão de produto. |
+| Fundação da UI | Bun, Tailwind/tokens e shadcn-svelte/Bits UI em controles compartilhados, menus e metadados; fechamento do chat confirmado por João. Commits locais até `14e11c4`. | Trabalho restante registrado em [ui-migration.md](ui-migration.md#remaining-work--parked-on-2026-10-27). Retomar em fatias próprias, sem exigir uma migração completa antes de usar o app. |
+
+### Próxima frente de produto — em alinhamento
+
+Revisar o ciclo **“estou travado → recebo uma ação viável → começo → concluo ou
+me distraio → consigo continuar”**. A base técnica já existe; o próximo ganho deve
+vir de conectar melhor a ajuda da IA à execução, conforme o uso mostrar onde
+esse ciclo falha. Não há decisão de criar fila nova, rotinas fixas, ordenação por
+menor duração ou outra página.
+
+O próximo passo é alinhar esse comportamento geral com João antes de escolher
+outra feature. Feedback de aparência permanece no backlog; perda de dados, quebra
+de execução ou de sincronização continua justificando uma correção imediata.
+Voz permanece um bônus posterior ao fluxo principal.
 
 ## Norte
 
