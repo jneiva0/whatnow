@@ -10,6 +10,7 @@
 				default: "border-border bg-primary text-primary-foreground shadow-control hover:bg-primary/90 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none",
 				outline: "border-border bg-card text-card-foreground shadow-control hover:bg-accent hover:text-accent-foreground active:translate-x-0.5 active:translate-y-0.5 active:shadow-none",
 				secondary: "border-border bg-secondary text-secondary-foreground shadow-control hover:bg-accent hover:text-accent-foreground active:translate-x-0.5 active:translate-y-0.5 active:shadow-none",
+				metadata: "border-border/25 bg-card/60 text-foreground [font-weight:500] hover:border-border hover:bg-accent aria-expanded:bg-accent",
 				ghost: "text-foreground hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent",
 				destructive: "border-border bg-destructive text-destructive-foreground shadow-control hover:bg-destructive/90",
 				link: "text-primary underline-offset-4 hover:underline",

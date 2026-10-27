@@ -74,10 +74,30 @@ then adapted to the existing token bridge. Context menu and the other primitives
 come from the configured official shadcn-svelte registry. There is no parallel
 theme or additional application-state store.
 
+## Shared task metadata
+
+`TaskMetadata` is used in both Day and Focus. Minute estimates still use
+`InlineEdit`; energy now composes `Select`, and feeling uses a compact `Popover`
+with `Field`/`Textarea` and icon actions. Long feelings are truncated in the chip
+and remain fully editable in the popover. Enter/blur saves the estimate, choosing
+an energy saves it, and the check icon or Ctrl/Cmd+Enter saves free text.
+
+The `metadata` variant on Button/Select.Trigger holds the shared treatment rather
+than repeating per-surface control CSS. Select/Popover/Textarea use the same
+existing semantic theme bridge. Bits UI manages the overlay and its keyboard/focus
+behavior; there is no separate manual menu state or document-level listener.
+
+Writes retain the existing full-field API, refetching the latest task first so an
+edit does not replace unrelated fields with an old local snapshot. Energy's
+selection follows the authoritative task value. A failed write keeps the feeling
+draft and shows an inline error. A failed refresh after a confirmed write is
+reported as a refresh failure, not an unsaved edit. Undo batch handling is intact;
+no timer, step, priority or capture operations changed.
+
 ## Next slices
 
-Migrate metadata controls, then the task editor's fields and
-dialog composition. Use one primitive in every surface that has the same intent.
+Migrate the task editor's fields and dialog composition. Use one primitive in
+every surface that has the same intent.
 Add each component through `bunx --bun shadcn-svelte add <component>` from `web/`
 and read the generated source. Consult https://shadcn-svelte-extras.com/ when a
 specific interaction is missing from the official collection; don't add an entire

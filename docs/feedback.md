@@ -12,8 +12,15 @@ Fonte: correções explícitas de João durante QA em 25/10/2026, delegadas pela
 - **Correção:** as screenshots de João mostraram o controle do chat ausente.
   A classe legada `collapse` colidiu com a utility Tailwind `visibility: collapse`.
   Substituída por `Button` compartilhado com ícone X, nome acessível e área de
-  toque de 44px; fechamento e preferência salva mantidos. Validação visual de
-  uso permanece com João.
+  toque de 44px; fechamento e preferência salva mantidos. João confirmou em
+  seguida: “close button is ok now”. Isso aceita esse controle, não toda a UI.
+- Metadados compartilhados Dia/Foco: estimativa mantém edição inline; energia
+  usa Select com ícone/valor; sentimento é um chip editável por Popover com
+  campo de texto livre. Erro de escrita mantém o rascunho; valor de energia
+  acompanha o servidor. Composição sem o formulário avulso abaixo do cartão.
+  Check Svelte sem erros/avisos, 167 testes existentes, build e detector
+  determinístico Impeccable passaram. Aceite visual/interação desses controles
+  permanece com João; nenhum teste em aparelho físico foi realizado.
 - **Condução:** manter commits por fatia funcional/refatoração para revisão e
   rollback. Feedback pontual não substitui automaticamente a sequência de entrega.
 
