@@ -138,6 +138,10 @@ func (r *Runner) situation(ctx context.Context, taskID int64) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	execution, err := r.svc.Execution(ctx)
+	if err != nil {
+		return "", err
+	}
 	now := r.now().In(r.loc)
 	var b strings.Builder
 	fmt.Fprintf(&b, "Now: %s (%s)\n\n", now.Format("Monday 2006-01-02 15:04"), now.Format("MST, UTC-07:00"))
@@ -149,17 +153,12 @@ func (r *Runner) situation(ctx context.Context, taskID int64) (string, error) {
 			if t.Energy != nil {
 				fmt.Fprintf(&b, "  Energy: %s\n", *t.Energy)
 			}
-			steps, err := r.svc.ListSteps(ctx, t.ID)
-			if err != nil {
-				return "", err
-			}
-			estimate := domain.TaskEstimate(t, steps)
+			progress := execution.Progress[t.ID]
+			estimate := progress.TotalEstimate
 			if estimate.Minutes != nil {
 				fmt.Fprintf(&b, "  Estimated total: %d min (partial=%t)\n", *estimate.Minutes, estimate.Partial)
 			}
-			for _, step := range steps {
-				fmt.Fprintf(&b, "  Step %d (done=%t): %s\n", step.ID, step.Done, step.Description)
-			}
+			b.WriteString(prompt.Execution(progress))
 			open++
 		}
 	}

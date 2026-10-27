@@ -19,6 +19,7 @@ type Input struct {
 	EndOfDay string // local HH:MM
 	Tasks    []domain.Task
 	Steps    []domain.Step
+	Sessions []domain.FocusSession
 	Blockers []domain.Blocker
 	Events   []domain.Event
 	// PushCounts maps a task ID to how many times it was pushed.
@@ -37,6 +38,7 @@ func (g Gap) Duration() time.Duration { return g.End.Sub(g.Start) }
 type TaskFacts struct {
 	Task     domain.Task
 	Estimate domain.Estimate
+	Progress *domain.TaskProgress
 	// BlockedBy lists the open tasks this one waits on.
 	BlockedBy   []int64
 	Annotations []string
@@ -120,11 +122,13 @@ func Compute(in Input) Facts {
 		longest = max(longest, g.Duration())
 	}
 
+	progress := Execution(in.Now, in.Tasks, in.Steps, in.Sessions)
 	for _, t := range in.Tasks {
 		if !Eligible(t, f.Today) {
 			continue
 		}
-		tf := TaskFacts{Task: t, Estimate: domain.TaskEstimate(t, in.Steps), BlockedBy: waitsOn[t.ID]}
+		p := progress[t.ID]
+		tf := TaskFacts{Task: t, Estimate: p.TotalEstimate, Progress: &p, BlockedBy: waitsOn[t.ID]}
 		if t.DueOn != nil {
 			tf.Annotations = append(tf.Annotations, due(*t.DueOn, f.Today))
 		}

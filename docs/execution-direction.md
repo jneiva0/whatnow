@@ -4,6 +4,15 @@ Atualizado em 27/10/2026. Fonte: feedback direto de João nesta conversa e leitu
 
 ## Estado atual — voltar ao produto
 
+**Fatia de fatos compartilhados — 27/10:** `facts.Execution` calcula estimativa
+total, estimativas pendentes conhecidas, passos concluídos, tempo registrado por
+ação, foco em execução e próxima referência. A API, planejamento, captura,
+consulta de tarefas pelo chat e resumo do dia usam essa projeção. O modelo não
+precisa mais agregar o histórico bruto de sessões. O resumo distingue tempo
+acumulado de tempo atribuído ao dia; calibração histórica continua posterior.
+Testes dos pacotes facts, prompt, service, cleanup, planner, agent e httpapi
+passaram. Próxima fatia autorizada: contrato de organização de passos.
+
 **Atualização após o teste de uso:** a passagem de contexto de `147777b` é uma
 correção parcial. João mostrou que o chat ainda respondeu só verbalmente e só
 organizou os passos após cobrança. Pediu revisar a arquitetura antes de continuar

@@ -3,7 +3,9 @@ package prompt
 import (
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/jameynakama/whatnow/internal/domain"
 	"github.com/jameynakama/whatnow/internal/facts"
 )
 
@@ -67,9 +69,42 @@ func Facts(f facts.Facts) string {
 		if t.RawText != "" && t.RawText != t.Title && t.RawText != t.Notes {
 			fmt.Fprintf(&b, "  Original capture: %q\n", t.RawText)
 		}
+		if tf.Progress != nil {
+			b.WriteString(Execution(*tf.Progress))
+		}
 		for _, a := range tf.Annotations {
 			fmt.Fprintf(&b, "  - %s\n", a)
 		}
+	}
+	return b.String()
+}
+
+// Execution renders computed facts, not raw session history. Times are cumulative
+// recorded focus, never a claim of activity or time spent on a particular day.
+func Execution(p domain.TaskProgress) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "  Recorded focus (cumulative): %s; completed steps: %d/%d.\n", time.Duration(p.ActualMS)*time.Millisecond, p.CompletedSteps, len(p.Steps))
+	if p.PendingEstimate.Minutes != nil {
+		fmt.Fprintf(&b, "  Pending action estimates: %d min (partial=%t); not reduced by recorded time.\n", *p.PendingEstimate.Minutes, p.PendingEstimate.Partial)
+	} else {
+		b.WriteString("  Pending action estimates: unknown.\n")
+	}
+	if p.ArchivedActualMS > 0 {
+		fmt.Fprintf(&b, "  Recorded focus on removed actions (included in task total): %s.\n", time.Duration(p.ArchivedActualMS)*time.Millisecond)
+	}
+	if p.Running != nil {
+		if p.Running.StepID == nil {
+			b.WriteString("  Currently running: task directly.\n")
+		} else {
+			fmt.Fprintf(&b, "  Currently running: step #%d.\n", *p.Running.StepID)
+		}
+	}
+	for _, step := range p.Steps {
+		estimate := "unknown"
+		if step.EstimateMinutes != nil {
+			estimate = fmt.Sprintf("%d min", *step.EstimateMinutes)
+		}
+		fmt.Fprintf(&b, "  Step #%d (done=%t): %s; estimate %s; recorded %s.\n", step.ID, step.Done, step.Description, estimate, time.Duration(step.ActualMS)*time.Millisecond)
 	}
 	return b.String()
 }

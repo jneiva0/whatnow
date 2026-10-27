@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jameynakama/whatnow/internal/domain"
+	"github.com/jameynakama/whatnow/internal/facts"
 )
 
 const focusColumns = `id,task_id,step_id,state,segment_started_at,accumulated_ms,created_at,ended_at`
@@ -141,6 +142,7 @@ func executionState(ctx context.Context, tx *sql.Tx, now time.Time) (domain.Exec
 		return out, err
 	}
 	out.Estimates = map[int64]domain.Estimate{}
+	var progressTasks []domain.Task
 	tasks, err := tx.QueryContext(ctx, `SELECT `+taskColumns+` FROM tasks WHERE deleted_at IS NULL`)
 	if err != nil {
 		return out, err
@@ -152,6 +154,7 @@ func executionState(ctx context.Context, tx *sql.Tx, now time.Time) (domain.Exec
 			return out, err
 		}
 		out.Estimates[task.ID] = domain.TaskEstimate(task, out.Steps)
+		progressTasks = append(progressTasks, task)
 	}
 	tasks.Close()
 	if err := tasks.Err(); err != nil {
@@ -200,6 +203,7 @@ func executionState(ctx context.Context, tx *sql.Tx, now time.Time) (domain.Exec
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}
+	out.Progress = facts.Execution(now, progressTasks, out.Steps, out.Sessions)
 	return out, err
 }
 func (s *Service) Execution(ctx context.Context) (domain.ExecutionState, error) {

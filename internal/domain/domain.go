@@ -248,12 +248,13 @@ type FocusSession struct {
 }
 
 type ExecutionState struct {
-	Estimates   map[int64]Estimate `json:"estimates"`
-	Corrections []FocusCorrection  `json:"corrections"`
-	ServerNow   time.Time          `json:"server_now"`
-	Steps       []Step             `json:"steps"`
-	Sessions    []FocusSession     `json:"sessions"`
-	SelectedID  *int64             `json:"selected_id"`
+	Progress    map[int64]TaskProgress `json:"progress"`
+	Estimates   map[int64]Estimate     `json:"estimates"`
+	Corrections []FocusCorrection      `json:"corrections"`
+	ServerNow   time.Time              `json:"server_now"`
+	Steps       []Step                 `json:"steps"`
+	Sessions    []FocusSession         `json:"sessions"`
+	SelectedID  *int64                 `json:"selected_id"`
 }
 
 // FocusCorrection is an audit entry, never a generic undo activity.

@@ -161,16 +161,17 @@ func (t *turn) dispatch(ctx context.Context, c llm.ToolCall) (string, any, error
 
 // brief is a task as the model reads it in tool results.
 type brief struct {
-	EstimateMinutes *int           `json:"estimate_minutes"`
-	ID              int64          `json:"id"`
-	Title           string         `json:"title"`
-	Status          domain.Status  `json:"status"`
-	Notes           string         `json:"notes,omitempty"`
-	Size            *domain.Size   `json:"size,omitempty"`
-	Energy          *domain.Energy `json:"energy,omitempty"`
-	Feeling         string         `json:"feeling,omitempty"`
-	DueOn           *domain.Date   `json:"due_on,omitempty"`
-	NotBefore       *domain.Date   `json:"not_before,omitempty"`
+	Progress        *domain.TaskProgress `json:"progress,omitempty"`
+	EstimateMinutes *int                 `json:"estimate_minutes"`
+	ID              int64                `json:"id"`
+	Title           string               `json:"title"`
+	Status          domain.Status        `json:"status"`
+	Notes           string               `json:"notes,omitempty"`
+	Size            *domain.Size         `json:"size,omitempty"`
+	Energy          *domain.Energy       `json:"energy,omitempty"`
+	Feeling         string               `json:"feeling,omitempty"`
+	DueOn           *domain.Date         `json:"due_on,omitempty"`
+	NotBefore       *domain.Date         `json:"not_before,omitempty"`
 }
 
 func briefOf(t domain.Task) brief {
@@ -191,10 +192,18 @@ func listTasks(ctx context.Context, t *turn, input json.RawMessage) (string, any
 	if err != nil {
 		return "", nil, err
 	}
+	execution, err := t.agent.svc.Execution(ctx)
+	if err != nil {
+		return "", nil, err
+	}
 	out := []brief{}
 	for _, task := range all {
 		if task.Status == in.Status {
-			out = append(out, briefOf(task))
+			item := briefOf(task)
+			if p, ok := execution.Progress[task.ID]; ok {
+				item.Progress = &p
+			}
+			out = append(out, item)
 		}
 	}
 	return fmt.Sprintf("Looked at %s tasks", in.Status), out, nil
