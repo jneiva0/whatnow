@@ -1,0 +1,14 @@
+{
+  "runs": [
+    {
+      "date": "2026-10-24T04:24:13.613178+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 266,
+      "token_usage_available": false,
+      "token_usage_note": "Subagent tools did not expose usage; zero values are placeholders, not measured usage."
+    }
+  ],
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

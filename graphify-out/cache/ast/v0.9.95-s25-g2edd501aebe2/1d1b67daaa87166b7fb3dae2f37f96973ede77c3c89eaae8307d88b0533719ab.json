@@ -1,0 +1,1 @@
+{"nodes": [{"id": "$graphify-root$_internal_planner_instructions_go", "label": "instructions.go", "file_type": "code", "source_file": "internal/planner/instructions.go", "source_location": "L1"}], "edges": [], "raw_calls": [], "go_imports": {}, "go_type_table": {"path": "$graphify-root$/internal/planner/instructions.go", "table": {}}}
