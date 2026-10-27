@@ -4,6 +4,20 @@ Atualizado em 27/10/2026. Fonte: feedback direto de João nesta conversa e leitu
 
 ## Estado atual — voltar ao produto
 
+**Nova direção autorizada:** João escolheu Ações/Foco primeiro, seguida da
+verificação de instalação PWA, que não impede o uso. Isso substitui o adiamento
+da fatia visual correspondente e a pergunta de prioridade registrada abaixo.
+Primeira fatia entregue: passo destacado, contexto pai recolhível, metadados
+compactos compartilhados e timer dominante no Foco. Detalhes no changelog.
+
+**PWA:** diagnóstico de fonte confirmado: falta manifesto vinculado e ícones
+de instalação. Não tratar ausência de service worker como bloqueio suficiente:
+o Chrome retirou a exigência de fetch handler para instalação pelo menu no
+Android108. Referência: https://developer.chrome.com/blog/update-install-criteria .
+O próximo ajuste técnico seria declarar nome, ícones, start_url, scope e display;
+isso não implica cache offline nem alarmes em segundo plano. Não foi implementado
+nesta fatia, cuja prioridade é o aceite de Ações/Foco.
+
 ### Revisão de fechamento do fluxo principal — retomada de 27/10
 
 Esta tabela prevalece sobre pendências históricas narradas nas seções abaixo.

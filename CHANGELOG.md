@@ -2,6 +2,22 @@
 
 ## 2026-10-27
 
+### Ações e Foco: ação primeiro, contexto compacto
+
+- Ações destaca a descrição do passo, com contexto da tarefa em tipografia
+  secundária. Notas e justificativa ficam sob “Ver contexto”, sem expansão por
+  hover nessa perspectiva. Prioridades preserva a apresentação anterior.
+- TaskMetadata compartilha modo compacto entre Ações/Foco: energia por indicador,
+  sentimento por ícone com texto completo acessível no controle e popover,
+  estimativa editável e data preservadas. Menu da tarefa ocupa a mesma faixa.
+- A linha compacta usa os mesmos controles de ExecutionSteps; no celular,
+  descrição e tempo/ações se distribuem em duas linhas. Foco reduz o peso do
+  título pai e destaca a ação junto ao timer. Nenhuma regra de execução mudou.
+- 181 testes, check Svelte, autofixer e build passaram; detector sem achados.
+  Inspeção limitada em Chromium: Ações sem overflow em320/390/1440px, Foco
+  em320/390px e captura desktop. Não houve alteração de tarefas/timers durante
+  a inspeção. Aceite visual em aparelho continua com João.
+
 ### Recuperação do chat sem perder respostas recentes
 
 - Uma leitura atrasada do histórico não remove mais mensagens confirmadas que

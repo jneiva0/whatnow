@@ -20,7 +20,7 @@
 	import { toasts } from '#lib/toasts.svelte.ts';
 	import { cn } from '#lib/utils.js';
 
-	let { task }: { task: Task } = $props();
+	let { task, compact = false }: { task: Task; compact?: boolean } = $props();
 	const uid = $props.id();
 	let busy = $state(false);
 	let feelingOpen = $state(false);
@@ -85,7 +85,7 @@
 	}
 </script>
 
-<div class="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm" aria-busy={busy}>
+<div class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm" aria-busy={busy}>
 	<div class="flex w-28 min-w-0 items-center gap-1 rounded-md border border-border/25 bg-card/60 pr-1 pl-2">
 		<ClockIcon class="size-4 shrink-0" aria-hidden="true" />
 		<InlineEdit
@@ -97,9 +97,9 @@
 	</div>
 	<Select.Root type="single" items={energyOptions} disabled={busy}
 		bind:value={() => task.energy ?? 'none', (value) => { void changeEnergy(value); }}>
-		<Select.Trigger variant="metadata" aria-label={`Energia da tarefa: ${energy.label}`} title="Editar energia" aria-invalid={!!energyError}>
+		<Select.Trigger variant="metadata" aria-label={`Energia da tarefa: ${energy.label}`} title={`Energia: ${energy.label} — editar`} size={compact ? 'sm' : 'default'} aria-invalid={!!energyError}>
 			<energy.icon aria-hidden="true" />
-			<span>{task.energy ? energy.label : 'Energia'}</span>
+			{#if !compact}<span>{task.energy ? energy.label : 'Energia'}</span>{/if}
 		</Select.Trigger>
 		<Select.Content align="start">
 			<Select.Group>
@@ -115,10 +115,10 @@
 	<Popover.Root bind:open={feelingOpen} onOpenChange={(open) => {
 		if (open) { feeling = task.feeling; feelingError = ''; }
 	}}>
-		<Popover.Trigger class={cn(buttonVariants({ variant: 'metadata' }), 'max-w-full min-w-0')}
-			disabled={busy} title={task.feeling || 'Adicionar sentimento'} aria-label="Editar sentimento sobre a tarefa">
+		<Popover.Trigger class={cn(buttonVariants({ variant: 'metadata', size: compact ? 'icon' : 'default' }), 'max-w-full min-w-0')}
+			disabled={busy} title={task.feeling || 'Adicionar sentimento'} aria-label={task.feeling ? `Sentimento: ${task.feeling}. Editar` : 'Adicionar sentimento sobre a tarefa'}>
 			<MessageCircleIcon aria-hidden="true" />
-			<span class="max-w-64 truncate">{task.feeling || 'Sentimento'}</span>
+			{#if !compact}<span class="max-w-64 truncate">{task.feeling || 'Sentimento'}</span>{/if}
 		</Popover.Trigger>
 		<Popover.Content align="start" aria-labelledby={`${uid}-feeling-label`}>
 			<form onsubmit={(event) => { event.preventDefault(); void saveFeeling(); }}>

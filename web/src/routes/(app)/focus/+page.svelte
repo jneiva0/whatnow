@@ -71,7 +71,7 @@
 {:else}
  <section class="sticker focus-surface" aria-labelledby="task-title">
   <header class="task-header"><label class="task-check"><input type="checkbox" checked={task.status === 'done'} aria-label={task.status === 'done' ? 'Reabrir tarefa' : 'Concluir tarefa'} disabled={busy} onchange={async () => {if (await toasts.track('Tarefa atualizada', () => api.setStatus(task.id, task.status === 'done' ? 'open' : 'done'))) await Promise.all([today.refresh(), execution.refresh()]);}} /><h1 id="task-title">{task.title}</h1></label><button class="edit-icon" aria-label="Editar tarefa" title="Editar tarefa" onclick={() => editor.open(task.id)}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15Z"/></svg></button></header>
-  <TaskMetadata {task} />
+  <TaskMetadata {task} compact />
   <div class="task-facts"><span>{timerText(aggregate)} / {planned.minutes == null ? '—' : timerText(planned.minutes * 60000)}{planned.partial ? ' (parcial)' : ''}</span></div>
   {#if !allStepsDone || step}
   <div class="current-action">
@@ -107,10 +107,10 @@
 <style>
  .focus-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; padding: 4px 0; } .focus-nav a { color: var(--ink); }
  .focus-surface { padding: 20px 24px; width: 100%; min-width: 0; container-type: inline-size; overflow-wrap: anywhere; }
- .task-header { display: flex; align-items: start; gap: 16px; justify-content: space-between; } h1 { margin: 0; font-size: 26px; line-height: 1.2; font-weight: var(--heavy); }
+ .task-header { display: flex; align-items: start; gap: 16px; justify-content: space-between; } h1 { margin: 0; font-size: 19px; line-height: 1.2; font-weight: var(--heavy); }
  .edit-icon { min-width: 44px; min-height: 44px; display: grid; place-items: center; background: none; border: 0; flex-shrink: 0; } .task-check { display: flex; gap: 10px; align-items: flex-start; min-width: 0; } .task-check input { width: 20px; height: 20px; margin-top: 5px; accent-color: var(--primary); flex-shrink: 0; } progress { width: 100%; height: 6px; border: 0; accent-color: var(--primary); margin-top: 10px; }
  .task-facts { display: flex; gap: 8px 16px; flex-wrap: wrap; font-size: 13px; margin-top: 10px; font-variant-numeric: tabular-nums; }
- .current-action { position: sticky; top: 0; z-index: 5; background: var(--card); border-block: 1px solid color-mix(in srgb, var(--ink) 25%, transparent); padding: 16px 0; margin-top: 18px; } .action-heading { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; } h2 { font-size: 17px; margin: 0; font-weight: var(--heavy); } .state { font-size: 12px; color: var(--ink-soft); }
+ .current-action { position: sticky; top: 0; z-index: 5; background: var(--card); border-block: 1px solid color-mix(in srgb, var(--ink) 25%, transparent); padding: 16px 0; margin-top: 18px; } .action-heading h2 { font-size: clamp(20px, 3vw, 28px); line-height: 1.3; } .action-heading { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; } h2 { font-size: 17px; margin: 0; font-weight: var(--heavy); } .state { font-size: 12px; color: var(--ink-soft); }
  .timer-controls { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-top: 12px; } .clock { display: flex; flex-direction: column; } .clock strong { font-size: clamp(60px, 10vw, 96px); line-height: 1.1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; } .clock span { font-size: 12px; margin-top: 3px; } .controls { display: flex; gap: 8px; flex-wrap: wrap; } .btn { min-height: 44px; } button:disabled { opacity: .5; cursor: default; }
  .action-time { font-size: 13px; margin: 10px 0 0; font-variant-numeric: tabular-nums; } .text-button { background: none; border: 0; padding: 8px 0; min-height: 44px; text-align: left; text-decoration: underline; text-underline-offset: 3px; font-size: 13px; }
  .steps-heading { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; margin-top: 18px; } .steps-heading span { font-size: 12px; } .steps-heading .text-button { margin-left: auto; }
@@ -122,5 +122,5 @@
  .time-ledger { border-top: 1px solid color-mix(in srgb, var(--ink) 25%, transparent); padding-top: 8px; } .ledger-row { display: flex; gap: 12px; justify-content: space-between; align-items: center; } .ledger-row span { min-width: 0; } small { display: block; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
  .correction { display: flex; flex-direction: column; gap: 10px; max-width: 65ch; } .correction label { display: flex; flex-direction: column; gap: 4px; } .problem { padding: 12px; background: var(--must); } .connection { font-size: 13px; margin: 0; } .empty { padding: 20px; } .empty h1 { margin-bottom: 16px; }
  button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
- @media (max-width: 800px) { .focus-surface { padding: 16px; } .task-header { gap: 6px; } .clock strong { font-size: clamp(60px, 16vw, 80px); } h1 { font-size: 23px; } .focus-nav { align-items: start; } .focus-nav span { max-width: 24ch; text-align: right; } .timer-controls { gap: 14px; } }
+ @media (max-width: 800px) { .focus-surface { padding: 16px; } .task-header { gap: 6px; } .clock strong { font-size: clamp(60px, 16vw, 80px); } h1 { font-size: 18px; } .focus-nav { align-items: start; } .focus-nav span { max-width: 24ch; text-align: right; } .timer-controls { gap: 14px; } }
 </style>

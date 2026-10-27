@@ -103,6 +103,16 @@
 <TaskDecompose {taskId} />
 {/if}
 <style>
+ .compact .step-row { grid-template-columns: 36px minmax(0, 1fr) auto 44px 44px; }
+ .compact .grip { display: none; }
+ .compact .description { font-size: 19px; font-weight: var(--heavy); line-height: 1.4; }
+ .compact .time-pair { font-size: 13px; }
+ @media (max-width: 600px) {
+  .compact .step-row { grid-template-columns: 36px minmax(0, 1fr) 44px 44px; }
+  .compact .description { grid-column: 2 / -1; }
+  .compact .time-pair { grid-column: 2; grid-row: 2; }
+ }
+
  .compact .grip { visibility: hidden; pointer-events: none; } .show-steps { font-size: 12px; color: var(--ink-soft); text-decoration: underline; text-underline-offset: 3px; padding-inline: 0; }
  .step-list { list-style: none; padding: 0; margin: 8px 0 0; } li { border-top: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); border-radius: var(--radius-sm); } .step-row { display: grid; grid-template-columns: 24px 36px minmax(0, 1fr) auto 44px 44px; align-items: center; gap: 4px; min-width: 0; padding-block: 4px; } .selected { background: color-mix(in srgb, var(--chip) 35%, transparent); } .dragging { opacity: .6; } .over { outline: 2px dashed var(--primary); }
  button { background: none; border: 0; min-height: 44px; } .grip { touch-action: none; cursor: grab; padding: 4px; width: 24px; flex-shrink: 0; } .check { display: grid; place-items: center; min-width: 36px; padding: 6px; } .description { flex: 1; min-width: 40px; text-align: left; padding: 6px 2px; overflow-wrap: anywhere; } .done .description { text-decoration: line-through; }

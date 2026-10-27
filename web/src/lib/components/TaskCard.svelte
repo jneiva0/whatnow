@@ -72,6 +72,17 @@
 	}
 </script>
 
+{#snippet taskMenu()}
+        <DropdownMenu.Root>
+            <DropdownMenu.Trigger class={buttonVariants({variant: 'ghost', size: 'icon'})} aria-label={`Mais ações para ${task.title}`}>
+                <EllipsisIcon aria-hidden="true" />
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content align="end">
+                <TaskActionItems {task} {tier} {date} {listed} />
+            </DropdownMenu.Content>
+        </DropdownMenu.Root>
+{/snippet}
+
 <ContextMenu.Root>
 <ContextMenu.Trigger disabled={task.status !== 'open'}>
 {#snippet child({ props })}
@@ -83,7 +94,7 @@
 		if (!(event.target instanceof Element && event.target.closest('button, a, input, textarea, summary, [contenteditable="true"]'))) { if (typeof props.onpointerdown === 'function') props.onpointerdown(event); }
 	}}
 	data-task={task.id}
-	class={['sticker card', tier ?? (listed ? 'listed' : 'unplanned'), {closed: task.status !== 'open', linked: linked.ids.includes(task.id)}]}
+	class={['sticker card', tier ?? (listed ? 'listed' : 'unplanned'), {'action-card': actionView, 'has-step': actionView && !!nextStep, closed: task.status !== 'open', linked: linked.ids.includes(task.id)}]}
 >
 	{#if task.status === 'open'}
 		<input type="checkbox" aria-label={actionView ? `Concluir tarefa: ${task.title}` : 'Mark done'} onchange={complete} />
@@ -97,10 +108,10 @@
 			disabled={!listed && !card.rationale && !task.notes}
 			aria-expanded={listed ? undefined : expanded}
 		>
-			<span class="title">{task.title}</span>
+			<span class="title">{task.title}</span>{#if actionView && (task.notes || card.rationale)}<span class="context-toggle">{expanded ? 'Ocultar contexto' : 'Ver contexto'}</span>{/if}
 		</button>
-		<TaskMetadata {task} />
-			{#if task.notes && !expanded}<span class="notes">{task.notes}</span>{/if}
+		<div class="metadata-row"><div class="metadata-values"><TaskMetadata {task} compact={actionView} /></div>{#if actionView}{@render taskMenu()}{/if}</div>
+			{#if task.notes && !expanded && !actionView}<span class="notes">{task.notes}</span>{/if}
 			{#if card.rationale}<span class={['why', {shown: expanded}]}>{card.rationale}</span>{/if}
 		<!-- Expanded notes sit outside the button, so their links work and their text can be copied. -->
 		{#if task.notes && expanded}
@@ -152,14 +163,7 @@
 	{#if task.status === 'dropped'}
 		<button class="btn" onclick={restore}>Restore</button>
 	{:else if task.status === 'open'}
-        <DropdownMenu.Root>
-            <DropdownMenu.Trigger class={buttonVariants({variant: 'ghost', size: 'icon'})} aria-label={`Mais ações para ${task.title}`}>
-                <EllipsisIcon aria-hidden="true" />
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Content align="end">
-                <TaskActionItems {task} {tier} {date} {listed} />
-            </DropdownMenu.Content>
-        </DropdownMenu.Root>
+        {#if !actionView}{@render taskMenu()}{/if}
 	{/if}
 </article>
 {/snippet}
@@ -170,6 +174,15 @@
 </ContextMenu.Root>
 
 <style>
+ .metadata-row { display: flex; align-items: flex-start; gap: 4px 8px; min-width: 0; }
+ .metadata-values { flex: 1; min-width: 0; }
+ .action-card .metadata-row { justify-content: space-between; }
+ .action-card .body { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+ .action-card.has-step .title { font-size: 14px; font-weight: 500; color: var(--ink-soft); }
+ .context-toggle { font-size: 12px; text-decoration: underline; text-underline-offset: 3px; color: var(--ink-soft); }
+ .action-card { gap: 8px; }
+ .action-card > input { flex-shrink: 0; }
+
  .steps-ready { margin: 8px 0 0; font-size: 13px; }
  .focus-icon { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; color: var(--ink); }
 	.execution { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
@@ -287,7 +300,7 @@
 		font-size: 13px;
 	}
 	.why.shown,
-	.card:hover .why {
+	.card:not(.action-card):hover .why {
 		display: block;
 	}
 </style>

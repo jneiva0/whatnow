@@ -19,7 +19,11 @@ granularidade/continuidade da IA nem significam rejeição da direção atual.
   sua edição devem continuar alcançáveis. Reduzir o peso do contexto pai sem
   perder a relação com a tarefa ou criar outra interação para passos.
 
-Nenhuma dessas alterações de apresentação foi implementada nesta rodada.
+Retomada autorizada por João em27/10: implementado destaque do passo no modo
+compacto compartilhado, contexto pai recolhido, metadados compactos e menu na
+mesma faixa. Energia usa indicador com nome acessível; sentimento abre o mesmo
+editor e preserva texto completo no nome/dica. Foco aplica os mesmos metadados
+e hierarquia tarefa/ação. Ver CHANGELOG.md para validações. Aceite visual aberto.
 
 ## Migração de componentes — 27/10/2026
 
