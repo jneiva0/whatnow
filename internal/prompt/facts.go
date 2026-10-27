@@ -45,8 +45,11 @@ func Facts(f facts.Facts) string {
 		t := tf.Task
 		fmt.Fprintf(&b, "#%d %s", t.ID, t.Title)
 		var details []string
-		if t.Size != nil {
-			details = append(details, "size "+string(*t.Size))
+		if tf.Estimate.Minutes != nil {
+			details = append(details, fmt.Sprintf("estimated total %d min", *tf.Estimate.Minutes))
+		}
+		if tf.Estimate.Partial {
+			details = append(details, "some steps have no estimate")
 		}
 		if t.Energy != nil {
 			details = append(details, string(*t.Energy)+" energy")

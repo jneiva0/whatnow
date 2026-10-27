@@ -18,15 +18,30 @@ type result struct {
 	Blockers []blocker `json:"blockers"`
 }
 
+type stepOut struct {
+	Description string `json:"description"`
+	Estimate    int    `json:"estimate_minutes"`
+}
+
+func minutes(n int) *int {
+	if n == 0 {
+		return nil
+	}
+	return &n
+}
+
 type taskOut struct {
-	Title     string       `json:"title"`
-	Notes     string       `json:"notes"`
-	Size      string       `json:"size"`
-	Energy    string       `json:"energy"`
-	Feeling   string       `json:"feeling"`
-	DueOn     string       `json:"due_on"`
-	NotBefore string       `json:"not_before"`
-	Refs      []domain.Ref `json:"refs"`
+	ExistingTaskID int64        `json:"existing_task_id"`
+	Estimate       int          `json:"estimate_minutes"`
+	Steps          []stepOut    `json:"steps"`
+	Title          string       `json:"title"`
+	Notes          string       `json:"notes"`
+	Size           string       `json:"size"`
+	Energy         string       `json:"energy"`
+	Feeling        string       `json:"feeling"`
+	DueOn          string       `json:"due_on"`
+	NotBefore      string       `json:"not_before"`
+	Refs           []domain.Ref `json:"refs"`
 }
 
 type original struct {
@@ -53,14 +68,15 @@ type blocker struct {
 // fields turns the model's empty strings into unset fields. The service validates the rest.
 func (t taskOut) fields() service.TaskFields {
 	return service.TaskFields{
-		Title:     t.Title,
-		Notes:     t.Notes,
-		Size:      optional[domain.Size](t.Size),
-		Energy:    optional[domain.Energy](t.Energy),
-		Feeling:   t.Feeling,
-		DueOn:     optional[domain.Date](t.DueOn),
-		NotBefore: optional[domain.Date](t.NotBefore),
-		Refs:      t.Refs,
+		Title:           t.Title,
+		EstimateMinutes: minutes(t.Estimate),
+		Notes:           t.Notes,
+		Size:            optional[domain.Size](t.Size),
+		Energy:          optional[domain.Energy](t.Energy),
+		Feeling:         t.Feeling,
+		DueOn:           optional[domain.Date](t.DueOn),
+		NotBefore:       optional[domain.Date](t.NotBefore),
+		Refs:            t.Refs,
 	}
 }
 

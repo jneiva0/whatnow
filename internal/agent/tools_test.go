@@ -259,3 +259,24 @@ func TestExecutionToolsAndEstimates(t *testing.T) {
 		t.Fatal(got)
 	}
 }
+
+func TestCreateTaskAcceptsEstimateAndReturnsItToAgent(t *testing.T) {
+	f := newFixture(t)
+	got := results(t, f, call("estimate-create", "create_task", map[string]any{"title": "Reply to message", "estimate_minutes": 5}))
+	if got[0].IsError {
+		t.Fatal(got[0].Content)
+	}
+	var result struct {
+		Estimate *int `json:"estimate_minutes"`
+	}
+	if err := json.Unmarshal([]byte(got[0].Content), &result); err != nil {
+		t.Fatal(err)
+	}
+	tasks, err := f.svc.ListTasks(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Estimate == nil || *result.Estimate != 5 || len(tasks) != 1 || tasks[0].EstimateMinutes == nil || *tasks[0].EstimateMinutes != 5 {
+		t.Fatalf("result=%+v tasks=%+v", result, tasks)
+	}
+}

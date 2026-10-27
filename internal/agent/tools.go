@@ -46,7 +46,7 @@ var (
 	taskProps = []js.Field{
 		js.Prop("title", js.String("Short and specific, starting with a verb when it fits.")),
 		js.Prop("notes", js.String("Details worth keeping, or empty.")),
-		js.Prop("size", js.Enum("S (under an hour), M (one to three hours), L (more), or empty if unclear.", "S", "M", "L", "")),
+		js.Prop("estimate_minutes", js.Integer("Rough estimated minutes, 1..1440; 0 if unknown. Energy is independent.")),
 		js.Prop("energy", js.Enum("How much it takes out of them, or empty if unclear.", "low", "med", "high", "")),
 		js.Prop("feeling", js.String("How they feel about it, in their words, or empty.")),
 		js.Prop("due_on", dateProp("When it's due,")),
@@ -160,19 +160,20 @@ func (t *turn) dispatch(ctx context.Context, c llm.ToolCall) (string, any, error
 
 // brief is a task as the model reads it in tool results.
 type brief struct {
-	ID        int64          `json:"id"`
-	Title     string         `json:"title"`
-	Status    domain.Status  `json:"status"`
-	Notes     string         `json:"notes,omitempty"`
-	Size      *domain.Size   `json:"size,omitempty"`
-	Energy    *domain.Energy `json:"energy,omitempty"`
-	Feeling   string         `json:"feeling,omitempty"`
-	DueOn     *domain.Date   `json:"due_on,omitempty"`
-	NotBefore *domain.Date   `json:"not_before,omitempty"`
+	EstimateMinutes *int           `json:"estimate_minutes"`
+	ID              int64          `json:"id"`
+	Title           string         `json:"title"`
+	Status          domain.Status  `json:"status"`
+	Notes           string         `json:"notes,omitempty"`
+	Size            *domain.Size   `json:"size,omitempty"`
+	Energy          *domain.Energy `json:"energy,omitempty"`
+	Feeling         string         `json:"feeling,omitempty"`
+	DueOn           *domain.Date   `json:"due_on,omitempty"`
+	NotBefore       *domain.Date   `json:"not_before,omitempty"`
 }
 
 func briefOf(t domain.Task) brief {
-	return brief{ID: t.ID, Title: t.Title, Status: t.Status, Notes: t.Notes, Size: t.Size, Energy: t.Energy,
+	return brief{EstimateMinutes: t.EstimateMinutes, ID: t.ID, Title: t.Title, Status: t.Status, Notes: t.Notes, Size: t.Size, Energy: t.Energy,
 		Feeling: t.Feeling, DueOn: t.DueOn, NotBefore: t.NotBefore}
 }
 
@@ -200,6 +201,7 @@ func listTasks(ctx context.Context, t *turn, input json.RawMessage) (string, any
 
 // taskArgs are create_task's input. Empty strings are unset fields.
 type taskArgs struct {
+	Estimate  int    `json:"estimate_minutes"`
 	Title     string `json:"title"`
 	Notes     string `json:"notes"`
 	Size      string `json:"size"`
@@ -227,7 +229,7 @@ func createTask(ctx context.Context, t *turn, input json.RawMessage) (string, an
 		return "", nil, err
 	}
 	task, err := t.agent.svc.CreateTask(ctx, batch, service.TaskFields{
-		Title: in.Title, Notes: in.Notes, Size: optional[domain.Size](in.Size), Energy: optional[domain.Energy](in.Energy),
+		EstimateMinutes: estimated(in.Estimate), Title: in.Title, Notes: in.Notes, Size: optional[domain.Size](in.Size), Energy: optional[domain.Energy](in.Energy),
 		Feeling: in.Feeling, DueOn: optional[domain.Date](in.DueOn), NotBefore: optional[domain.Date](in.NotBefore),
 	})
 	if err != nil {

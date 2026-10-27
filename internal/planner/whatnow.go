@@ -15,6 +15,7 @@ var ErrNothingToDo = errors.New("no task is free to start")
 var whatNowSchema = js.Object(
 	js.Prop("reason", js.String("One or two sentences to the user on why this task, now.")),
 	js.Prop("task_id", js.Integer("The task's number, from #<id>.")),
+	js.Prop("step_id", js.Integer("An existing pending step belonging to this task, or 0 to use its next pending step / execute a concrete task directly.")),
 )
 
 // Pick is the answer to "what now?". Fallback means code picked because the model couldn't.
@@ -61,7 +62,22 @@ func (p *Planner) askPick(ctx context.Context, st state, exclude int64) (Pick, e
 		user += fmt.Sprintf(" Not #%d, I just passed on that one.", exclude)
 	}
 	return ask(ctx, st.model, st.request(whatNowInstructions, user, whatNowSchema, "pick"), func(pk Pick) error {
-		return checkPick(pk, st.facts, exclude)
+		if err := checkPick(pk, st.facts, exclude); err != nil {
+			return err
+		}
+		if pk.StepID != nil && *pk.StepID != 0 {
+			steps, err := p.svc.ListSteps(ctx, pk.TaskID)
+			if err != nil {
+				return err
+			}
+			for _, step := range steps {
+				if step.ID == *pk.StepID && !step.Done {
+					return nil
+				}
+			}
+			return fmt.Errorf("step #%d is not a pending action of task #%d", *pk.StepID, pk.TaskID)
+		}
+		return nil
 	})
 }
 
@@ -78,12 +94,18 @@ func checkPick(pk Pick, f facts.Facts, exclude int64) error {
 	return nil
 }
 
-// The next pending action is deterministic, so both model and fallback picks honor progress.
+// Honor a validated model action; otherwise use the first pending action for a reliable fallback.
 func (p *Planner) pickAction(ctx context.Context, pick Pick) (Pick, error) {
 	steps, err := p.svc.ListSteps(ctx, pick.TaskID)
 	if err != nil {
 		return pick, err
 	}
+	for _, st := range steps {
+		if pick.StepID != nil && st.ID == *pick.StepID && !st.Done {
+			return pick, nil
+		}
+	}
+	pick.StepID = nil
 	for _, st := range steps {
 		if !st.Done {
 			pick.StepID = &st.ID

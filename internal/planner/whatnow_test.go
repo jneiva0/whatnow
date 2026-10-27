@@ -144,3 +144,34 @@ func TestWhatNowNextActionAndReplanPreserveExecution(t *testing.T) {
 		t.Fatalf("replan changed execution: %+v", after)
 	}
 }
+
+func TestWhatNowCanChoosePendingStepAndRejectCompletedOrForeign(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	task := f.task(t, service.TaskFields{Title: "Prepare to work"})
+	other := f.task(t, service.TaskFields{Title: "Other task"})
+	batch, _ := f.svc.NewBatch(ctx, domain.ActorUser)
+	done, err := f.svc.CreateStep(ctx, batch, task.ID, service.StepFields{Description: "Already done", Done: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	first, err := f.svc.CreateStep(ctx, batch, task.ID, service.StepFields{Description: "First"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	chosen, err := f.svc.CreateStep(ctx, batch, task.ID, service.StepFields{Description: "Get water"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	foreign, err := f.svc.CreateStep(ctx, batch, other.ID, service.StepFields{Description: "Unrelated"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, invalid := range []int64{done.ID, foreign.ID, 9999} {
+		f.model.replies = []any{map[string]any{"task_id": task.ID, "step_id": invalid, "reason": "bad"}, map[string]any{"task_id": task.ID, "step_id": chosen.ID, "reason": "An easy start"}}
+		got, err := f.planner.WhatNow(ctx, 0)
+		if err != nil || got.StepID == nil || *got.StepID != chosen.ID || got.Fallback {
+			t.Fatalf("got %+v err %v (first %d)", got, err, first.ID)
+		}
+	}
+}

@@ -145,7 +145,21 @@ func (r *Runner) situation(ctx context.Context, taskID int64) (string, error) {
 	open := 0
 	for i := len(tasks) - 1; i >= 0 && open < maxOpenTasks; i-- {
 		if t := tasks[i]; t.ID != taskID && t.Status == domain.StatusOpen {
-			fmt.Fprintf(&b, "#%d %s\n", t.ID, t.Title)
+			fmt.Fprintf(&b, "#%d %s\n  Notes: %s\n  Feeling: %s\n", t.ID, t.Title, t.Notes, t.Feeling)
+			if t.Energy != nil {
+				fmt.Fprintf(&b, "  Energy: %s\n", *t.Energy)
+			}
+			steps, err := r.svc.ListSteps(ctx, t.ID)
+			if err != nil {
+				return "", err
+			}
+			estimate := domain.TaskEstimate(t, steps)
+			if estimate.Minutes != nil {
+				fmt.Fprintf(&b, "  Estimated total: %d min (partial=%t)\n", *estimate.Minutes, estimate.Partial)
+			}
+			for _, step := range steps {
+				fmt.Fprintf(&b, "  Step %d (done=%t): %s\n", step.ID, step.Done, step.Description)
+			}
 			open++
 		}
 	}
@@ -180,6 +194,14 @@ func (r *Runner) write(ctx context.Context, batch int64, task domain.Task, res r
 	if !res.Original.Keep && len(res.Events) == 0 {
 		return errors.New("reply would delete the note without turning it into events")
 	}
+	if res.Original.ExistingTaskID == task.ID {
+		return errors.New("capture cannot join itself")
+	}
+	for _, n := range res.NewTasks {
+		if n.ExistingTaskID == task.ID {
+			return errors.New("new intention cannot join the raw capture")
+		}
+	}
 	tickets, err := r.openTickets(ctx, task.ID)
 	if err != nil {
 		return err
@@ -201,9 +223,17 @@ func (r *Runner) write(ctx context.Context, batch int64, task domain.Task, res r
 			tickets.add(res.Original.Refs, id)
 		}
 		ids["original"] = id
+		if joined {
+			if err := r.preserveCapture(ctx, batch, id, task.RawText); err != nil {
+				return err
+			}
+		}
+		if err := r.addSteps(ctx, batch, id, res.Original.Steps); err != nil {
+			return err
+		}
 	}
 	for _, n := range res.NewTasks {
-		if n.Ref == "original" || strings.HasPrefix(n.Ref, "#") || ids[n.Ref] != 0 {
+		if strings.TrimSpace(n.Ref) == "" || n.Ref == "original" || strings.HasPrefix(n.Ref, "#") || ids[n.Ref] != 0 {
 			return fmt.Errorf("new task ref %q is reserved or used twice", n.Ref)
 		}
 		id, err := r.join(ctx, batch, tickets, n.taskOut)
@@ -219,8 +249,13 @@ func (r *Runner) write(ctx context.Context, batch int64, task domain.Task, res r
 			}
 			id = created.ID
 			tickets.add(n.Refs, id)
+		} else if err := r.preserveCapture(ctx, batch, id, task.RawText); err != nil {
+			return err
 		}
 		ids[n.Ref] = id
+		if err := r.addSteps(ctx, batch, id, n.Steps); err != nil {
+			return err
+		}
 	}
 	for _, e := range res.Events {
 		f, err := e.fields(r.loc)
@@ -289,6 +324,30 @@ func (r *Runner) openTickets(ctx context.Context, noteID int64) (tickets, error)
 // join finds the open task that already has one of out's ticket keys, and adds out's feeling to
 // it. It returns that task's ID, or 0 when out is new.
 func (r *Runner) join(ctx context.Context, batch int64, tk tickets, out taskOut) (int64, error) {
+	if out.Estimate < 0 || out.Estimate > 1440 {
+		return 0, fmt.Errorf("invalid task estimate")
+	}
+	if out.ExistingTaskID != 0 {
+		existing, err := r.svc.GetTask(ctx, out.ExistingTaskID)
+		if err != nil {
+			return 0, err
+		}
+		if existing.Status != domain.StatusOpen {
+			return 0, fmt.Errorf("existing task must be open")
+		}
+		if out.Estimate > 0 {
+			_, err := r.svc.UpdateTask(ctx, batch, existing.ID, service.TaskFields{Title: existing.Title, Notes: existing.Notes, Size: existing.Size, Energy: existing.Energy, Feeling: existing.Feeling, DueOn: existing.DueOn, NotBefore: existing.NotBefore, Refs: existing.Refs, EstimateMinutes: minutes(out.Estimate)})
+			if err != nil {
+				return 0, err
+			}
+		}
+		if out.Feeling != "" {
+			if _, err := r.svc.AppendFeeling(ctx, batch, existing.ID, out.Feeling); err != nil {
+				return 0, err
+			}
+		}
+		return existing.ID, nil
+	}
 	for _, ref := range out.Refs {
 		id, ok := tk[strings.ToUpper(strings.TrimSpace(ref.Label))]
 		if !ok {
@@ -302,4 +361,46 @@ func (r *Runner) join(ctx context.Context, batch int64, tk tickets, out taskOut)
 		return id, nil
 	}
 	return 0, nil
+}
+
+// Keep the original capture discoverable on the existing intention; undo restores both cards.
+func (r *Runner) preserveCapture(ctx context.Context, batch, id int64, raw string) error {
+	t, err := r.svc.GetTask(ctx, id)
+	if err != nil {
+		return err
+	}
+	notes := t.Notes
+	if strings.TrimSpace(raw) != "" && !strings.Contains(notes, raw) {
+		if notes != "" {
+			notes += "\n\n"
+		}
+		notes += "Captured: " + raw
+	}
+	_, err = r.svc.UpdateTask(ctx, batch, id, service.TaskFields{Title: t.Title, Notes: notes, Size: t.Size, Energy: t.Energy, Feeling: t.Feeling, DueOn: t.DueOn, NotBefore: t.NotBefore, Refs: t.Refs, EstimateMinutes: t.EstimateMinutes})
+	return err
+}
+
+func (r *Runner) addSteps(ctx context.Context, batch, id int64, proposed []stepOut) error {
+	if len(proposed) > 30 {
+		return errors.New("too many proposed steps")
+	}
+	existing, err := r.svc.ListSteps(ctx, id)
+	if err != nil {
+		return err
+	}
+	seen := map[string]bool{}
+	key := func(s string) string { return strings.ToLower(strings.Join(strings.Fields(s), " ")) }
+	for _, s := range existing {
+		seen[key(s.Description)] = true
+	}
+	for _, s := range proposed {
+		if seen[key(s.Description)] {
+			continue
+		}
+		if _, err := r.svc.CreateStep(ctx, batch, id, service.StepFields{Description: s.Description, EstimateMinutes: minutes(s.Estimate)}); err != nil {
+			return err
+		}
+		seen[key(s.Description)] = true
+	}
+	return nil
 }

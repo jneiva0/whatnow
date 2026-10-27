@@ -132,12 +132,12 @@ func (p *Planner) gather(ctx context.Context, withModel bool) (state, error) {
 			}
 		}
 	}
-	st.facts = facts.Compute(facts.Input{Now: now, Loc: p.loc, EndOfDay: st.settings.EndOfDay, Tasks: tasks,
-		Blockers: blockers, Events: events, PushCounts: pushes, Musts: musts})
 	execution, err := p.svc.Execution(ctx)
 	if err != nil {
 		return st, err
 	}
+	st.facts = facts.Compute(facts.Input{Now: now, Loc: p.loc, EndOfDay: st.settings.EndOfDay, Tasks: tasks,
+		Steps: execution.Steps, Blockers: blockers, Events: events, PushCounts: pushes, Musts: musts})
 	encoded, err := json.Marshal(execution)
 	if err != nil {
 		return st, err

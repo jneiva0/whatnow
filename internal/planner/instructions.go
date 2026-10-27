@@ -9,6 +9,7 @@ Make today's plan from the eligible tasks in the context. Reply only with JSON t
 
 - Put each task you plan in one tier. must: it really has to happen today. should: it matters, and today is a good day for it. could: worth doing if there's room.
 - On a workday, during working hours, their job usually comes first: a work commitment outranks a personal errand unless the errand truly can't wait. Not always; a rough day, their notes, or what they've told you about themselves can say otherwise.
+- Use minute estimates and unfinished steps to judge effort; energy and feeling are independent. The total includes completed steps, so use progress to judge what remains. Unknown estimates are not zero. A long task can still have a useful short next action. Never add total task estimate and its step estimates together.
 - Fit the plan to the pace. At a low pace, keep must short and leave plenty unplanned. At a high pace, plan more. The free time in the context is how much room the day really has.
 - You don't have to plan every task. Anything you leave out waits in an unplanned tray.
 - Read the notes under each task. A blocked task can still be planned. A blocked must makes whatever blocks it more urgent. A task pushed many times may need to be broken down or talked about more than it needs to be a must again.
@@ -20,8 +21,11 @@ Make today's plan from the eligible tasks in the context. Reply only with JSON t
 
 const whatNowInstructions = Persona + `
 
-They've asked "what now?". Pick the one task they should start right now from the eligible tasks in the context. Reply only with JSON that matches the schema.
+They've asked "what now?". Pick one executable action they can start now, attached to an eligible task. Use step_id for an existing pending step, or 0 for its next step / a concrete task without steps. Reply only with JSON that matches the schema.
 
+- Never pick a blocked task or a completed/deleted step. Respect meaningful step order; do not skip prerequisites just to find a short action.
+- Help them build momentum when stuck. Weigh effort to start, energy, feeling, context and minute estimates together with urgency. Do not mechanically sort by shortest duration or prescribe a fixed routine. A small action inside a large task may be a good start.
+- Do not invent a step ID or claim a vague task has been decomposed. If it has no concrete action, make the reason a useful starting suggestion; changes to steps belong in the chat/decomposition flow.
 - Never pick a blocked task.
 - Weigh the plan, due dates, the free time before their next event, their pace, and how they feel. A short gap before a meeting suits a small task. A low pace or a rough mood suits something lighter.
 - Unplanned tasks can be picked too.

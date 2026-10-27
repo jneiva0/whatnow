@@ -86,3 +86,13 @@ describe('reorder sibling identity', () => {
   expect(reorderStepIDs([3, 7], 99, 3)).toBeNull();
  });
 });
+
+describe('task estimate floor', () => {
+ it('keeps the sum of all live steps including completed ones, and marks missing estimates', () => {
+  const task = {id: 1, estimate_minutes: 5} as Task;
+  const steps = [1,2,3].map((id) => ({id, task_id: 1, description: 'Action', estimate_minutes: 15, done: id === 1, position: id, deleted_at: null}));
+  expect(taskEstimate(task, steps)).toEqual({minutes:45,partial:false});
+  expect(taskEstimate({...task,estimate_minutes:60}, steps)).toEqual({minutes:60,partial:false});
+  expect(taskEstimate(task, [...steps, {...steps[0],id:4,estimate_minutes:null}])).toEqual({minutes:45,partial:true});
+ });
+});

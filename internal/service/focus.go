@@ -140,6 +140,23 @@ func executionState(ctx context.Context, tx *sql.Tx, now time.Time) (domain.Exec
 	if err != nil {
 		return out, err
 	}
+	out.Estimates = map[int64]domain.Estimate{}
+	tasks, err := tx.QueryContext(ctx, `SELECT `+taskColumns+` FROM tasks WHERE deleted_at IS NULL`)
+	if err != nil {
+		return out, err
+	}
+	for tasks.Next() {
+		task, err := scanTask(tasks)
+		if err != nil {
+			tasks.Close()
+			return out, err
+		}
+		out.Estimates[task.ID] = domain.TaskEstimate(task, out.Steps)
+	}
+	tasks.Close()
+	if err := tasks.Err(); err != nil {
+		return out, err
+	}
 	rows, err := tx.QueryContext(ctx, `SELECT `+focusColumns+` FROM focus_sessions ORDER BY id DESC`)
 	if err != nil {
 		return out, err

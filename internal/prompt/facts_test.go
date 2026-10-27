@@ -14,6 +14,7 @@ func TestFactsRenderInLocalTime(t *testing.T) {
 	at := func(h, m int) time.Time { return time.Date(2026, 10, 5, h, m, 0, 0, loc) }
 	standupEnd := at(10, 15).UTC()
 	size, energy := domain.SizeL, domain.EnergyHigh
+	minutes := 45
 	f := facts.Facts{
 		Now:    at(9, 0),
 		DayEnd: at(17, 30),
@@ -24,7 +25,7 @@ func TestFactsRenderInLocalTime(t *testing.T) {
 		},
 		Tasks: []facts.TaskFacts{
 			{Task: domain.Task{ID: 3, Title: "Do FLEX1-666", Size: &size, Energy: &energy, Feeling: "dreading it"},
-				Annotations: []string{"due today", `blocked by #4 "Research pubsub"`}},
+				Estimate: domain.Estimate{Minutes: &minutes}, Annotations: []string{"due today", `blocked by #4 "Research pubsub"`}},
 			{Task: domain.Task{ID: 9, Title: "water plants"}},
 		},
 	}
@@ -36,7 +37,7 @@ Today's events:
 - 15:00 dentist
 
 Eligible tasks, as #<id> title:
-#3 Do FLEX1-666 [size L, high energy] feeling: "dreading it"
+#3 Do FLEX1-666 [estimated total 45 min, high energy] feeling: "dreading it"
   - due today
   - blocked by #4 "Research pubsub"
 #9 water plants

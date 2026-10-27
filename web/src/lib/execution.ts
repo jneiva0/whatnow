@@ -42,10 +42,10 @@ export function taskActual(sessions: FocusSession[], taskID: number, now: number
 }
 
 export function taskEstimate(task: Task, steps: Step[]): {minutes: number | null; partial: boolean} {
- if (task.estimate_minutes != null) return {minutes: task.estimate_minutes, partial: false};
  const live = orderedSteps(steps, task.id);
  const estimated = live.filter((s) => s.estimate_minutes != null);
- return {minutes: estimated.length ? estimated.reduce((sum, s) => sum + s.estimate_minutes!, 0) : null, partial: estimated.length > 0 && estimated.length < live.length};
+ const sum = estimated.reduce((sum, s) => sum + s.estimate_minutes!, 0);
+ return {minutes: task.estimate_minutes != null ? Math.max(task.estimate_minutes, sum) : estimated.length ? sum : null, partial: estimated.length < live.length};
 }
 
 export function actionClock(estimateMinutes: number | null | undefined, actual: number): {text: string; label: string} {

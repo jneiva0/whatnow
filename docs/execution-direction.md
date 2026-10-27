@@ -14,7 +14,7 @@ Ajudar João a começar, decidir o próximo movimento e continuar. Exemplos como
 - Prioridades e ajuda para começar são perspectivas complementares. Uma visão de sequência é uma hipótese útil, não uma exigência de página nova: decidir a forma depois de corrigir a escolha de ações. Duração, energia, sentimento, contexto, dependências e urgência informam sugestões; não ordenar mecanicamente pela menor duração nem criar rituais fixos.
 - Decomposição deve responder à dificuldade de iniciar e às ações já descritas pelo usuário, sem exigir uma palavra-chave ou decompor toda captura. Evitar burocracia para tarefas já executáveis.
 
-## Diagnóstico verificado no código
+## Diagnóstico inicial verificado no código (antes da implementação abaixo)
 
 1. **Captura não produz passos nem estimativas em minutos.** `internal/cleanup/schema.go` e `result.go` só representam os campos antigos. `instructions.go` pede tarefas/eventos/bloqueios e S/M/L. A situação em `cleanup.go` mostra títulos das tarefas abertas, sem passos. Existe instrução para não duplicar e união por ticket, mas isso não equivale a reconciliar intenções domésticas pelo contexto. O relato de tarefas duplicadas não foi reproduzido nem os dados reais alterados.
 2. **Chat tem ferramentas, mas o contrato é inconsistente.** `internal/agent/steps.go` permite adicionar/editar/reordenar/dividir passos. `instructions.go` restringe decomposição a pedido e edição de estimativas a pedido explícito. `create_task` em `tools.go` não recebe estimativa; `update_task` recebe. Isso explica caminhos distintos, não prova incapacidade do modelo de usar as ferramentas existentes.
@@ -35,3 +35,16 @@ Feedback novo entra na etapa correspondente. Só perda de dados, quebra de execu
 Usar os padrões existentes e cenários ligados ao problema: atualizar intenção existente em vez de duplicá-la; decompor tarefa difícil sem fragmentar em cartões; três passos de 15 min implicam ao menos 45 min; estimativa ausente não vira zero; edição/planejamento preservam concluídos e tempo real; sugestão respeita bloqueios e oferece ação executável. Distinguir testes com modelo falso de avaliação com provedor real.
 
 Nesta revisão foram consultados o grafo como índice e os arquivos citados. Não houve alteração de código, migração, chamada de IA real, teste automatizado ou deploy. Próximo trabalho: implementar a primeira etapa como um fluxo integrado, usando estes cenários para limitar o escopo.
+
+## Implementação da integração — 27/10/2026
+
+Na branch `codex/execution-direction`, sem worktree:
+
+- Captura estruturada aceita minutos, passos opcionais e referência explícita a uma tarefa aberta existente. O contexto inclui notas, sentimento, energia e passos concluídos/pendentes. A continuação preserva os dados/progresso existentes, anexa a captura às notas e pode acrescentar passos; tudo integra o lote de desfazer. IDs inválidos/fechados e autorreferência são rejeitados. Descrições iguais normalizadas não viram passos duplicados. Isso habilita reconciliação pela IA, não garante reconhecimento semântico perfeito.
+- Chat recebe orientações para reconhecer intenção existente e decompor quando ajuda a começar, sem exigir palavra-chave. `create_task` aceita minutos e os resultados de ferramentas retornam a estimativa explícita. Estimativas reais e correções de tempo continuam separadas.
+- `domain.TaskEstimate` calcula o maior entre estimativa explícita e soma dos passos vivos, incluindo concluídos no total original e marcando informação incompleta. A API de execução expõe `estimates`; planejamento usa esse cálculo e minutos em lugar do encaixe por S/M/L. A apresentação existente usa o mesmo significado. Não há migração destrutiva, conversão fictícia dos S/M/L antigos ou mudança no tempo real.
+- E agora aceita um passo escolhido pelo modelo, valida pertencimento/estado e mantém fallback para primeiro pendente. Instruções pedem contexto, urgência, energia, sentimento e facilidade para iniciar, sem ordenação rígida por duração.
+
+Verificação: suíte Go completa passou com permissão para portas locais dos servidores de teste; o primeiro ensaio restrito falhou por bind não permitido. Testes direcionados cobrem captura com passos, continuação de intenção com progresso/undo, rollback de captura inválida, piso de estimativa, minutos na criação por chat e rejeição de passo concluído/estrangeiro na sugestão. Check Svelte sem erros/avisos. Testes usam respostas simuladas, não um provedor real. Nenhum dado real, deploy ou processo do aplicativo foi alterado.
+
+Ainda aberto: avaliação qualitativa com IA real; substituição visual de S/M/L por minutos; apresentação simples de próximas ações; consolidação de cartões/formulários/controles. As falhas visuais relatadas continuam na etapa 3, sem repriorização automática. Próxima ação: avaliar os cenários de intenção/estimativa/decomposição com o provedor real em dados descartáveis antes de considerar esta integração validada em uso.
