@@ -77,7 +77,7 @@ func (a *Agent) DecomposeTask(ctx context.Context, taskID int64) (domain.Message
 	if task.Status != domain.StatusOpen {
 		return domain.Message{}, fmt.Errorf("%w: only an open task can be divided into steps", service.ErrConflict)
 	}
-	request := fmt.Sprintf("Divida a tarefa #%d em passos concretos e pequenos usando list_steps e add_step desta tarefa. Preserve os passos já existentes, especialmente os concluídos, sem duplicar ações já representadas. Não crie tarefas independentes, não conclua nada, não mude o foco ou tempo e não replaneje. Inclua estimativas curtas quando houver base; use 0 quando desconhecida. Tarefa: %q. Detalhes: %q.", task.ID, task.Title, task.Notes)
+	request := fmt.Sprintf("Divida a tarefa #%d em ações concretas usando list_steps e add_step desta tarefa. Ajuste o nível de detalhe à dificuldade atual descrita na conversa: detalhe o primeiro movimento quando houver resistência; mantenha ações significativas juntas quando já forem executáveis. Não imponha quantidade de passos ou duração fixa nem invente uma checklist exaustiva. Preserve os passos já existentes, especialmente os concluídos, sem duplicar ações já representadas. Não crie tarefas independentes, não conclua nada, não mude o foco ou tempo e não replaneje. Inclua estimativas realistas quando houver base; use 0 quando desconhecida. Tarefa: %q. Detalhes: %q.", task.ID, task.Title, task.Notes)
 	// Task details can be long; keep this contextual request within the existing chat bound.
 	runes := []rune(request)
 	if len(runes) > maxMessageRunes {
@@ -106,7 +106,7 @@ func (a *Agent) send(ctx context.Context, text string, taskScope int64) (domain.
 	}
 	a.publish(sent)
 
-	t := &turn{agent: a, taskScope: taskScope}
+	t := &turn{agent: a, taskScope: taskScope, request: text}
 	reply := domain.Message{Date: date, Role: domain.RoleAssistant}
 	reply.Text, err = t.run(ctx, date)
 	if err != nil {
@@ -164,6 +164,7 @@ type turn struct {
 	agent     *Agent
 	batchID   int64
 	taskScope int64
+	request   string // original user message; do not lose it across delegated tool calls
 	uses      []domain.ToolUse
 }
 

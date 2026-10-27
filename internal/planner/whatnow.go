@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jameynakama/whatnow/internal/facts"
 	js "github.com/jameynakama/whatnow/internal/jsonschema"
@@ -26,9 +27,22 @@ type Pick struct {
 	Fallback bool   `json:"fallback"`
 }
 
+// ActionRequest describes this request for help, not a lasting property of the task or user.
+// Context carries the current difficulty and relevant conversation to the separate planner call.
+type ActionRequest struct {
+	ExcludeTaskID int64  `json:"exclude_task_id"`
+	Context       string `json:"context,omitempty"`
+}
+
 // WhatNow picks one task to start now from every eligible task, planned or not. exclude, when not
 // zero, is a task the user just passed on; it is left out of this answer only.
 func (p *Planner) WhatNow(ctx context.Context, exclude int64) (Pick, error) {
+	return p.NextAction(ctx, ActionRequest{ExcludeTaskID: exclude})
+}
+
+// NextAction keeps the request's situational context alongside authoritative execution facts.
+func (p *Planner) NextAction(ctx context.Context, request ActionRequest) (Pick, error) {
+	exclude := request.ExcludeTaskID
 	st, err := p.gather(ctx, true)
 	if err != nil {
 		return Pick{}, err
@@ -44,14 +58,15 @@ func (p *Planner) WhatNow(ctx context.Context, exclude int64) (Pick, error) {
 		return Pick{}, ErrNothingToDo
 	}
 
-	pick, err := p.askPick(ctx, st, exclude)
+	pick, err := p.askPick(ctx, st, request)
 	if err != nil {
 		return p.pickAction(ctx, Pick{TaskID: first, Reason: fallbackNote(err), Fallback: true})
 	}
 	return p.pickAction(ctx, pick)
 }
 
-func (p *Planner) askPick(ctx context.Context, st state, exclude int64) (Pick, error) {
+func (p *Planner) askPick(ctx context.Context, st state, request ActionRequest) (Pick, error) {
+	exclude := request.ExcludeTaskID
 	if st.model == nil {
 		return Pick{}, st.modelErr
 	}
@@ -60,6 +75,9 @@ func (p *Planner) askPick(ctx context.Context, st state, exclude int64) (Pick, e
 	user := "What should I do right now?"
 	if exclude != 0 {
 		user += fmt.Sprintf(" Not #%d, I just passed on that one.", exclude)
+	}
+	if note := strings.TrimSpace(request.Context); note != "" {
+		user += fmt.Sprintf("\n\nCurrent request for help and relevant conversation context:\n%q", note)
 	}
 	return ask(ctx, st.model, st.request(whatNowInstructions, user, whatNowSchema, "pick"), func(pk Pick) error {
 		if err := checkPick(pk, st.facts, exclude); err != nil {

@@ -34,6 +34,25 @@ func TestWhatNowPicksFromTheModel(t *testing.T) {
 	}
 }
 
+func TestNextActionContextAppliesOnlyToThisRequest(t *testing.T) {
+	f := newFixture(t)
+	task := f.task(t, service.TaskFields{Title: "Prepare presentation"})
+	f.model.replies = []any{pick(task.ID, "Start here"), pick(task.ID, "Continue")}
+	note := "I am stuck opening the document; help me find the first movement."
+	if _, err := f.planner.NextAction(context.Background(), planner.ActionRequest{Context: note}); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(f.model.sent[0].User, note) {
+		t.Fatalf("planner lost current need: %q", f.model.sent[0].User)
+	}
+	if _, err := f.planner.WhatNow(context.Background(), 0); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(f.model.sent[1].User, note) {
+		t.Fatalf("a situational request leaked into a later pick: %q", f.model.sent[1].User)
+	}
+}
+
 func TestWhatNowWorksBeforeTheDayStarts(t *testing.T) {
 	f := newFixture(t)
 	a := f.task(t, service.TaskFields{Title: "a"})

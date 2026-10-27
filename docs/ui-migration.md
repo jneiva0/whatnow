@@ -107,6 +107,13 @@ the product discussion resumes in [execution-direction.md](execution-direction.m
 | 2 | Day cards and shared execution rows | Polish density, hierarchy, long content, inline editing, reorder affordances and compact actual/estimate presentation as a set. Retain one ExecutionSteps interaction across Day, Focus and editor, and keep the main focus timer prominent/reachable on mobile. Known feedback is in feedback.md; João does not need to repeat it. |
 | 3 | Remaining recurring controls and consistency | Consolidate remaining manual controls in capture/suggestion/chat/navigation when the shared primitives remove code or interaction friction. Check labels, icons, focus/error/pending states and existing themes together. Avoid converting every native element merely for library coverage. |
 
+João's next screenshot clarified slice 2: Actions should emphasize the concrete
+step over its parent task. Compress parent metadata into the row with the task
+menu when space allows; energy can be an icon-only value control with an
+accessible name. Keep full feeling/context reachable and allow mobile wrapping.
+This is recorded in feedback.md under “Aba Ações”; it is refinement along the
+way, not authorization to restart a broad visual migration now.
+
 When resuming, use one primitive in every surface with the same intent. Add
 missing components through `bunx --bun shadcn-svelte add <component>` from `web/`
 and review their source. Consult https://shadcn-svelte-extras.com/ only for a

@@ -2,6 +2,25 @@
 
 Fonte: correções explícitas de João durante QA em 25/10/2026, delegadas pela conversa `01a17327-9bf8-79b2-a173-dd587d532f5b`. Registro contínuo do QA. A primeira rodada apenas capturou os achados; João autorizou implementação, pediu pausa para esboço e depois autorizou retomar com as correções visuais abaixo. Estados distinguem implementação, verificação técnica e aceite visual/funcional pelo uso. Preview e dados devem ser preservados.
 
+## Aba Ações — refinamentos registrados em 27/10/2026
+
+Fonte: [screenshot de João](feedback/2026-10-27/actions-view.png) e comentário
+direto após estacionar a migração visual.
+São ajustes para a próxima fatia de apresentação; não substituem a frente de
+granularidade/continuidade da IA nem significam rejeição da direção atual.
+
+- O passo deve ter mais ênfase que a tarefa na aba Ações: hoje título, notas,
+  justificativa e metadados do pai ocupam a maior parte do cartão.
+- Reunir metadados e três pontos em uma faixa compacta quando houver espaço,
+  adaptando no celular sem forçar uma linha que transborde.
+- Energia pode mostrar somente ícone/indicador do valor atual e abrir o seletor
+  ao clicar. Manter nome acessível e dica para que o significado seja descoberto.
+- Estimativa e sentimento também precisam de menos espaço; o texto completo e
+  sua edição devem continuar alcançáveis. Reduzir o peso do contexto pai sem
+  perder a relação com a tarefa ou criar outra interação para passos.
+
+Nenhuma dessas alterações de apresentação foi implementada nesta rodada.
+
 ## Migração de componentes — 27/10/2026
 
 - Menu dos três pontos de tarefas e passos migrado para shadcn-svelte/Bits UI.

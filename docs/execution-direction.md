@@ -24,10 +24,77 @@ vir de conectar melhor a ajuda da IA à execução, conforme o uso mostrar onde
 esse ciclo falha. Não há decisão de criar fila nova, rotinas fixas, ordenação por
 menor duração ou outra página.
 
-O próximo passo é alinhar esse comportamento geral com João antes de escolher
-outra feature. Feedback de aparência permanece no backlog; perda de dados, quebra
-de execução ou de sincronização continua justificando uma correção imediata.
-Voz permanece um bônus posterior ao fluxo principal.
+João confirmou essa direção e esclareceu que a granularidade depende da dificuldade
+de iniciar naquele momento. A próxima fatia conecta esse contexto à sugestão;
+o escopo e os limites estão abaixo. Feedback de aparência permanece no backlog;
+perda de dados, quebra de execução ou de sincronização continua justificando uma
+correção imediata. Voz permanece um bônus posterior ao fluxo principal.
+
+### Granularidade e contexto de ajuda — 27/10/2026
+
+**Direção confirmada:** não existe quantidade ideal universal de passos. Quando
+a ação já é executável, manter unidades significativas. Quando há dificuldade,
+detalhar o próximo movimento observável, sem transformar a tarefa inteira em
+uma checklist exaustiva. Estimar a ação real proposta; diminuir só o número de
+minutos não resolve uma ação vaga. Passos continuam em um nível, com identidade,
+ordem, estimativa opcional e conclusão explícita. Energia e sentimento são
+independentes. Não há escala clínica, rotina fixa ou classificação permanente
+do usuário sendo introduzida.
+
+**Lacuna verificada:** o agente recebe o histórico da conversa, mas delegava
+`what_now` sem argumentos ao planejador. Esse planejador recebia estado do dia,
+notas, tarefas/passos e registros de execução, sem a mensagem corrente nem o
+histórico do chat. Portanto o pedido “estou travado” podia se perder nessa
+fronteira mesmo quando as instruções do modelo falavam em ganhar movimento.
+
+**Implementado nesta fatia:** `planner.ActionRequest` representa o pedido atual
+com contexto e exclusão opcional de tarefa. O agente preserva a mensagem original
+na chamada delegada e pode fornecer contexto anterior relevante pelo argumento
+estruturado `what_now.context`. O endpoint `/whatnow` aceita `context` opcional;
+o botão comum continua funcionando sem ele. A necessidade é válida para aquela
+requisição, não grava automaticamente estado de bloqueio ou sentimento no pai.
+Fallback e validação de tarefa/passo permanecem. Instruções de captura,
+decomposição, chat e sugestão explicam granularidade adaptável, sem impor número
+de passos ou minutos. Isso é orientação ao modelo, não garantia de qualidade da
+decomposição nem um mecanismo novo que cria passos automaticamente ao clicar
+E agora. Nenhuma alteração de timer, plano, schema SQLite ou dados em uso.
+
+Verificação desta fatia: suíte Go completa passou; os novos cenários verificam
+chat → planejador com mensagem original e resumo opcional, API com contexto e
+ausência de gravação desse estado transitório no sentimento, além de ausência de
+vazamento para outro pedido. São testes com modelo simulado, não avaliação nova
+de qualidade com provedor real. Os 167 testes frontend e check Svelte sem
+erros/avisos passaram. O processo Go em uso não foi reiniciado; a alteração de
+backend será carregada no próximo reinício habitual.
+
+**Limite atual:** o E agora aberto diretamente pela UI ainda não recebe todo o
+histórico do chat. A nova passagem resolve a delegação pelo agente e fornece um
+campo explícito de requisição; não declarar que todas as superfícies agora
+compartilham um estado persistente de apoio. Decidir essa persistência somente
+quando houver uma necessidade concreta de continuidade entre pedidos.
+
+### Histórico para melhorar sugestões — proposta posterior
+
+O modelo atual já guarda registros de foco por tarefa/passo com horários e tempo
+acumulado, correções explícitas e atividades antes/depois das edições. Porém
+`Step` não tem horário próprio de conclusão, `FocusSession` não guarda uma cópia
+da descrição/estimativa no início e os trechos retomados são acumulados; não é um
+histórico completo de intervalos para atribuir tempo a cada dia. O planejador
+recebe o JSON bruto da execução; isso não é calibração histórica implementada.
+
+Antes de prometer aprendizado, a próxima etapa de dados deve preservar a
+estimativa vigente na ocasião e a identidade/versão da ação comparada, respeitando
+divisões/edições e correções. Reaproveitar o histórico existente quando suficiente;
+adicionar somente fatos cuja ausência impeça a comparação desejada. Derivar totais
+e comparações no Go e oferecer ao modelo um resumo limitado e estruturado.
+Poucas observações ou casos não comparáveis devem continuar incerteza explícita.
+Tempo com timer ligado é tempo registrado, não prova de execução, distração ou
+conclusão; não inferir esses fatos nem alterar tempo real automaticamente.
+
+Sequência sugerida: contexto/granularidade agora; continuidade da próxima ação
+conforme uso; histórico confiável e calibração depois. Não construir relatórios,
+treinamento de modelo, categorias universais de comportamento ou uma nova fila
+de planejamento como pré-requisito para essa primeira entrega.
 
 ## Norte
 

@@ -172,6 +172,28 @@ func TestWhatNow(t *testing.T) {
 	}
 }
 
+func TestWhatNowCarriesCurrentRequestAndEarlierContextToPlanner(t *testing.T) {
+	for _, recap := range []string{"", "The user has only five minutes before leaving."} {
+		t.Run(recap, func(t *testing.T) {
+			f := newFixture(t,
+				calls(call("pick", "what_now", map[string]any{"context": recap})),
+				text("Try opening the document."))
+			task := f.task(t, service.TaskFields{Title: "Prepare presentation", Feeling: "Interested"})
+			f.model.completions = []any{map[string]any{"task_id": task.ID, "reason": "First movement"}}
+			request := "I am stuck; I need something concrete to begin."
+			f.send(t, request)
+			if len(f.model.completes) != 1 || !strings.Contains(f.model.completes[0].User, request) ||
+				(recap != "" && !strings.Contains(f.model.completes[0].User, recap)) {
+				t.Fatalf("chat context lost during planner delegation: %+v", f.model.completes)
+			}
+			after, err := f.svc.GetTask(context.Background(), task.ID)
+			if err != nil || after.Feeling != "Interested" {
+				t.Fatalf("temporary need changed persistent task: %+v, %v", after, err)
+			}
+		})
+	}
+}
+
 func TestUndoLastLeavesThisTurnAlone(t *testing.T) {
 	f := newFixture(t)
 	add := func(id, title string) llm.ToolCall {

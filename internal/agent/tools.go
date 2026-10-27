@@ -84,7 +84,8 @@ var tools = []tool{
 	{"delete_event", "Remove an event.", js.Object(js.Prop("event_id", eventID)), deleteEvent},
 	{"replan", "Make a new version of today's plan. Use it when what they've told you changes what today should hold.",
 		js.Object(js.Prop("reason", js.String("What changed, in a few words."))), replan},
-	{"what_now", "Pick the one task they should start right now.", js.Object(), whatNow},
+	{"what_now", "Pick one executable action for their current situation. Pass relevant conversation context so the planner understands what help they need now.",
+		js.Object(js.Prop("context", js.String("Brief relevant context from this conversation: difficulty starting, need for a smaller action, resuming after distraction, or current constraints. Empty when none; never invent a mood or a fixed support level."))), whatNow},
 	{"set_pace", "Change today's pace. The plan updates on its own.",
 		js.Object(js.Prop("level", js.Integer("1 running on fumes, 2 gentle, 3 steady, 4 full steam, 5 go hard.")),
 			js.Prop("note", js.String("What's on their mind, if they said, or empty."))), setPace},
@@ -524,8 +525,19 @@ func replan(ctx context.Context, t *turn, input json.RawMessage) (string, any, e
 	}{plan.Opening, plan.Entries, plan.Fallback}, nil
 }
 
-func whatNow(ctx context.Context, t *turn, _ json.RawMessage) (string, any, error) {
-	pick, err := t.agent.planner.WhatNow(ctx, 0)
+func whatNow(ctx context.Context, t *turn, input json.RawMessage) (string, any, error) {
+	in, err := args[struct {
+		Context string `json:"context"`
+	}](input)
+	if err != nil {
+		return "", nil, err
+	}
+	// The original request is always retained; the model can also carry useful earlier context.
+	note := t.request
+	if extra := strings.TrimSpace(in.Context); extra != "" && extra != note {
+		note = joinText(note, extra)
+	}
+	pick, err := t.agent.planner.NextAction(ctx, planner.ActionRequest{Context: note})
 	if err != nil {
 		return "", nil, err
 	}

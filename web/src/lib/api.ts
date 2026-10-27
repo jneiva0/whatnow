@@ -376,8 +376,8 @@ export const api = {
 	wrapReview: () => request<Review>('GET', '/today/wrap'),
 	wrap: (triage: Triage[], note: string) =>
 		request<{ batch_id: number; data: Day }>('POST', '/today/wrap', { triage, note }),
-	whatNow: (exclude_task_id = 0, reason = '') =>
-		request<Pick>('POST', '/whatnow', { exclude_task_id, reason }),
+	whatNow: (exclude_task_id = 0, reason = '', context = '') =>
+		request<Pick>('POST', '/whatnow', { exclude_task_id, reason, context }),
 	send: (text: string) => request<Message>('POST', '/chat', { text }),
 	settings: () => request<SettingsView>('GET', '/settings'),
 	saveSettings: (s: Settings) => request<SettingsView>('PUT', '/settings', s),

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/jameynakama/whatnow/internal/domain"
@@ -106,6 +107,23 @@ func TestWhatNow(t *testing.T) {
 	list := decodeAs[[]domain.Task](t, api.do(http.MethodGet, "/api/v1/tasks", nil))
 	if list[0].Feeling != "too fried" {
 		t.Errorf("feeling = %q", list[0].Feeling)
+	}
+}
+
+func TestWhatNowPassesContextWithoutSavingItAsFeeling(t *testing.T) {
+	api := newAPI(t)
+	task := decodeAs[taskMutation](t, api.do(http.MethodPost, "/api/v1/tasks", map[string]any{"title": "Prepare presentation", "feeling": "Interested"}))
+	note := "I need a small first movement right now."
+	api.model = modelFunc(func(req llm.Request) (string, error) {
+		if !strings.Contains(req.User, note) {
+			t.Fatalf("request context missing: %q", req.User)
+		}
+		return fmt.Sprintf(`{"reason":"Start here","task_id":%d}`, task.Data.ID), nil
+	})
+	wantStatus(t, api.do(http.MethodPost, "/api/v1/whatnow", map[string]any{"context": note}), http.StatusOK)
+	tasks := decodeAs[[]domain.Task](t, api.do(http.MethodGet, "/api/v1/tasks", nil))
+	if len(tasks) != 1 || tasks[0].Feeling != "Interested" {
+		t.Fatalf("situational context was persisted as a task feeling: %+v", tasks)
 	}
 }
 
