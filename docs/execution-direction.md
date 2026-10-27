@@ -4,6 +4,31 @@ Atualizado em 27/10/2026. Fonte: feedback direto de João nesta conversa e leitu
 
 ## Estado atual — voltar ao produto
 
+### Revisão de fechamento do fluxo principal — retomada de 27/10
+
+Esta tabela prevalece sobre pendências históricas narradas nas seções abaixo.
+Não é autorização para reabrir frentes adiadas nem afirmação de que todo uso
+possível foi validado.
+
+| Contrato | Evidência atual | Situação |
+| --- | --- | --- |
+| Organizar passos na tarefa existente e iniciar pelo chat | Feedback direto de João para organização, botão e início correto no Foco; cenários sintéticos com provedor real em evaluations/2026-10-27-shared-organization.json | Aceito no recorte de uso relatado |
+| Timer ativo governa seleção; troca por play preserva tempo | Regra confirmada por João; focusTarget, Service.StartFocus e testes de troca/concorrência | Implementado; escolha explícita com timer parado corrigida em4cfd756 |
+| Conclusão explícita, próximo parado e undo sem retroceder tempo | TestFocusClockSwitchIdempotencyAndUndo, TestCompleteStepWithoutStartingAndKeepActionTimeAcrossSegments e testes de representação | Verificado por testes, não novo aceite físico |
+| Recuperação/sincronização sem descartar comandos | execution-state.test.ts e today.test.ts; relato anterior de sincronização entre dispositivos | Testes de corrida, suspensão e falha; sem promessa de funcionamento offline |
+| Entrada web consistente e independente das regras Go | focus-navigation.ts usado por quatro entradas;177 testes frontend, check/autofixer/build; API REST e TUI usam serviço Go | Consolidado ema1dcb2d; erros de play/pausa visíveis |
+| Uso mobile e entrega atual | Aceite de overflow por João; just dev no tmux; HTTPS7001 retornando200 | Versão em desenvolvimento disponível |
+
+Revisão final do backend: `go test ./...` e `go vet ./...` passaram, incluindo
+serviço, API, planner, agente e cliente terminal. Não houve mudança no terminal,
+novas integrações, schema ou dados reais nesta revisão.
+
+Próxima escolha enviada a João: retomar refinamento coeso de Ações/Foco,
+priorizar instalação Android/PWA ou manter apenas correções orientadas pelo uso.
+A migração ampla e a calibração histórica continuam adiadas enquanto não houver
+nova direção. O objetivo autônomo permanece ativo; não usar testes verdes como
+justificativa para acrescentar funcionalidades sem necessidade.
+
 **Retomada e entrega corrigida — 27/10:** João confirmou o overflow horizontal
 corrigido no Android. A correção está registrada no [changelog](../CHANGELOG.md).
 A conferência anterior abaixo que declarava a versão atual em uso estava errada:
