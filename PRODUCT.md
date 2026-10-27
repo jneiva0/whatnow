@@ -20,6 +20,10 @@ Go, SQLite, REST, SSE, and Svelte are established constraints. Mobile focus is e
 
 ## Capabilities and Constraints
 
+### Direction update — 2026-10-27
+
+The primary outcome is executive-function support: helping João start and continue. Treat his examples as guidance, not rigid algorithms. The next delivery is organized in `docs/execution-direction.md`; new visual feedback belongs to that delivery rather than automatically replacing its priority. Minutes should replace S/M/L as the user-facing size measure, while energy and feeling remain independent. A task estimate must consider its steps and never fall below their known estimated sum; actual time stays separate. Retain legacy data without inventing precise minutes. A flexible next-actions view is a possible presentation, not a requirement for another page or shortest-duration sorting. These decisions supersede older S/M/L-preservation wording below; they are direction, not implemented behavior.
+
 - Tasks remain the planning unit, under Must / Should / Could / Unplanned. Preserve S/M/L, energy, feelings, original capture, blockers, events, chat, and undo.
 - Steps have descriptions, optional minute estimates, order, and explicit completion. One level only; decomposition is on demand, manually or through chat.
 - One focus session runs at a time. Starting another pauses the previous session and preserves its time. Selected focus is distinct from previous paused sessions.
