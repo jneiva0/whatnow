@@ -70,3 +70,9 @@ Primeira parte da consolidação: `InlineEdit` compartilhado salva em Enter/saí
 Validação: 165 testes frontend passaram; Svelte check sem erros/avisos; build estático passou; autofixer oficial sem pendências nos cinco componentes; detector Impeccable sem achados determinísticos. Não houve QA de navegador ou celular físico, conforme combinado com João; isso não declara aceite visual. Nenhuma biblioteca de componentes nova foi instalada e nenhum processo/deploy foi atualizado.
 
 Próxima unidade: revisar o caminho completo Dia → sugestão → execução e consolidar a composição visual, mantendo estas mudanças junto da integração de IA na mesma branch. A alternativa de sequência continua hipótese de apresentação; não duplicar planejamento nem impor ordem fixa.
+
+### Entrada pela sugestão
+
+Corrigido `WhatNow.svelte`: “Começar” antes somente navegava; com outro foco rodando, a representação autoritativa mantinha a ação anterior. Agora inicia o alvo sugerido pela operação existente do servidor, que pausa o anterior preservando tempo, e só navega após confirmação. Falha mantém a sugestão e apresenta erro; cliques repetidos ficam bloqueados enquanto aguarda. Sem passo, a URL marca execução direta para não escolher um filho diferente silenciosamente. Falha de navegação informa que o foco já iniciou.
+
+Check Svelte sem erros/avisos, autofixer sem pendências, 16 testes existentes de representação/estado passaram. Verificação direcionada do servidor cobre troca, idempotência, undo, elegibilidade e inícios concorrentes. Sem novo teste que apenas espelhe o handler e sem QA visual automatizado.

@@ -15,12 +15,27 @@
 
 	let explaining = $state(false);
 	let reason = $state('');
+	let starting = $state(false);
+	let problem = $state('');
 
 	const step = $derived(execution.view?.steps.find((s) => s.id === pick.step_id));
-	function begin() {
-		const destination = `/focus?task=${pick.task_id}${pick.step_id ? `&step=${pick.step_id}` : ''}`;
-		onclose();
-		goto(destination);
+	async function begin() {
+		if (starting || execution.busy || asking) return;
+		starting = true;
+		problem = '';
+		const {task_id, step_id} = pick;
+		try {
+			if (!await execution.start(task_id, step_id ?? null)) {
+				problem = execution.problem;
+				return;
+			}
+			await goto(`/focus?task=${task_id}${step_id ? `&step=${step_id}` : '&direct=1'}`);
+			onclose();
+		} catch {
+			problem = 'O foco iniciou, mas a tela não abriu. Abra Foco para continuar.';
+		} finally {
+			starting = false;
+		}
 	}
 
 	function notThis(e: SubmitEvent) {
@@ -32,10 +47,11 @@
 </script>
 
 <section class="sticker whatnow" aria-live="polite" data-task={pick.task_id}>
-	<button class="close" aria-label="Close" onclick={onclose}>✕</button>
+	<button class="close" disabled={starting} aria-label="Close" onclick={onclose}>✕</button>
 	<h2>{step?.description ?? task?.title ?? 'That task'}</h2>
 	{#if step}<p class="parent">{task?.title}</p>{/if}
 	<p>{pick.reason}</p>
+	{#if problem}<p role="alert">{problem}</p>{/if}
 	{#if explaining}
 		<form onsubmit={notThis}>
 			<input class="field" bind:value={reason} placeholder="Why not? (optional)" aria-label="Why not this one" />
@@ -43,8 +59,8 @@
 		</form>
 	{:else}
 		<div class="actions">
-			<button class="btn primary" onclick={begin}>Começar</button>
-			<button class="btn" disabled={asking} onclick={() => (explaining = true)}>
+			<button class="btn primary" disabled={starting || execution.busy || asking} onclick={begin}>{starting ? 'Iniciando…' : 'Começar'}</button>
+			<button class="btn" disabled={asking || starting} onclick={() => (explaining = true)}>
 				{asking ? 'Thinking…' : 'Not this one'}
 			</button>
 		</div>
