@@ -132,6 +132,11 @@ add, and chat. These are web-only:
 
 ## Development
 
+Install Bun 1.4.3 and the Node version pinned in `web/.nvmrc`. Install the frontend
+dependencies with `cd web && bun install --frozen-lockfile`. `web/bun.lock` is the
+committed dependency lockfile. Run frontend scripts with `bun run` (including
+`bun run test`, which runs Vitest).
+
 ```sh
 just dev     # API plus the Vite dev server, at http://localhost:5173
 just test    # Go and web unit tests

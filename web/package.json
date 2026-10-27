@@ -11,7 +11,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run"
+		"test": "vitest run"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.63.0",
@@ -31,5 +31,6 @@
 	},
 	"dependencies": {
 		"canvas-confetti": "^1.9.4"
-	}
+	},
+	"packageManager": "bun@1.4.3"
 }

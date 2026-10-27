@@ -1,5 +1,10 @@
 You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
 
+Use Bun for frontend dependencies and scripts. Install with `bun install --frozen-lockfile`,
+run scripts with `bun run <script>`, and invoke package CLIs with `bunx`.
+Run the Vitest suite with `bun run test`; `bun test` invokes a different test runner.
+Keep `bun.lock` as the frontend lockfile and respect the Bun version in `package.json`.
+
 ## Available Svelte MCP Tools:
 
 ### 1. list-sections

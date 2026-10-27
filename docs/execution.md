@@ -44,7 +44,7 @@ To restart the same preview after rebuilding:
 
 ```sh
 cd web
-npm run build
+bun run build
 cd ..
 cp -R web/build/. internal/web/dist/
 go build -buildvcs=false -o whatnow ./cmd/whatnow
