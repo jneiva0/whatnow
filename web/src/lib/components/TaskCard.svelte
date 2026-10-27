@@ -4,7 +4,7 @@
 	import TaskMetadata from './TaskMetadata.svelte';
 	import PlayToggle from './PlayToggle.svelte';
 	import ExecutionSteps from './ExecutionSteps.svelte';
-	import { available, taskActual, taskEstimate, timerText } from '#lib/execution.ts';
+	import { available, actionActual, taskActual, taskEstimate, timerText } from '#lib/execution.ts';
 	import { api, type Tier } from '#lib/api.ts';
 	import { dismiss } from '#lib/dismiss.ts';
 	import { editor } from '#lib/editor.svelte.ts';
@@ -30,7 +30,9 @@
 	let expanded = $state(false);
 	const task = $derived(card.task);
 	const steps = $derived(execution.steps(task.id));
-	const nextStep = $derived(steps.find((s) => !s.done));
+	const running = $derived(execution.view?.sessions.find((s) => s.task_id === task.id && s.state === 'running'));
+ const nextStep = $derived(steps.find((s) => s.id === running?.step_id) ?? steps.find((s) => !s.done));
+ const nextActual = $derived(nextStep ? actionActual(execution.view?.sessions ?? [], task.id, nextStep.id, execution.now) : 0);
 	const completed = $derived(steps.filter((s) => s.done).length);
 	const actual = $derived(taskActual(execution.view?.sessions ?? [], task.id, execution.now));
 	const estimate = $derived(taskEstimate(task, execution.view?.steps ?? []));
@@ -133,11 +135,11 @@
 
         {#if task.status === 'open'}
             <div class="execution">
-                <span class="step-progress">{timerText(actual)} / {estimate.minutes == null ? '—' : timerText(estimate.minutes * 60000)}{estimate.partial ? ' (parcial)' : ''}</span>
+                <div class="step-progress">{#if nextStep}<span class="next-action">{nextStep.description}</span><span class="next-time">{timerText(nextActual)} / {nextStep.estimate_minutes == null ? '—' : timerText(nextStep.estimate_minutes * 60000)}{running ? ' · Em foco' : ''}</span>{/if}<span class={['total-time', {secondary: !!nextStep}]}>{nextStep ? 'Total ' : ''}{timerText(actual)} / {estimate.minutes == null ? '—' : timerText(estimate.minutes * 60000)}{estimate.partial ? '+' : ''}</span></div>
                 {#if !steps.length || nextStep}<PlayToggle running={execution.selected?.task_id === task.id && execution.selected.state === 'running'} disabled={!canStart || execution.busy} label={execution.selected?.task_id === task.id && execution.selected.state === 'running' ? `Pausar ${task.title}` : `Começar ${task.title}`} onclick={async () => { if (execution.selected?.task_id === task.id && execution.selected.state === 'running') await execution.action(execution.selected.id, 'pause'); else if (await execution.start(task.id, nextStep?.id ?? null)) goto(`/focus?task=${task.id}${nextStep ? `&step=${nextStep.id}` : ''}`); }} />{/if}
                 <a class="focus-icon" href={`/focus?task=${task.id}${nextStep ? `&step=${nextStep.id}` : ''}`} aria-label={`Abrir foco de ${task.title}`} title="Abrir foco"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M8 21H3v-5"/><circle cx="12" cy="12" r="3"/></svg></a>
             </div>
-            <details class="card-steps"><summary>{completed}/{steps.length} passos{nextStep ? ` · Próximo: ${nextStep.description}` : steps.length ? ' · Todos concluídos' : ' · Adicionar ou dividir com IA'}</summary><ExecutionSteps taskId={task.id} eligible={canStart} /></details>
+            <details class="card-steps"><summary>{steps.length ? `${completed}/${steps.length} passos` : 'Adicionar passos'}{steps.length && !nextStep ? ' · Todos concluídos' : ''}</summary><ExecutionSteps taskId={task.id} eligible={canStart} /></details>
         {/if}
 	</div>
 	{#if task.status === 'dropped'}
@@ -165,7 +167,9 @@
 <style>
  .focus-icon { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; color: var(--ink); }
 	.execution { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
-	.step-progress { flex: 1; min-width: 0; font-size: 13px; }
+	.step-progress { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; font-variant-numeric: tabular-nums; }
+ .next-action { font-size: 16px; font-weight: 650; overflow-wrap: anywhere; } .next-time, .total-time { font-size: 18px; } .total-time.secondary { font-size: 12px; color: var(--ink-soft); }
+ .execution { border-top: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); padding-top: 12px; }
 	.card-steps { font-size: 13px; }
 	.card-steps summary { cursor: pointer; min-height: 36px; padding-block: 7px; overflow-wrap: anywhere; }
 	.start { min-height: 44px; }

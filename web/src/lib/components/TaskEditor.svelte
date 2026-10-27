@@ -80,15 +80,10 @@
 		<textarea class="field" rows="3" bind:value={form.notes}></textarea>
 	</label>
 	<div class="row">
-		<label>
-			<span class="label">Size</span>
-			<select class="field" bind:value={form.size}>
-				<option value="">none</option>
-				<option value="S">S</option>
-				<option value="M">M</option>
-				<option value="L">L</option>
-			</select>
-		</label>
+        <label>
+            <span class="label">Estimativa (min)</span>
+            <input class="field" type="number" min="1" max="1440" step="1" bind:value={estimate} placeholder="Não definida" />
+        </label>
 		<label>
 			<span class="label">Energy</span>
 			<select class="field" bind:value={form.energy}>
@@ -99,10 +94,7 @@
 			</select>
 		</label>
 	</div>
-	<label>
-		<span class="label">Estimativa da tarefa (min, opcional)</span>
-		<input class="field" type="number" min="1" max="1440" step="1" bind:value={estimate} />
-	</label>
+
 	<label>
 		<span class="label">Feeling</span>
 		<input class="field" bind:value={form.feeling} placeholder="How does this one feel?" />

@@ -62,3 +62,11 @@ Executadas duas rodadas delimitadas com o provedor OpenAI-compatible já configu
 A inspeção identificou que o contexto principal omitia notas e captura original. `internal/prompt/facts.go` agora inclui ambas, com teste de regressão; os três pacotes afetados (prompt/planner/agent) passaram. A segunda rodada com o código corrigido manteve os resultados acima. Isso é evidência qualitativa limitada aos cenários exercitados, não garantia geral de classificação, deduplicação ou adequação clínica.
 
 A integração da IA está implementada e esses cenários reais foram avaliados. Próxima etapa permanece apresentação da execução (minutos no lugar de S/M/L, contexto tarefa/passos e próximos movimentos), seguida de consolidação visual, sem transformar comentários isolados em novas prioridades. O aplicativo em uso não foi atualizado nesta rodada.
+
+## Apresentação da execução — 27/10/2026
+
+Primeira parte da consolidação: `InlineEdit` compartilhado salva em Enter/saída e cancela em Escape, mantém o rascunho e informa falhas. Descrição e minutos dos passos usam esse controle, sem botão Salvar. `ExecutionSteps` continua compartilhado entre Dia e Foco, com disposição adaptável. `TaskMetadata` e `TaskEditor` mostram minutos em lugar de S/M/L; os dados antigos permanecem preservados. Cartões mostram próxima ação (ou passo em execução) com tempo próprio e total da tarefa em nível secundário.
+
+Validação: 165 testes frontend passaram; Svelte check sem erros/avisos; build estático passou; autofixer oficial sem pendências nos cinco componentes; detector Impeccable sem achados determinísticos. Não houve QA de navegador ou celular físico, conforme combinado com João; isso não declara aceite visual. Nenhuma biblioteca de componentes nova foi instalada e nenhum processo/deploy foi atualizado.
+
+Próxima unidade: revisar o caminho completo Dia → sugestão → execução e consolidar a composição visual, mantendo estas mudanças junto da integração de IA na mesma branch. A alternativa de sequência continua hipótese de apresentação; não duplicar planejamento nem impor ordem fixa.
