@@ -15,6 +15,39 @@ const reply = (id: number, text: string, over: Partial<Message> = {}): Message =
 });
 
 describe('Chat', () => {
+	it('keeps a confirmed live reply and its action when an older history read finishes', async () => {
+		const pending = Promise.withResolvers<Message[]>();
+		vi.spyOn(api, 'chat').mockReturnValue(pending.promise);
+		const c = new Chat();
+		const loading = c.load();
+		const actionReply = reply(3, 'Comece aqui', {tools: [{tool: 'what_now', label: 'Ação', error: '', action: {task_id: 2, step_id: 9}}]});
+		c.message(actionReply);
+		pending.resolve([reply(1, 'Anterior')]);
+		await loading;
+		expect(c.messages.map((m) => m.id)).toEqual([1, 3]);
+		expect(c.messages[1].tools).toEqual(actionReply.tools);
+	});
+	it('keeps deltas received during recovery instead of clearing the new draft', async () => {
+		const pending = Promise.withResolvers<Message[]>();
+		vi.spyOn(api, 'chat').mockReturnValue(pending.promise);
+		const c = new Chat();
+		const loading = c.load();
+		c.delta('Resposta em andamento');
+		pending.resolve([reply(1, 'Anterior')]);
+		await loading;
+		expect(c.draft?.text).toBe('Resposta em andamento');
+		expect(c.messages).toHaveLength(1);
+	});
+	it('ignores a slower earlier history read after a newer recovery has completed', async () => {
+		const old = Promise.withResolvers<Message[]>();
+		vi.spyOn(api, 'chat').mockReturnValueOnce(old.promise).mockResolvedValueOnce([reply(1, 'Atual'), reply(2, 'Nova')]);
+		const c = new Chat();
+		const first = c.load();
+		await c.load();
+		old.resolve([reply(1, 'Antiga')]);
+		await first;
+		expect(c.messages.map((m) => m.text)).toEqual(['Atual', 'Nova']);
+	});
 	it('Should build a draft from deltas and chips, then swap in the stored reply', () => {
 		const c = new Chat();
 		c.tool({ tool: 'complete_task', label: 'Done: taxes', error: '' });

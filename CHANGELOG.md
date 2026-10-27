@@ -2,6 +2,15 @@
 
 ## 2026-10-27
 
+### Recuperação do chat sem perder respostas recentes
+
+- Uma leitura atrasada do histórico não remove mais mensagens confirmadas que
+  chegaram enquanto ela estava em andamento, incluindo referências de ação.
+- Novos deltas de uma resposta em andamento não são apagados pela recuperação.
+  Leituras anteriores não substituem uma recuperação mais recente.
+- Três testes reproduziram as falhas antes da correção. A lógica permanece no
+  estado do chat; não altera API, banco ou regras de execução.
+
 ### Entrada de foco compartilhada e erros visíveis
 
 - Cartões, passos, chat e E agora compartilham `focus-navigation.ts` para iniciar
