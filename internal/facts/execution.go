@@ -9,7 +9,7 @@ import (
 
 // Execution derives the shared view used by API, planner, capture and chat. Live
 // steps are current scope; time on removed steps still belongs to their parent.
-func Execution(now time.Time, tasks []domain.Task, steps []domain.Step, sessions []domain.FocusSession) map[int64]domain.TaskProgress {
+func Execution(now time.Time, tasks []domain.Task, steps []domain.Step, sessions []domain.FocusSession, selectedID *int64) map[int64]domain.TaskProgress {
 	byTask := map[int64][]domain.Step{}
 	for _, step := range steps {
 		if step.DeletedAt == nil {
@@ -20,7 +20,11 @@ func Execution(now time.Time, tasks []domain.Task, steps []domain.Step, sessions
 	direct := map[int64]int64{}
 	stepActual := map[int64]int64{}
 	running := map[int64]*domain.ActionRef{}
+	selected := map[int64]*domain.FocusSession{}
 	for _, session := range sessions {
+		if selectedID != nil && session.ID == *selectedID {
+			selected[session.TaskID] = &session
+		}
 		elapsed := max(int64(0), session.AccumulatedMS)
 		if session.State == "running" && session.SegmentStartedAt != nil {
 			elapsed += max(int64(0), now.Sub(*session.SegmentStartedAt).Milliseconds())
@@ -43,7 +47,7 @@ func Execution(now time.Time, tasks []domain.Task, steps []domain.Step, sessions
 			return live[i].Position < live[j].Position || (live[i].Position == live[j].Position && live[i].ID < live[j].ID)
 		})
 		p := domain.TaskProgress{TaskID: task.ID, TotalEstimate: domain.TaskEstimate(task, live),
-			ActualMS: actual[task.ID], DirectActualMS: direct[task.ID], Running: running[task.ID], Steps: []domain.StepProgress{}}
+			ActualMS: actual[task.ID], DirectActualMS: direct[task.ID], Running: running[task.ID], Focus: selected[task.ID], Steps: []domain.StepProgress{}}
 		var known, missing, pendingMinutes int
 		liveActual := int64(0)
 		for _, step := range live {

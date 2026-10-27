@@ -468,6 +468,46 @@
       "focus_changed": false,
       "task_count": 2,
       "undo_restored_initial_steps": true
+    },
+    {
+      "case": "concrete",
+      "model": "gpt-6.1-sol",
+      "request": "O que faço agora? Quero só responder a mensagem do fornecedor, leva três minutos e já sei o que escrever. Não preciso de passos menores.",
+      "reply": "Responda à mensagem do fornecedor agora — você já sabe o que escrever e leva só três minutos. Só isso por enquanto.",
+      "error": "",
+      "tools": [
+        {
+          "name": "what_now",
+          "input": {
+            "context": "Quer agora apenas responder a mensagem do fornecedor (tarefa 2), leva três minutos e já sabe o que escrever. Explicitamente não precisa de passos menores; escolher essa tarefa sem decompor."
+          }
+        }
+      ],
+      "persisted_tool_metadata": [
+        {
+          "tool": "what_now",
+          "label": "Picked #2 \"Responder a mensagem do fornecedor\"",
+          "error": "",
+          "outcome": "suggested",
+          "action": {
+            "task_id": 2,
+            "step_id": null
+          }
+        }
+      ],
+      "tasks": [
+        [
+          1,
+          "Organizar meu espaço de trabalho"
+        ],
+        [
+          2,
+          "Responder a mensagem do fornecedor"
+        ]
+      ],
+      "new_steps": 0,
+      "focus_sessions": 0,
+      "batch_id": 0
     }
   ]
 }

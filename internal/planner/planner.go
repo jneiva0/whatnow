@@ -136,7 +136,7 @@ func (p *Planner) gather(ctx context.Context, withModel bool) (state, error) {
 		return st, err
 	}
 	st.facts = facts.Compute(facts.Input{Now: now, Loc: p.loc, EndOfDay: st.settings.EndOfDay, Tasks: tasks,
-		Steps: execution.Steps, Sessions: execution.Sessions, Blockers: blockers, Events: events, PushCounts: pushes, Musts: musts})
+		Steps: execution.Steps, Sessions: execution.Sessions, SelectedID: execution.SelectedID, Blockers: blockers, Events: events, PushCounts: pushes, Musts: musts})
 	return st, nil
 }
 

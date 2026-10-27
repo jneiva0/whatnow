@@ -14,14 +14,15 @@ import (
 // Input is what facts are computed from. Tasks, Blockers, and Events must leave out anything
 // deleted. Events may include ones outside today; only today's count.
 type Input struct {
-	Now      time.Time
-	Loc      *time.Location
-	EndOfDay string // local HH:MM
-	Tasks    []domain.Task
-	Steps    []domain.Step
-	Sessions []domain.FocusSession
-	Blockers []domain.Blocker
-	Events   []domain.Event
+	Now        time.Time
+	Loc        *time.Location
+	EndOfDay   string // local HH:MM
+	Tasks      []domain.Task
+	Steps      []domain.Step
+	Sessions   []domain.FocusSession
+	SelectedID *int64
+	Blockers   []domain.Blocker
+	Events     []domain.Event
 	// PushCounts maps a task ID to how many times it was pushed.
 	PushCounts map[int64]int
 	// Musts are the current plan's must tier. A must raises the urgency of whatever blocks it.
@@ -122,7 +123,7 @@ func Compute(in Input) Facts {
 		longest = max(longest, g.Duration())
 	}
 
-	progress := Execution(in.Now, in.Tasks, in.Steps, in.Sessions)
+	progress := Execution(in.Now, in.Tasks, in.Steps, in.Sessions, in.SelectedID)
 	for _, t := range in.Tasks {
 		if !Eligible(t, f.Today) {
 			continue

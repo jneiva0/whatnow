@@ -41,6 +41,13 @@ func TestContextualDecompositionOnlyOrganizesStepsOfItsTask(t *testing.T) {
 	if len(steps) != 2 || steps[0].ID != completed.ID || !steps[0].Done || steps[1].Description != "Get water" {
 		t.Fatalf("progress: %+v", steps)
 	}
+	use := reply.Tools[2]
+	if use.Outcome != "organized" || use.Action == nil || use.Action.TaskID != task.ID || use.Action.StepID == nil || *use.Action.StepID != steps[1].ID {
+		t.Fatalf("missing applied execution target: %+v", use)
+	}
+	if reply.Tools[0].Action != nil || reply.Tools[1].Action != nil {
+		t.Fatal("failed calls exposed an execution target")
+	}
 	foreign, _ := f.svc.ListSteps(ctx, other.ID)
 	if len(foreign) != 0 {
 		t.Fatal("decomposition modified another task")
@@ -64,6 +71,9 @@ func TestContextualDecompositionOnlyOrganizesStepsOfItsTask(t *testing.T) {
 	}
 	if !strings.Contains(history[0].Text, "#1") || !strings.Contains(history[0].Text, task.Title) {
 		t.Fatal("request lost task context")
+	}
+	if history[1].Tools[2].Action == nil || *history[1].Tools[2].Action.StepID != steps[1].ID {
+		t.Fatal("action reference was lost when reloading chat history")
 	}
 }
 

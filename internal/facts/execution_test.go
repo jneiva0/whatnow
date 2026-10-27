@@ -14,6 +14,7 @@ func TestExecutionSeparatesScopePendingWorkAndRecordedTime(t *testing.T) {
 	removed := now.Add(-time.Hour)
 	five, ten, fifty, manual := 5, 10, 50, 4
 	first, active, archived := int64(1), int64(2), int64(4)
+	selectedID := int64(3)
 	task := domain.Task{ID: 7, Status: domain.StatusOpen, EstimateMinutes: &manual}
 	steps := []domain.Step{
 		{ID: first, TaskID: 7, Position: 0, Done: true, EstimateMinutes: &five},
@@ -24,11 +25,11 @@ func TestExecutionSeparatesScopePendingWorkAndRecordedTime(t *testing.T) {
 	sessions := []domain.FocusSession{
 		{TaskID: 7, AccumulatedMS: 2000, State: "ended"},
 		{TaskID: 7, StepID: &first, AccumulatedMS: 3000, State: "ended"},
-		{TaskID: 7, StepID: &active, AccumulatedMS: 5000, State: "running", SegmentStartedAt: &started},
+		{ID: selectedID, TaskID: 7, StepID: &active, AccumulatedMS: 5000, State: "running", SegmentStartedAt: &started},
 		{TaskID: 7, StepID: &archived, AccumulatedMS: 7000, State: "ended"},
 		{TaskID: 99, AccumulatedMS: 900000, State: "ended"},
 	}
-	p := facts.Execution(now, []domain.Task{task}, steps, sessions)[7]
+	p := facts.Execution(now, []domain.Task{task}, steps, sessions, &selectedID)[7]
 	if p.ActualMS != 47000 || p.DirectActualMS != 2000 || p.ArchivedActualMS != 7000 || p.Steps[1].ActualMS != 35000 {
 		t.Fatalf("recorded time counted incorrectly: %+v", p)
 	}
@@ -43,22 +44,28 @@ func TestExecutionSeparatesScopePendingWorkAndRecordedTime(t *testing.T) {
 	if steps[1].Done || sessions[2].AccumulatedMS != 5000 {
 		t.Fatal("facts mutated execution")
 	}
+	// Pausing is still a selected focus, not loss of the current action.
+	sessions[2].State, sessions[2].SegmentStartedAt = "paused", nil
+	p = facts.Execution(now, []domain.Task{task}, steps, sessions, &selectedID)[7]
+	if p.Focus == nil || p.Focus.ID != selectedID || p.Focus.State != "paused" || p.Running != nil {
+		t.Fatalf("paused focus disappeared from context: %+v", p)
+	}
 }
 
 func TestExecutionUnknownPendingEstimateDiffersFromNothingPending(t *testing.T) {
 	now := at(5, 10, 0)
 	task := domain.Task{ID: 1, Status: domain.StatusOpen}
 	step := domain.Step{ID: 2, TaskID: 1}
-	p := facts.Execution(now, []domain.Task{task}, []domain.Step{step}, nil)[1]
+	p := facts.Execution(now, []domain.Task{task}, []domain.Step{step}, nil, nil)[1]
 	if p.PendingEstimate.Minutes != nil || !p.PendingEstimate.Partial {
 		t.Fatalf("unknown became zero: %+v", p)
 	}
 	step.Done = true
-	p = facts.Execution(now, []domain.Task{task}, []domain.Step{step}, nil)[1]
+	p = facts.Execution(now, []domain.Task{task}, []domain.Step{step}, nil, nil)[1]
 	if p.Next != nil || p.PendingEstimate.Minutes == nil || *p.PendingEstimate.Minutes != 0 || p.PendingEstimate.Partial {
 		t.Fatalf("all steps done should have no pending action: %+v", p)
 	}
-	p = facts.Execution(now, []domain.Task{task}, nil, nil)[1]
+	p = facts.Execution(now, []domain.Task{task}, nil, nil, nil)[1]
 	if p.Next == nil || p.Next.StepID != nil || p.PendingEstimate.Minutes != nil {
 		t.Fatalf("direct task: %+v", p)
 	}

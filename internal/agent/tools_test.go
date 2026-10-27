@@ -181,7 +181,10 @@ func TestWhatNowCarriesCurrentRequestAndEarlierContextToPlanner(t *testing.T) {
 			task := f.task(t, service.TaskFields{Title: "Prepare presentation", Feeling: "Interested"})
 			f.model.completions = []any{map[string]any{"task_id": task.ID, "reason": "First movement"}}
 			request := "I am stuck; I need something concrete to begin."
-			f.send(t, request)
+			reply := f.send(t, request)
+			if reply.Tools[0].Outcome != "suggested" || reply.Tools[0].Action == nil || reply.Tools[0].Action.TaskID != task.ID {
+				t.Fatalf("suggestion lost executable reference: %+v", reply.Tools)
+			}
 			if len(f.model.completes) != 1 || !strings.Contains(f.model.completes[0].User, request) ||
 				(recap != "" && !strings.Contains(f.model.completes[0].User, recap)) {
 				t.Fatalf("chat context lost during planner delegation: %+v", f.model.completes)

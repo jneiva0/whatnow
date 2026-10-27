@@ -92,6 +92,13 @@ func Execution(p domain.TaskProgress) string {
 	if p.ArchivedActualMS > 0 {
 		fmt.Fprintf(&b, "  Recorded focus on removed actions (included in task total): %s.\n", time.Duration(p.ArchivedActualMS)*time.Millisecond)
 	}
+	if p.Focus != nil {
+		target := "task directly"
+		if p.Focus.StepID != nil {
+			target = fmt.Sprintf("step #%d", *p.Focus.StepID)
+		}
+		fmt.Fprintf(&b, "  Selected focus: session #%d, %s, %s.\n", p.Focus.ID, p.Focus.State, target)
+	}
 	if p.Running != nil {
 		if p.Running.StepID == nil {
 			b.WriteString("  Currently running: task directly.\n")

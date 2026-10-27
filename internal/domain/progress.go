@@ -26,4 +26,5 @@ type TaskProgress struct {
 	Steps            []StepProgress `json:"steps"`
 	Next             *ActionRef     `json:"next"`
 	Running          *ActionRef     `json:"running"`
+	Focus            *FocusSession  `json:"focus,omitempty"`
 }

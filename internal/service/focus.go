@@ -203,7 +203,7 @@ func executionState(ctx context.Context, tx *sql.Tx, now time.Time) (domain.Exec
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}
-	out.Progress = facts.Execution(now, progressTasks, out.Steps, out.Sessions)
+	out.Progress = facts.Execution(now, progressTasks, out.Steps, out.Sessions, out.SelectedID)
 	return out, err
 }
 func (s *Service) Execution(ctx context.Context) (domain.ExecutionState, error) {

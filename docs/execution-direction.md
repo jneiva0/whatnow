@@ -26,7 +26,31 @@ cobriu pedido implícito, desabafo, captura continuando tarefa existente e botã
 decompor. No caso final, a preparação foi salva primeiro com estimativas; tarefas,
 passos anteriores e undo foram preservados. As primeiras amostras e refinamentos
 estão registrados no arquivo: isso não demonstra confiabilidade em toda conversa.
-Próxima fatia: tornar a ação devolvida pelo chat acessível para iniciar a execução.
+Commit `7d59ab7`.
+
+**Chat → execução — 27/10:** resultados bem-sucedidos de organização e E agora
+carregam `ToolUse.action` (task_id/step_id) e um resultado organizado/sugerido. A
+referência persiste no JSON já usado pelo histórico e chega por SSE, sem migração
+de banco. O chat oferece “Começar esta ação” para um alvo ainda disponível; ao
+clicar, usa a operação existente de foco e abre a tela correspondente. Nada inicia
+por uma resposta do modelo. Erros, passos concluídos/removidos e alterações
+desfeitas não oferecem o início de um alvo inválido. Não foi criada fila extra.
+O contexto inclui também o foco selecionado quando pausado, além do em execução.
+
+Verificação final: suíte Go completa; 167 testes frontend; Svelte check sem erros
+ou avisos; build frontend e executável Go passaram. O autofixer oficial aprovou
+ChatAction; em ChatDock, a colocação de const foi corrigida e as sugestões sobre
+scrollTo no efeito/bind:this preexistentes foram revisadas e mantidas por sincronizarem
+o DOM, sem reatribuir estado. QA visual e teste em aparelho físico não realizados,
+conforme combinado com João. Nenhum serviço reiniciado ou dado real alterado.
+
+Os cinco ensaios com provedor real usaram apenas dados fictícios: organização
+implícita, desabafo, captura existente, decomposição pelo botão e tarefa já concreta.
+No último, E agora escolheu a própria tarefa sem novos passos ou timer automático,
+devolvendo sua referência ao histórico. As amostras são delimitadas, não garantia
+de qualidade geral. UI mais ampla, calibração histórica e atribuição de tempo por
+dia permanecem no plano. Próximo aceite: reiniciar na nova compilação e testar um
+pedido natural de organização, verificando os passos salvos e o botão de começar.
 
 **Atualização após o teste de uso:** a passagem de contexto de `147777b` é uma
 correção parcial. João mostrou que o chat ainda respondeu só verbalmente e só

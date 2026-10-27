@@ -5,6 +5,7 @@
 	import { toasts } from '#lib/toasts.svelte.ts';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import XIcon from '@lucide/svelte/icons/x';
+	import ChatAction from '#lib/components/ChatAction.svelte';
 
 	interface Props {
 		/** The plan's opening line, shown first. It isn't a stored message. */
@@ -61,6 +62,7 @@
 	}
 
 	const chipText = (t: ToolUse) => `${t.error ? '✕' : '✓'} ${t.label || t.tool}`;
+	const offeredAction = (tools: ToolUse[] | null) => tools?.findLast((t) => !t.error && t.action)?.action;
 </script>
 
 {#if chat.open}
@@ -76,11 +78,15 @@
 				<p class="bubble assistant">{opening}</p>
 			{/if}
 			{#each chat.messages as m (m.id)}
+				{@const action = offeredAction(m.tools)}
 				<div class={['bubble', m.role, {failed: m.error}]}>
 					{#each m.tools ?? [] as t, i (i)}
 						<span class={['toolchip', {bad: t.error}]} title={t.error}>{chipText(t)}</span>
 					{/each}
 					<p>{m.text}</p>
+					{#if action && !chat.undone.includes(m.batch_id)}
+						<ChatAction {action} />
+					{/if}
 					{#if m.error}
 						<a href="/settings">Check settings</a>
 					{/if}

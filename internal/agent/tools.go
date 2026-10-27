@@ -128,6 +128,15 @@ func (t *turn) runTool(ctx context.Context, c llm.ToolCall) llm.ToolResult {
 		var b []byte
 		if b, err = json.Marshal(out); err == nil {
 			use.Label, result.Content = label, string(b)
+			// Only successful, validated results can offer a real execution target.
+			// These fields persist with the existing tool JSON and stream to clients.
+			switch value := out.(type) {
+			case organizationResult:
+				use.Outcome, use.Action = value.Outcome, value.Next
+			case planner.Pick:
+				use.Outcome = "suggested"
+				use.Action = &domain.ActionRef{TaskID: value.TaskID, StepID: value.StepID}
+			}
 		}
 	}
 	if err != nil {
@@ -206,6 +215,7 @@ func listTasks(ctx context.Context, t *turn, input json.RawMessage) (string, any
 			item := briefOf(task)
 			if p, ok := execution.Progress[task.ID]; ok {
 				item.Progress = &p
+				item.EstimateMinutes = p.TotalEstimate.Minutes
 			}
 			out = append(out, item)
 		}

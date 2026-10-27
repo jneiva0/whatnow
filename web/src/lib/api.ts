@@ -158,10 +158,17 @@ export interface ExecutionState {
  selected_id: number | null;
 }
 
+export interface ActionRef {
+	task_id: number;
+	step_id: number | null;
+}
+
 export interface ToolUse {
 	tool: string;
 	label: string;
 	error: string;
+	outcome?: 'organized' | 'suggested';
+	action?: ActionRef;
 }
 
 export interface Message {

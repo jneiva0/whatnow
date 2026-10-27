@@ -201,9 +201,11 @@ const (
 
 // ToolUse is one tool the agent ran in a reply, shown as a chip. Error is set when it failed.
 type ToolUse struct {
-	Tool  string `json:"tool"`
-	Label string `json:"label"`
-	Error string `json:"error"`
+	Tool    string     `json:"tool"`
+	Label   string     `json:"label"`
+	Error   string     `json:"error"`
+	Outcome string     `json:"outcome,omitempty"`
+	Action  *ActionRef `json:"action,omitempty"`
 }
 
 // Message is one chat message. BatchID is the reply's changes, or 0 when it changed nothing. Error

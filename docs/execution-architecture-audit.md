@@ -4,6 +4,12 @@
 `codex/execution-direction`. Auditoria solicitada por João após o chat responder
 verbalmente a uma sequência que ele esperava ver organizada em passos.
 
+**Implementação posterior, no mesmo dia:** fatos compartilhados em `5cdaf85` e
+organização atômica em `7d59ab7`. O chat passa a devolver uma referência persistida
+da ação para o controle explícito de começar. O estado, verificações e limites
+atuais estão em [execution-direction.md](execution-direction.md). O diagnóstico
+abaixo descreve a situação anterior às correções, preservada como evidência.
+
 ## Conclusão
 
 A estrutura de persistência e execução é aproveitável. Go, SQLite, serviço único,
