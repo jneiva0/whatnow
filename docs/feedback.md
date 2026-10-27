@@ -9,8 +9,11 @@ Fonte: correções explícitas de João durante QA em 25/10/2026, delegadas pela
   `TaskActionItems` mantém uma única composição para ambas as entradas.
   Check Svelte sem erros/avisos, 167 testes existentes e build passaram.
   Gesto touch e apresentação ficam para o QA de uso de João.
-- **Pendente:** João perguntou como fechar o chat. O controle atual é o `⟩` no
-  cabeçalho; tornar esse recolhimento mais evidente na fatia de navegação/chat.
+- **Correção:** as screenshots de João mostraram o controle do chat ausente.
+  A classe legada `collapse` colidiu com a utility Tailwind `visibility: collapse`.
+  Substituída por `Button` compartilhado com ícone X, nome acessível e área de
+  toque de 44px; fechamento e preferência salva mantidos. Validação visual de
+  uso permanece com João.
 - **Condução:** manter commits por fatia funcional/refatoração para revisão e
   rollback. Feedback pontual não substitui automaticamente a sequência de entrega.
 

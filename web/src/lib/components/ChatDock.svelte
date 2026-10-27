@@ -3,6 +3,8 @@
 	import { api, type ToolUse } from '#lib/api.ts';
 	import { chat } from '#lib/chat.svelte.ts';
 	import { toasts } from '#lib/toasts.svelte.ts';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import XIcon from '@lucide/svelte/icons/x';
 
 	interface Props {
 		/** The plan's opening line, shown first. It isn't a stored message. */
@@ -65,16 +67,18 @@
 	<aside class="sticker dock">
 		<header>
 			<span class="label">Chat</span>
-			<button class="collapse" aria-label="Collapse chat" onclick={toggle}>⟩</button>
+			<Button variant="outline" size="icon" aria-label="Fechar chat" title="Fechar chat" onclick={toggle}>
+				<XIcon aria-hidden="true" />
+			</Button>
 		</header>
 		<div class="log" bind:this={log}>
 			{#if opening}
 				<p class="bubble assistant">{opening}</p>
 			{/if}
 			{#each chat.messages as m (m.id)}
-				<div class="bubble {m.role}" class:failed={m.error}>
+				<div class={['bubble', m.role, {failed: m.error}]}>
 					{#each m.tools ?? [] as t, i (i)}
-						<span class="toolchip" class:bad={t.error} title={t.error}>{chipText(t)}</span>
+						<span class={['toolchip', {bad: t.error}]} title={t.error}>{chipText(t)}</span>
 					{/each}
 					<p>{m.text}</p>
 					{#if m.error}
@@ -92,7 +96,7 @@
 			{#if chat.draft}
 				<div class="bubble assistant">
 					{#each chat.draft.tools as t, i (i)}
-						<span class="toolchip" class:bad={t.error}>{chipText(t)}</span>
+						<span class={['toolchip', {bad: t.error}]}>{chipText(t)}</span>
 					{/each}
 					<p>{chat.draft.text || '…'}</p>
 				</div>
@@ -129,12 +133,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-	}
-	.collapse {
-		background: none;
-		border: none;
-		font-size: 18px;
-		font-weight: var(--heavy);
+		flex-shrink: 0;
 	}
 	.log {
 		flex: 1;
