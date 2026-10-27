@@ -15,6 +15,15 @@ const reply = (id: number, text: string, over: Partial<Message> = {}): Message =
 });
 
 describe('Chat', () => {
+	it('does not let a duplicate HTTP reply clear a later streamed turn', () => {
+		const c = new Chat();
+		c.message(reply(2, 'Primeira resposta'));
+		c.message(reply(3, 'Novo pedido', {role: 'user'}));
+		c.delta('Segunda resposta em andamento');
+		c.message(reply(2, 'Primeira resposta'));
+		expect(c.draft?.text).toBe('Segunda resposta em andamento');
+		expect(c.messages.map((m) => m.id)).toEqual([2, 3]);
+	});
 	it('keeps a confirmed live reply and its action when an older history read finishes', async () => {
 		const pending = Promise.withResolvers<Message[]>();
 		vi.spyOn(api, 'chat').mockReturnValue(pending.promise);

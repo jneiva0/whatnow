@@ -59,7 +59,9 @@ export class Chat {
 		const i = this.messages.findIndex((x) => x.id === m.id);
 		if (i >= 0) this.messages[i] = m;
 		else this.messages.push(m);
-		if (m.role === 'assistant') {
+		// SSE and the POST response carry the same persisted message. Re-delivery
+		// must not finish a newer draft or mark the old reply unread again.
+		if (m.role === 'assistant' && i < 0) {
 			++this.#draftRevision;
 			this.draft = null;
 			if (!this.open) this.unread = true;

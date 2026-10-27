@@ -10,6 +10,10 @@
   Leituras anteriores não substituem uma recuperação mais recente.
 - Três testes reproduziram as falhas antes da correção. A lógica permanece no
   estado do chat; não altera API, banco ou regras de execução.
+- Resposta duplicada por SSE/HTTP não encerra um rascunho posterior nem repete
+  o indicador de não lida. Teste reproduziu a falha antes da correção.
+  181 testes frontend, check Svelte e build passaram. Autofixer sem issues;
+  Maps locais de recuperação são intencionalmente não reativos.
 
 ### Entrada de foco compartilhada e erros visíveis
 
