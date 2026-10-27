@@ -1,5 +1,7 @@
 package cleanup
 
+import "github.com/jameynakama/whatnow/internal/prompt"
+
 const instructions = `You tidy up a note that someone with ADHD just typed into their day planner. Help them turn their intention into something they can start: tasks with optional concrete steps, fixed-time events, and blockers. Reply only with JSON that matches the schema.
 
 The note is already saved as one task, called "original". Decide what it becomes:
@@ -12,7 +14,8 @@ Task fields:
 - notes: useful detail from the note that doesn't fit the title. Links go in refs, not here.
 - existing_task_id: when this clearly continues an existing intention, use that open task's ID instead of duplicating it. A new mention of urgency or a smaller action within "organize the room" usually continues that task. Similar subject alone is not enough; otherwise use 0. Existing progress is preserved; notes from this capture are appended.
 - estimate_minutes: a realistic rough duration in minutes, 0 if unknown. Use the user's estimate when given. The total cannot be lower than known step estimates. Energy is separate from duration.
-- steps: optional flat actions for this intention. Include actions the user already described, or a small practical starting sequence when they feel stuck or the intention is vague. Don't demand the word "steps". Keep already concrete tasks simple. Don't invent routines or split every capture. For an existing task, include only genuinely new actions, never duplicate completed/pending steps. A useful first step is better than an exhaustive project plan.
+- steps: optional ordered flat actions for this intention. Include actions the user already described, or a small practical starting sequence when they feel stuck or the intention is vague. Don't demand the word "steps". Keep already concrete tasks simple. Don't invent routines or split every capture. For an existing task, reuse step_id for represented actions (description empty, estimate_minutes 0); add new actions with step_id 0. Omitted existing actions survive after this sequence. Preparation goes before work, never replaces unrelated work. A deliberate repeat like drinking water again gets a new action with repeat=true; don't reopen a completed occurrence. Never set repeat just to bypass a duplicate. A useful first step is better than an exhaustive project plan.
+- ` + prompt.StepOrganization + `
 - Match step granularity to the difficulty they describe now. If they can start, keep meaningful actions together. If they cannot start, make the next action an observable first movement and leave later work coarser. Do not use a fixed number of steps or a universal minute target. Estimates describe each actual action; shortening an estimate alone does not make an action easier.
 - Different actions toward one outcome are steps, not separate planning cards. Independently meaningful intentions may be separate tasks.
 - energy: the mental effort it takes. Use what the note says about how hard it feels. Empty if you can't tell.

@@ -18,11 +18,6 @@ type result struct {
 	Blockers []blocker `json:"blockers"`
 }
 
-type stepOut struct {
-	Description string `json:"description"`
-	Estimate    int    `json:"estimate_minutes"`
-}
-
 func minutes(n int) *int {
 	if n == 0 {
 		return nil
@@ -31,17 +26,17 @@ func minutes(n int) *int {
 }
 
 type taskOut struct {
-	ExistingTaskID int64        `json:"existing_task_id"`
-	Estimate       int          `json:"estimate_minutes"`
-	Steps          []stepOut    `json:"steps"`
-	Title          string       `json:"title"`
-	Notes          string       `json:"notes"`
-	Size           string       `json:"size"`
-	Energy         string       `json:"energy"`
-	Feeling        string       `json:"feeling"`
-	DueOn          string       `json:"due_on"`
-	NotBefore      string       `json:"not_before"`
-	Refs           []domain.Ref `json:"refs"`
+	ExistingTaskID int64                   `json:"existing_task_id"`
+	Estimate       int                     `json:"estimate_minutes"`
+	Steps          []service.StepPlacement `json:"steps"`
+	Title          string                  `json:"title"`
+	Notes          string                  `json:"notes"`
+	Size           string                  `json:"size"`
+	Energy         string                  `json:"energy"`
+	Feeling        string                  `json:"feeling"`
+	DueOn          string                  `json:"due_on"`
+	NotBefore      string                  `json:"not_before"`
+	Refs           []domain.Ref            `json:"refs"`
 }
 
 type original struct {

@@ -101,14 +101,18 @@ func toolDefs() []llm.Tool {
 	return defs
 }
 
-// A contextual decomposition request advertises only the same two tools its dispatcher allows.
+func decompositionTool(name string) bool {
+	return name == "list_steps" || name == "organize_steps" || name == "split_step"
+}
+
+// A contextual request advertises only the tools its task-scoped dispatcher allows.
 func (t *turn) toolDefs() []llm.Tool {
 	if t.taskScope == 0 {
 		return toolDefs()
 	}
 	out := []llm.Tool{}
 	for _, tl := range tools {
-		if tl.name == "list_steps" || tl.name == "add_step" {
+		if decompositionTool(tl.name) {
 			out = append(out, llm.Tool{Name: tl.name, Description: tl.description, Schema: tl.schema})
 		}
 	}
@@ -137,8 +141,8 @@ func (t *turn) runTool(ctx context.Context, c llm.ToolCall) llm.ToolResult {
 
 func (t *turn) dispatch(ctx context.Context, c llm.ToolCall) (string, any, error) {
 	if t.taskScope != 0 {
-		if c.Name != "list_steps" && c.Name != "add_step" {
-			return "", nil, fmt.Errorf("%w: task decomposition can only read/add steps of its task", service.ErrInvalid)
+		if !decompositionTool(c.Name) {
+			return "", nil, fmt.Errorf("%w: task decomposition can only read/organize/split steps of its task", service.ErrInvalid)
 		}
 		in, err := args[struct {
 			TaskID int64 `json:"task_id"`

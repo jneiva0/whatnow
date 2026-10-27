@@ -227,7 +227,7 @@ func (r *Runner) write(ctx context.Context, batch int64, task domain.Task, res r
 				return err
 			}
 		}
-		if err := r.addSteps(ctx, batch, id, res.Original.Steps); err != nil {
+		if err := r.organizeSteps(ctx, batch, id, res.Original.Steps); err != nil {
 			return err
 		}
 	}
@@ -252,7 +252,7 @@ func (r *Runner) write(ctx context.Context, batch int64, task domain.Task, res r
 			return err
 		}
 		ids[n.Ref] = id
-		if err := r.addSteps(ctx, batch, id, n.Steps); err != nil {
+		if err := r.organizeSteps(ctx, batch, id, n.Steps); err != nil {
 			return err
 		}
 	}
@@ -379,27 +379,10 @@ func (r *Runner) preserveCapture(ctx context.Context, batch, id int64, raw strin
 	return err
 }
 
-func (r *Runner) addSteps(ctx context.Context, batch, id int64, proposed []stepOut) error {
-	if len(proposed) > 30 {
-		return errors.New("too many proposed steps")
+func (r *Runner) organizeSteps(ctx context.Context, batch, id int64, proposed []service.StepPlacement) error {
+	if len(proposed) == 0 {
+		return nil
 	}
-	existing, err := r.svc.ListSteps(ctx, id)
-	if err != nil {
-		return err
-	}
-	seen := map[string]bool{}
-	key := func(s string) string { return strings.ToLower(strings.Join(strings.Fields(s), " ")) }
-	for _, s := range existing {
-		seen[key(s.Description)] = true
-	}
-	for _, s := range proposed {
-		if seen[key(s.Description)] {
-			continue
-		}
-		if _, err := r.svc.CreateStep(ctx, batch, id, service.StepFields{Description: s.Description, EstimateMinutes: minutes(s.Estimate)}); err != nil {
-			return err
-		}
-		seen[key(s.Description)] = true
-	}
-	return nil
+	_, err := r.svc.OrganizeSteps(ctx, batch, id, proposed)
+	return err
 }

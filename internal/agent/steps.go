@@ -7,6 +7,7 @@ import (
 
 	"github.com/jameynakama/whatnow/internal/domain"
 	js "github.com/jameynakama/whatnow/internal/jsonschema"
+	"github.com/jameynakama/whatnow/internal/prompt"
 	"github.com/jameynakama/whatnow/internal/service"
 	"github.com/jameynakama/whatnow/internal/stream"
 )
@@ -15,11 +16,12 @@ var stepFieldsSchema = js.Object(js.Prop("description", js.String("One concrete 
 var executionTools = []tool{
 	{"correct_focus_time", "Correct recorded actual elapsed time ONLY when explicitly requested. This does not edit estimates, and is not reverted by generic undo. Read execution_context to find the session ID. Supply a new unique request_id; reuse it only to retry the same correction.", js.Object(js.Prop("session_id", js.Integer("Focus session ID.")), js.Prop("total_ms", js.Integer("Correct actual elapsed total in milliseconds, 0..31536000000.")), js.Prop("reason", js.String("The user's explicit correction reason.")), js.Prop("request_id", js.String("Unique correction request token, 8..200 characters."))), correctFocusTime},
 	{"list_steps", "Read a task's ordered steps and completion state.", js.Object(js.Prop("task_id", taskID)), listTaskSteps},
+	{"organize_steps", "Register or prepare an actionable sequence in ONE existing task. Reuse IDs and add new actions in the intended order, atomically. Omitted steps survive afterwards; nothing is deleted/completed/reopened and focus stays unchanged. Use this for preparation before work, rather than splitting unrelated work. Returns applied progress and the next real action.", js.Object(js.Prop("task_id", taskID), js.Prop("steps", prompt.StepSequence)), organizeTaskSteps},
 	{"add_step", "Add a concrete action to an existing task when decomposition helps the user start. Read existing steps first to avoid duplication. Steps never become planning cards.", js.Object(js.Prop("task_id", taskID), js.Prop("description", js.String("Concrete action.")), js.Prop("estimate_minutes", js.Integer("1..1440 minutes, or 0 for unspecified."))), addTaskStep},
 	{"update_step", "Edit, complete or reopen a step. Completing a step never completes its parent.", js.Object(js.Prop("task_id", taskID), js.Prop("step_id", js.Integer("Step ID.")), js.Prop("description", js.String("Complete action description.")), js.Prop("estimate_minutes", js.Integer("1..1440 minutes, or 0 for unspecified.")), js.Prop("status", js.Enum("Completion state.", "pending", "done"))), updateTaskStep},
 	{"delete_step", "Remove an action, preserving its recorded focus time.", js.Object(js.Prop("task_id", taskID), js.Prop("step_id", js.Integer("Step ID."))), deleteTaskStep},
 	{"reorder_steps", "Reorder all live steps of a task. Include each step ID exactly once.", js.Object(js.Prop("task_id", taskID), js.Prop("ids", js.Array(js.Integer("Step ID.")))), reorderTaskSteps},
-	{"split_step", "Replace one pending action with 2..30 smaller actions at the same level. Preserve completed siblings and focus time.", js.Object(js.Prop("task_id", taskID), js.Prop("step_id", js.Integer("Pending step ID.")), js.Prop("steps", js.Array(stepFieldsSchema))), splitTaskStep},
+	{"split_step", "Decompose the SAME pending action into 2..30 smaller parts of that action, replacing it. Never use for preparation or unrelated actions; use organize_steps to insert those. Preserves completed siblings and focus time.", js.Object(js.Prop("task_id", taskID), js.Prop("step_id", js.Integer("Pending step ID.")), js.Prop("steps", js.Array(stepFieldsSchema))), splitTaskStep},
 	{"execution_context", "Read current focus, earlier sessions and steps. Starting/stopping the timer is controlled by the user.", js.Object(), executionContext},
 }
 
@@ -39,6 +41,30 @@ func listTaskSteps(ctx context.Context, t *turn, input json.RawMessage) (string,
 	}
 	out, err := t.agent.svc.ListSteps(ctx, in.TaskID)
 	return "Read task steps", out, err
+}
+
+// organizationResult distinguishes an applied organization from a read or a
+// suggestion. The progress and next action come from the committed service state.
+type organizationResult struct {
+	Outcome  string              `json:"outcome"`
+	Progress domain.TaskProgress `json:"progress"`
+	Next     *domain.ActionRef   `json:"next"`
+}
+
+func organizeTaskSteps(ctx context.Context, t *turn, input json.RawMessage) (string, any, error) {
+	in, err := args[struct {
+		TaskID int64                   `json:"task_id"`
+		Steps  []service.StepPlacement `json:"steps"`
+	}](input)
+	if err != nil {
+		return "", nil, err
+	}
+	batch, err := t.batch(ctx)
+	if err != nil {
+		return "", nil, err
+	}
+	progress, err := t.agent.svc.OrganizeSteps(ctx, batch, in.TaskID, in.Steps)
+	return "Organized task steps", organizationResult{Outcome: "organized", Progress: progress, Next: progress.Next}, err
 }
 func addTaskStep(ctx context.Context, t *turn, input json.RawMessage) (string, any, error) {
 	in, err := args[struct {

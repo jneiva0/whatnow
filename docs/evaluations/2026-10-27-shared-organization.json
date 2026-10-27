@@ -1,0 +1,473 @@
+{
+  "date": "2026-10-27",
+  "base_commit": "5cdaf85",
+  "scope": "Real configured provider, synthetic tasks in disposable SQLite; no user profile/history copied, no real task mutations.",
+  "limits": [
+    "One sample per case after refinement, not a reliability estimate.",
+    "Initial organization saved steps with unknown estimates; schema wording was clarified to encourage rough estimates for familiar actions.",
+    "Initial two capture samples retained meditation before the requested preparation. The contract was clarified: omitted existing steps are preserved by the service and must not be copied just for preservation. The final sample put the new preparation first.",
+    "This does not implement historical calibration or prove intent recognition for every conversation."
+  ],
+  "cases": [
+    {
+      "case": "organize",
+      "model": "gpt-6.1-sol",
+      "request": "Ok, eu tô travado, eu vou precisar ir manualmente, fazendo coisas manuais. Uma coisa de cada vez. Beber água de novo e fazer xixi. Me alongar, fazer flexões. E aí eu volto e começo a arrumar meu espaço. Depois penso nas decisões importantes, mas agora preciso deixar as coisas simples.",
+      "reply": "Combinado: uma coisa de cada vez, sem decisões importantes agora. **Só pegue a água e beba alguns goles** — deixei a sequência guardada em “Organizar meu espaço de trabalho”, então você não precisa lembrar do resto.",
+      "error": "",
+      "tools": [
+        {
+          "name": "organize_steps",
+          "input": {
+            "task_id": 1,
+            "steps": [
+              {
+                "step_id": 0,
+                "description": "Beber água de novo",
+                "estimate_minutes": 1,
+                "repeat": true
+              },
+              {
+                "step_id": 0,
+                "description": "Ir ao banheiro fazer xixi",
+                "estimate_minutes": 3,
+                "repeat": false
+              },
+              {
+                "step_id": 0,
+                "description": "Alongar o corpo",
+                "estimate_minutes": 2,
+                "repeat": false
+              },
+              {
+                "step_id": 0,
+                "description": "Fazer algumas flexões",
+                "estimate_minutes": 2,
+                "repeat": false
+              },
+              {
+                "step_id": 4,
+                "description": "",
+                "estimate_minutes": 0,
+                "repeat": false
+              },
+              {
+                "step_id": 5,
+                "description": "",
+                "estimate_minutes": 0,
+                "repeat": false
+              },
+              {
+                "step_id": 6,
+                "description": "",
+                "estimate_minutes": 0,
+                "repeat": false
+              }
+            ]
+          }
+        }
+      ],
+      "capture_proposal": null,
+      "persisted_steps": [
+        {
+          "id": 7,
+          "task_id": 1,
+          "description": "Beber água de novo",
+          "estimate_minutes": 1,
+          "position": 0,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 8,
+          "task_id": 1,
+          "description": "Ir ao banheiro fazer xixi",
+          "estimate_minutes": 3,
+          "position": 1,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 9,
+          "task_id": 1,
+          "description": "Alongar o corpo",
+          "estimate_minutes": 2,
+          "position": 2,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 10,
+          "task_id": 1,
+          "description": "Fazer algumas flexões",
+          "estimate_minutes": 2,
+          "position": 3,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 4,
+          "task_id": 1,
+          "description": "Recolher cinco objetos do chão",
+          "estimate_minutes": 3,
+          "position": 4,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 5,
+          "task_id": 1,
+          "description": "Liberar a área do teclado",
+          "estimate_minutes": 8,
+          "position": 5,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 6,
+          "task_id": 1,
+          "description": "Arrumar por dez minutos",
+          "estimate_minutes": 10,
+          "position": 6,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 1,
+          "task_id": 1,
+          "description": "Pegar água e beber alguns goles",
+          "estimate_minutes": 1,
+          "position": 7,
+          "done": true,
+          "deleted_at": null
+        },
+        {
+          "id": 2,
+          "task_id": 1,
+          "description": "Meditar por três minutos",
+          "estimate_minutes": 3,
+          "position": 8,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 3,
+          "task_id": 1,
+          "description": "Beber mais água e levantar",
+          "estimate_minutes": 1,
+          "position": 9,
+          "done": true,
+          "deleted_at": null
+        }
+      ],
+      "next": {
+        "task_id": 1,
+        "step_id": 7
+      },
+      "existing_actions_preserved": true,
+      "focus_changed": false,
+      "task_count": 2,
+      "undo_restored_initial_steps": true
+    },
+    {
+      "case": "reflect",
+      "model": "gpt-6.1-sol",
+      "request": "Hoje estou me sentindo travado e só queria desabafar. Não organize nem altere minhas tarefas por enquanto; não quero uma lista de coisas para fazer.",
+      "reply": "Pode desabafar. Não vou mexer nas suas tarefas nem sugerir coisas para fazer. O que está pesando mais hoje?",
+      "error": "",
+      "tools": [],
+      "capture_proposal": null,
+      "persisted_steps": [
+        {
+          "id": 1,
+          "task_id": 1,
+          "description": "Pegar água e beber alguns goles",
+          "estimate_minutes": 1,
+          "position": 0,
+          "done": true,
+          "deleted_at": null
+        },
+        {
+          "id": 2,
+          "task_id": 1,
+          "description": "Meditar por três minutos",
+          "estimate_minutes": 3,
+          "position": 1,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 3,
+          "task_id": 1,
+          "description": "Beber mais água e levantar",
+          "estimate_minutes": 1,
+          "position": 2,
+          "done": true,
+          "deleted_at": null
+        },
+        {
+          "id": 4,
+          "task_id": 1,
+          "description": "Recolher cinco objetos do chão",
+          "estimate_minutes": 3,
+          "position": 3,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 5,
+          "task_id": 1,
+          "description": "Liberar a área do teclado",
+          "estimate_minutes": 8,
+          "position": 4,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 6,
+          "task_id": 1,
+          "description": "Arrumar por dez minutos",
+          "estimate_minutes": 10,
+          "position": 5,
+          "done": false,
+          "deleted_at": null
+        }
+      ],
+      "next": {
+        "task_id": 1,
+        "step_id": 2
+      },
+      "existing_actions_preserved": true,
+      "focus_changed": false,
+      "task_count": 2,
+      "undo_restored_initial_steps": null
+    },
+    {
+      "case": "capture",
+      "model": "gpt-6-luna",
+      "request": "Estou travado pra organizar meu espaço de trabalho. Antes de recolher os objetos, preciso beber água de novo, ir ao banheiro, alongar e fazer algumas flexões. Depois retomo a arrumação que já está registrada.",
+      "reply": "",
+      "error": "",
+      "tools": [],
+      "capture_proposal": {
+        "original": {
+          "keep": true,
+          "title": "Organizar meu espaço de trabalho",
+          "notes": "Preciso recuperar um pouco de ordem para poder trabalhar. Água e movimento podem ajudar a começar.",
+          "existing_task_id": 1,
+          "estimate_minutes": 38,
+          "steps": [
+            {
+              "step_id": 0,
+              "description": "Beber água de novo",
+              "estimate_minutes": 1,
+              "repeat": true
+            },
+            {
+              "step_id": 0,
+              "description": "Ir ao banheiro",
+              "estimate_minutes": 5,
+              "repeat": false
+            },
+            {
+              "step_id": 0,
+              "description": "Alongar",
+              "estimate_minutes": 5,
+              "repeat": false
+            },
+            {
+              "step_id": 0,
+              "description": "Fazer algumas flexões",
+              "estimate_minutes": 3,
+              "repeat": false
+            },
+            {
+              "step_id": 2,
+              "description": "",
+              "estimate_minutes": 0,
+              "repeat": false
+            },
+            {
+              "step_id": 4,
+              "description": "",
+              "estimate_minutes": 0,
+              "repeat": false
+            }
+          ],
+          "energy": "",
+          "feeling": "travado",
+          "due_on": "",
+          "not_before": "",
+          "refs": []
+        },
+        "new_tasks": [],
+        "events": [],
+        "blockers": []
+      },
+      "persisted_steps": [
+        {
+          "id": 7,
+          "task_id": 1,
+          "description": "Beber água de novo",
+          "estimate_minutes": 1,
+          "position": 0,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 8,
+          "task_id": 1,
+          "description": "Ir ao banheiro",
+          "estimate_minutes": 5,
+          "position": 1,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 9,
+          "task_id": 1,
+          "description": "Alongar",
+          "estimate_minutes": 5,
+          "position": 2,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 10,
+          "task_id": 1,
+          "description": "Fazer algumas flexões",
+          "estimate_minutes": 3,
+          "position": 3,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 2,
+          "task_id": 1,
+          "description": "Meditar por três minutos",
+          "estimate_minutes": 3,
+          "position": 4,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 4,
+          "task_id": 1,
+          "description": "Recolher cinco objetos do chão",
+          "estimate_minutes": 3,
+          "position": 5,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 1,
+          "task_id": 1,
+          "description": "Pegar água e beber alguns goles",
+          "estimate_minutes": 1,
+          "position": 6,
+          "done": true,
+          "deleted_at": null
+        },
+        {
+          "id": 3,
+          "task_id": 1,
+          "description": "Beber mais água e levantar",
+          "estimate_minutes": 1,
+          "position": 7,
+          "done": true,
+          "deleted_at": null
+        },
+        {
+          "id": 5,
+          "task_id": 1,
+          "description": "Liberar a área do teclado",
+          "estimate_minutes": 8,
+          "position": 8,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 6,
+          "task_id": 1,
+          "description": "Arrumar por dez minutos",
+          "estimate_minutes": 10,
+          "position": 9,
+          "done": false,
+          "deleted_at": null
+        }
+      ],
+      "next": {
+        "task_id": 1,
+        "step_id": 7
+      },
+      "existing_actions_preserved": true,
+      "focus_changed": false,
+      "task_count": 2,
+      "undo_restored_initial_steps": true
+    },
+    {
+      "case": "decompose",
+      "model": "gpt-6.1-sol",
+      "request": "Botão dividir em passos da tarefa",
+      "reply": "Organizei “Organizar meu espaço de trabalho” com uma preparação pequena antes da arrumação. Comece só por levantar e pegar um copo de água para levar à mesa; depois, o objetivo é liberar espaço suficiente para trabalhar, não arrumar tudo.",
+      "error": "",
+      "tools": [
+        {
+          "name": "list_steps",
+          "input": {
+            "task_id": 1
+          }
+        },
+        {
+          "name": "organize_steps",
+          "input": {
+            "task_id": 1,
+            "steps": [
+              {
+                "step_id": 0,
+                "description": "Levantar e pegar um copo de água para levar à mesa.",
+                "estimate_minutes": 2,
+                "repeat": false
+              },
+              {
+                "step_id": 0,
+                "description": "Liberar espaço para trabalhar na mesa: descartar o lixo visível e reunir os objetos fora do lugar num só canto, sem organizar tudo agora.",
+                "estimate_minutes": 0,
+                "repeat": false
+              }
+            ]
+          }
+        }
+      ],
+      "capture_proposal": null,
+      "persisted_steps": [
+        {
+          "id": 1,
+          "task_id": 1,
+          "description": "Levantar e pegar um copo de água para levar à mesa.",
+          "estimate_minutes": 2,
+          "position": 0,
+          "done": false,
+          "deleted_at": null
+        },
+        {
+          "id": 2,
+          "task_id": 1,
+          "description": "Liberar espaço para trabalhar na mesa: descartar o lixo visível e reunir os objetos fora do lugar num só canto, sem organizar tudo agora.",
+          "estimate_minutes": null,
+          "position": 1,
+          "done": false,
+          "deleted_at": null
+        }
+      ],
+      "next": {
+        "task_id": 1,
+        "step_id": 1
+      },
+      "existing_actions_preserved": true,
+      "focus_changed": false,
+      "task_count": 2,
+      "undo_restored_initial_steps": true
+    }
+  ]
+}

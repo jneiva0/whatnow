@@ -11,7 +11,22 @@ consulta de tarefas pelo chat e resumo do dia usam essa projeção. O modelo nã
 precisa mais agregar o histórico bruto de sessões. O resumo distingue tempo
 acumulado de tempo atribuído ao dia; calibração histórica continua posterior.
 Testes dos pacotes facts, prompt, service, cleanup, planner, agent e httpapi
-passaram. Próxima fatia autorizada: contrato de organização de passos.
+passaram. Commit `5cdaf85`.
+
+**Organização compartilhada — 27/10:** captura, chat e botão de decompor agora
+usam `Service.OrganizeSteps`: sequência com referências a IDs existentes e ações
+novas; omissões são preservadas depois da sequência. A operação é atômica,
+reversível e não apaga, conclui, reabre ou troca foco. Preparar antes de trabalhar
+não exige substituir um passo sem relação. Repetição deliberada é uma ocorrência
+nova, preservando a concluída. Edições e divisão real continuam operações próprias.
+O resultado traz progresso aplicado e próxima referência, calculados no serviço.
+
+A suíte Go completa passou. [Avaliação sintética com o provedor real](evaluations/2026-10-27-shared-organization.json)
+cobriu pedido implícito, desabafo, captura continuando tarefa existente e botão de
+decompor. No caso final, a preparação foi salva primeiro com estimativas; tarefas,
+passos anteriores e undo foram preservados. As primeiras amostras e refinamentos
+estão registrados no arquivo: isso não demonstra confiabilidade em toda conversa.
+Próxima fatia: tornar a ação devolvida pelo chat acessível para iniciar a execução.
 
 **Atualização após o teste de uso:** a passagem de contexto de `147777b` é uma
 correção parcial. João mostrou que o chat ainda respondeu só verbalmente e só
@@ -20,7 +35,8 @@ com correções pontuais. A [auditoria de integração](execution-architecture-a
 registra os módulos inspecionados, lacunas, ensaios reais fictícios e a proposta
 de sequência. Próximo trabalho recomendado: fatos de execução compartilhados,
 contrato de organização verificável e ligação consistente entre sugestão e ação.
-Nenhum desses três itens está implementado pela auditoria. UI e calibração
+Nenhum desses três itens foi implementado durante a auditoria; o progresso posterior
+está registrado acima. UI e calibração
 histórica continuam guardadas para depois. Graphify fica fora do fluxo normal;
 João esclareceu que era um experimento e questionou o custo das buscas laterais.
 

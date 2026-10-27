@@ -21,7 +21,7 @@ func TestEveryToolIsOffered(t *testing.T) {
 		names = append(names, tl.Name)
 	}
 	want := []string{"list_tasks", "create_task", "update_task", "complete_task", "drop_task", "push_task", "add_blocker",
-		"remove_blocker", "create_event", "update_event", "delete_event", "replan", "what_now", "set_pace", "undo_last", "correct_focus_time", "list_steps", "add_step", "update_step", "delete_step", "reorder_steps", "split_step", "execution_context"}
+		"remove_blocker", "create_event", "update_event", "delete_event", "replan", "what_now", "set_pace", "undo_last", "correct_focus_time", "list_steps", "organize_steps", "add_step", "update_step", "delete_step", "reorder_steps", "split_step", "execution_context"}
 	if diff := cmp.Diff(want, names); diff != "" {
 		t.Errorf("tools (-want +got):\n%s", diff)
 	}

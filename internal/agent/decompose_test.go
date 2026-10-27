@@ -9,7 +9,7 @@ import (
 	"github.com/jameynakama/whatnow/internal/service"
 )
 
-func TestContextualDecompositionOnlyAddsStepsToItsTask(t *testing.T) {
+func TestContextualDecompositionOnlyOrganizesStepsOfItsTask(t *testing.T) {
 	f := newFixture(t)
 	ctx := context.Background()
 	task := f.task(t, service.TaskFields{Title: "Prepare for the day"})
@@ -23,9 +23,9 @@ func TestContextualDecompositionOnlyAddsStepsToItsTask(t *testing.T) {
 		t.Fatal(err)
 	}
 	f.model.replies = []any{calls(
-		call("wrong-task", "add_step", map[string]any{"task_id": other.ID, "description": "Wrong action", "estimate_minutes": 2}),
+		call("wrong-task", "organize_steps", map[string]any{"task_id": other.ID, "steps": []map[string]any{{"description": "Wrong action", "estimate_minutes": 2}}}),
 		call("wrong-tool", "complete_task", map[string]any{"task_id": task.ID}),
-		call("right-task", "add_step", map[string]any{"task_id": task.ID, "description": "Get water", "estimate_minutes": 2}),
+		call("right-task", "organize_steps", map[string]any{"task_id": task.ID, "steps": []map[string]any{{"step_id": completed.ID}, {"description": "Get water", "estimate_minutes": 2}}}),
 	), text("Added the next action.")}
 	reply, err := f.agent.DecomposeTask(ctx, task.ID)
 	if err != nil {
@@ -54,7 +54,7 @@ func TestContextualDecompositionOnlyAddsStepsToItsTask(t *testing.T) {
 		t.Fatal("decomposition invented focus")
 	}
 	for _, tl := range f.model.chats[0].Tools {
-		if tl.Name != "list_steps" && tl.Name != "add_step" {
+		if tl.Name != "list_steps" && tl.Name != "organize_steps" && tl.Name != "split_step" {
 			t.Fatalf("unexpected contextual tool: %s", tl.Name)
 		}
 	}

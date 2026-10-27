@@ -68,7 +68,7 @@ func (a *Agent) Send(ctx context.Context, text string) (domain.Message, error) {
 }
 
 // DecomposeTask uses the existing chat turn and history, but restricts its tools to
-// reading/adding steps of this exact task. It cannot alter other tasks or completed progress.
+// organizing steps of this exact task. It cannot alter other tasks or completed progress.
 func (a *Agent) DecomposeTask(ctx context.Context, taskID int64) (domain.Message, error) {
 	task, err := a.svc.GetTask(ctx, taskID)
 	if err != nil {
@@ -77,7 +77,7 @@ func (a *Agent) DecomposeTask(ctx context.Context, taskID int64) (domain.Message
 	if task.Status != domain.StatusOpen {
 		return domain.Message{}, fmt.Errorf("%w: only an open task can be divided into steps", service.ErrConflict)
 	}
-	request := fmt.Sprintf("Divida a tarefa #%d em ações concretas usando list_steps e add_step desta tarefa. Ajuste o nível de detalhe à dificuldade atual descrita na conversa: detalhe o primeiro movimento quando houver resistência; mantenha ações significativas juntas quando já forem executáveis. Não imponha quantidade de passos ou duração fixa nem invente uma checklist exaustiva. Preserve os passos já existentes, especialmente os concluídos, sem duplicar ações já representadas. Não crie tarefas independentes, não conclua nada, não mude o foco ou tempo e não replaneje. Inclua estimativas realistas quando houver base; use 0 quando desconhecida. Tarefa: %q. Detalhes: %q.", task.ID, task.Title, task.Notes)
+	request := fmt.Sprintf("Organize a tarefa #%d em ações concretas usando list_steps e organize_steps desta tarefa. Ajuste o nível de detalhe à dificuldade atual descrita na conversa: detalhe o primeiro movimento quando houver resistência; mantenha ações significativas juntas quando já forem executáveis. Não imponha quantidade de passos ou duração fixa nem invente uma checklist exaustiva. Reutilize IDs existentes; acrescente preparações antes do trabalho sem substituí-lo. Só use split_step para decompor a mesma ação pendente, nunca uma ação sem relação. Preserve concluídos e foco. Não crie tarefas independentes, não conclua nada e não replaneje. Inclua estimativas realistas quando houver base; use 0 quando desconhecida. Tarefa: %q. Detalhes: %q.", task.ID, task.Title, task.Notes)
 	// Task details can be long; keep this contextual request within the existing chat bound.
 	runes := []rune(request)
 	if len(runes) > maxMessageRunes {

@@ -519,6 +519,7 @@ func TestOnlyAnOpenTaskWithTheSameTicketKeyJoins(t *testing.T) {
 func TestCaptureContinuesRoomTaskWithStepsAndUndo(t *testing.T) {
 	ctx := context.Background()
 	var existingID int64
+	var doneID int64
 	f := newFixture(t, func(req llm.Request) (string, error) {
 		var contextText strings.Builder
 		for _, b := range req.System {
@@ -528,7 +529,7 @@ func TestCaptureContinuesRoomTaskWithStepsAndUndo(t *testing.T) {
 			t.Error("model must see completed actions")
 		}
 		return reply(t, map[string]any{"original": task(map[string]any{"keep": true, "title": "Pick things up", "existing_task_id": existingID,
-			"steps": []any{map[string]any{"description": "Pick up clothes", "estimate_minutes": 2}, map[string]any{"description": "Put rubbish in a bag", "estimate_minutes": 3}}})})(req)
+			"steps": []any{map[string]any{"step_id": doneID}, map[string]any{"description": "Put rubbish in a bag", "estimate_minutes": 3}}})})(req)
 	})
 	existing := f.capture(t, "Organize the room")
 	existingID = existing.ID
@@ -537,6 +538,7 @@ func TestCaptureContinuesRoomTaskWithStepsAndUndo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	doneID = done.ID
 	captured := f.capture(t, "Picking the mess up is getting urgent")
 	batch, err := f.runner.Clean(ctx, captured)
 	if err != nil {
