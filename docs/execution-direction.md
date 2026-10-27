@@ -4,6 +4,17 @@ Atualizado em 27/10/2026. Fonte: feedback direto de João nesta conversa e leitu
 
 ## Estado atual — voltar ao produto
 
+**Atualização após o teste de uso:** a passagem de contexto de `147777b` é uma
+correção parcial. João mostrou que o chat ainda respondeu só verbalmente e só
+organizou os passos após cobrança. Pediu revisar a arquitetura antes de continuar
+com correções pontuais. A [auditoria de integração](execution-architecture-audit.md)
+registra os módulos inspecionados, lacunas, ensaios reais fictícios e a proposta
+de sequência. Próximo trabalho recomendado: fatos de execução compartilhados,
+contrato de organização verificável e ligação consistente entre sugestão e ação.
+Nenhum desses três itens está implementado pela auditoria. UI e calibração
+histórica continuam guardadas para depois. Graphify fica fora do fluxo normal;
+João esclareceu que era um experimento e questionou o custo das buscas laterais.
+
 João considera a UI suficiente por enquanto e pediu guardar o restante para retomar
 em breve. **A migração visual fica estacionada**, sem iniciar agora a próxima
 fatia do editor. O objetivo continua ajudar a decidir, começar e continuar; a

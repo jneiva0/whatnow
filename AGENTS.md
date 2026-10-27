@@ -1,5 +1,11 @@
 # Whatnow development
 
+## Codebase navigation
+
+Use current source files and checked-in project docs as the primary evidence.
+Graphify was an experiment, not part of the required development workflow.
+Do not query or rebuild its graph unless João specifically asks to use it.
+
 ## Frontend components
 
 - Before frontend UI work, read `.agents/skills/shadcn-svelte/SKILL.md`. This is a relative symlink to the canonical skill installed in `web/.agents/skills/shadcn-svelte/`; keep one copy.
