@@ -2,6 +2,18 @@
 
 Fonte: correções explícitas de João durante QA em 25/10/2026, delegadas pela conversa `01a17327-9bf8-79b2-a173-dd587d532f5b`. Registro contínuo do QA. A primeira rodada apenas capturou os achados; João autorizou implementação, pediu pausa para esboço e depois autorizou retomar com as correções visuais abaixo. Estados distinguem implementação, verificação técnica e aceite visual/funcional pelo uso. Preview e dados devem ser preservados.
 
+## Migração de componentes — 27/10/2026
+
+- Menu dos três pontos de tarefas e passos migrado para shadcn-svelte/Bits UI.
+  A pedido de João, o cartão também abre as mesmas ações por menu de contexto;
+  `TaskActionItems` mantém uma única composição para ambas as entradas.
+  Check Svelte sem erros/avisos, 167 testes existentes e build passaram.
+  Gesto touch e apresentação ficam para o QA de uso de João.
+- **Pendente:** João perguntou como fechar o chat. O controle atual é o `⟩` no
+  cabeçalho; tornar esse recolhimento mais evidente na fatia de navegação/chat.
+- **Condução:** manter commits por fatia funcional/refatoração para revisão e
+  rollback. Feedback pontual não substitui automaticamente a sequência de entrega.
+
 ## Rodada coesa U01–U10 — implementação autorizada
 
 João respondeu **“beleza, vamos tentar, prossiga”** e autorizou implementar o conjunto proposto. Abaixo está o estado da nova rodada; o diagnóstico anterior permanece como origem dos requisitos, não como descrição atual de tudo que ainda falta. Sem nova entrevista, redesign ou torneio visual. Não há aceite automático de UX: implementar, compilar e testar lógica é diferente de aprovação pelo uso.

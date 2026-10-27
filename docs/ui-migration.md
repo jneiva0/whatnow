@@ -53,9 +53,30 @@ can style primitives without fighting the old global button/input reset.
 Keep the registry's bindable element references: `bind:this` in these primitives
 is the public `ref` API, not incidental DOM manipulation to rewrite mechanically.
 
+## Task and step menus
+
+`DropdownMenu` replaces the hand-built task/step menus. `ContextMenu` opens the
+same task actions from the card with a right click or a long press on its surface.
+`TaskActionItems` is the single composition for both entry points: labels,
+eligibility, move submenu and commands are shared. Inline editing fields keep
+their native context menu; long presses on controls keep their own interaction.
+The three-dot trigger remains available for touch and keyboard use.
+
+The primitives own focus, keyboard navigation, outside dismissal and collision
+handling through Bits UI. Menu surfaces use Whatnow's existing tokens, outline
+and shadow, with 44px action rows. Inside the native task-editor dialog,
+`BitsConfig.defaultPortalTo` scopes overlays to the dialog so they stay in its
+top layer instead of appearing behind it.
+
+The dropdown source was added through the
+[neobrutalism-svelte registry](https://neobrutalism-svelte.flenze.com/docs/installation),
+then adapted to the existing token bridge. Context menu and the other primitives
+come from the configured official shadcn-svelte registry. There is no parallel
+theme or additional application-state store.
+
 ## Next slices
 
-Migrate task/step menus and metadata controls, then the task editor's fields and
+Migrate metadata controls, then the task editor's fields and
 dialog composition. Use one primitive in every surface that has the same intent.
 Add each component through `bunx --bun shadcn-svelte add <component>` from `web/`
 and read the generated source. Consult https://shadcn-svelte-extras.com/ when a

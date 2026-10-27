@@ -2,6 +2,7 @@
 	import { editor } from '#lib/editor.svelte.ts';
 	import { today } from '#lib/today.svelte.ts';
 	import TaskEditor from './TaskEditor.svelte';
+	import { BitsConfig } from 'bits-ui';
 	import Toasts from './Toasts.svelte';
 
 	const task = $derived(today.tasks.find((t) => t.id === editor.taskId));
@@ -10,11 +11,13 @@
 
 
 {#if task || editor.creating}
-	<dialog class={['sticker sheet', {existing: !!task}]} aria-label={task ? 'Edit task' : 'New task'} oncancel={() => editor.close()} {@attach (node) => { node.showModal(); return () => node.close(); }}>
+	<dialog id="task-editor-dialog" class={['sticker sheet', {existing: !!task}]} aria-label={task ? 'Edit task' : 'New task'} oncancel={() => editor.close()} {@attach (node) => { node.showModal(); return () => node.close(); }}>
+		<BitsConfig defaultPortalTo="#task-editor-dialog">
 		{#key task?.id ?? 'new'}
 			<TaskEditor task={task ?? null} />
 		{/key}
 		<Toasts />
+		</BitsConfig>
 	</dialog>
 {/if}
 

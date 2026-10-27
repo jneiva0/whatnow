@@ -3,6 +3,11 @@
  import InlineEdit from './InlineEdit.svelte';
  import PlayToggle from './PlayToggle.svelte';
  import TaskDecompose from './TaskDecompose.svelte';
+ import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.js';
+ import { buttonVariants } from '#lib/components/ui/button/index.js';
+ import EllipsisIcon from '@lucide/svelte/icons/ellipsis';
+ import ScissorsIcon from '@lucide/svelte/icons/scissors';
+ import TrashIcon from '@lucide/svelte/icons/trash-2';
  import { api, type Step, type Mutation } from '#lib/api.ts';
  import { execution } from '#lib/execution.svelte.ts';
  import { actionActual, timerText, reorderStepIDs } from '#lib/execution.ts';
@@ -64,7 +69,19 @@
     <div class="description"><InlineEdit value={step.description} label={`Editar ${step.description}`} disabled={saving} onsave={(description) => editField(step, {description})} /></div>
     <div class="time-pair"><span class="actual">{timerText(actual)}</span><span class="divider">/</span><div class="estimate"><InlineEdit numeric value={step.estimate_minutes == null ? '' : String(step.estimate_minutes)} display={step.estimate_minutes == null ? '—' : timerText(step.estimate_minutes * 60000)} label={`Estimativa de ${step.description} em minutos`} disabled={saving} onsave={(value) => editField(step, {estimate_minutes: value ? Number(value) : null})} /></div></div>
     {#if !step.done}<PlayToggle running={!!running} disabled={(!eligible && !running) || saving || execution.busy} label={`${running ? 'Pausar' : 'Começar'} ${step.description}`} onclick={() => {if (running) void execution.action(running.id, 'pause'); else void start(step);}} />{/if}
-    <details class="more"><summary aria-label={`Mais ações para ${step.description}`}>⋯</summary><div class="step-menu">{#if !step.done}<button type="button" onclick={() => {splitting = step.id; splitText = '';}}>Dividir este passo</button>{/if}<button type="button" disabled={saving} onclick={() => write('Passo removido', () => api.deleteStep(taskId, step.id))}>Remover passo</button></div></details>
+    <div class="more">
+     <DropdownMenu.Root>
+      <DropdownMenu.Trigger class={buttonVariants({variant: 'ghost', size: 'icon'})} aria-label={`Mais ações para ${step.description}`} disabled={saving}>
+       <EllipsisIcon aria-hidden="true" />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content align="end">
+       <DropdownMenu.Group>
+        {#if !step.done}<DropdownMenu.Item onSelect={() => {splitting = step.id; splitText = '';}}><ScissorsIcon />Dividir este passo</DropdownMenu.Item>{/if}
+        <DropdownMenu.Item variant="destructive" onSelect={() => {void write('Passo removido', () => api.deleteStep(taskId, step.id));}}><TrashIcon />Remover passo</DropdownMenu.Item>
+       </DropdownMenu.Group>
+      </DropdownMenu.Content>
+     </DropdownMenu.Root>
+    </div>
    </div>
    {#if splitting === step.id}<form class="split" onsubmit={(e) => {e.preventDefault(); void split(step);}}><label>Substituir este passo por ações menores<textarea class="field" rows="3" bind:value={splitText}></textarea></label><p>Um passo por linha. Substitui só esta ação pendente; preserva tempo e passos concluídos.</p><button disabled={saving}>Dividir passo</button><button type="button" onclick={() => splitting = null}>Cancelar</button></form>{/if}
   </li>
@@ -77,14 +94,14 @@
 {/if}
 <style>
  .compact .grip { visibility: hidden; pointer-events: none; } .show-steps { font-size: 12px; color: var(--ink-soft); text-decoration: underline; text-underline-offset: 3px; padding-inline: 0; }
- .step-list { list-style: none; padding: 0; margin: 8px 0 0; } li { border-top: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); border-radius: var(--radius-sm); } .step-row { display: grid; grid-template-columns: 24px 36px minmax(0, 1fr) auto 44px 28px; align-items: center; gap: 4px; min-width: 0; padding-block: 4px; } .selected { background: color-mix(in srgb, var(--chip) 35%, transparent); } .dragging { opacity: .6; } .over { outline: 2px dashed var(--primary); }
+ .step-list { list-style: none; padding: 0; margin: 8px 0 0; } li { border-top: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); border-radius: var(--radius-sm); } .step-row { display: grid; grid-template-columns: 24px 36px minmax(0, 1fr) auto 44px 44px; align-items: center; gap: 4px; min-width: 0; padding-block: 4px; } .selected { background: color-mix(in srgb, var(--chip) 35%, transparent); } .dragging { opacity: .6; } .over { outline: 2px dashed var(--primary); }
  button { background: none; border: 0; min-height: 44px; } .grip { touch-action: none; cursor: grab; padding: 4px; width: 24px; flex-shrink: 0; } .check { display: grid; place-items: center; min-width: 36px; padding: 6px; } .description { flex: 1; min-width: 40px; text-align: left; padding: 6px 2px; overflow-wrap: anywhere; } .done .description { text-decoration: line-through; }
  .time-pair { display: flex; align-items: center; gap: 2px; font-size: 14px; font-variant-numeric: tabular-nums; }
  .actual { white-space: nowrap; } .estimate { width: 66px; } .divider { color: var(--ink-soft); }
- .more { position: relative; } summary { list-style: none; cursor: pointer; min-width: 28px; min-height: 44px; display: grid; place-items: center; } .step-menu { position: absolute; right: 0; top: 40px; z-index: 15; background: var(--card); border: var(--line); border-radius: var(--radius-sm); padding: 4px 8px; min-width: 160px; display: flex; flex-direction: column; } .step-menu button { text-align: left; font-size: 12px; }
+
  .add-step { display: flex; gap: 8px; margin-top: 8px; } .add-step input { flex: 1; min-width: 60px; padding: 6px; font-size: 13px; } .add-step button { font-size: 12px; }
  .split { padding: 8px; } .split label { display: flex; flex-direction: column; font-size: 13px; gap: 4px; } .split p { font-size: 12px; } .split button { margin-right: 12px; text-decoration: underline; }
- .problem { font-size: 13px; background: var(--must); padding: 8px; } .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } button:disabled { opacity: .5; cursor: default; } button:focus-visible,summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+ .problem { font-size: 13px; background: var(--must); padding: 8px; } .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } button:disabled { opacity: .5; cursor: default; } button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
  .more { grid-column: 6; } .description { min-width: 0; }
- @media(max-width: 600px) { .step-row { grid-template-columns: 24px 36px minmax(0, 1fr) 44px 28px; } .description { grid-column: 3 / 6; } .time-pair { grid-column: 3; justify-self: end; } .more { grid-column: 5; } }
+ @media(max-width: 600px) { .step-row { grid-template-columns: 24px 36px minmax(0, 1fr) 44px 44px; } .description { grid-column: 3 / 6; } .time-pair { grid-column: 3; justify-self: end; } .more { grid-column: 5; } }
 </style>

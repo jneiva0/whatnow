@@ -6,12 +6,15 @@
 	import ExecutionSteps from './ExecutionSteps.svelte';
 	import { available, actionActual, taskActual, taskEstimate, timerText } from '#lib/execution.ts';
 	import { api, type Tier } from '#lib/api.ts';
-	import { dismiss } from '#lib/dismiss.ts';
+	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.js';
+	import * as ContextMenu from '#lib/components/ui/context-menu/index.js';
+	import TaskActionItems from './TaskActionItems.svelte';
+	import { buttonVariants } from '#lib/components/ui/button/index.js';
+	import EllipsisIcon from '@lucide/svelte/icons/ellipsis';
 	import { editor } from '#lib/editor.svelte.ts';
 	import { linked } from '#lib/linked.svelte.ts';
 	import { linkify } from '#lib/linkify.ts';
-	import { links, tierLabels, type Card } from '#lib/plan.ts';
-	import { addDays } from '#lib/time.ts';
+	import { links, type Card } from '#lib/plan.ts';
 	import { toasts } from '#lib/toasts.svelte.ts';
 	import { today } from '#lib/today.svelte.ts';
 
@@ -28,7 +31,6 @@
 	}
 	let { card, tier, date, listed = false, actionView = false }: Props = $props();
 
-	let menuOpen = $state(false);
 	let expanded = $state(false);
 	const task = $derived(card.task);
 	const steps = $derived(execution.steps(task.id));
@@ -40,13 +42,6 @@
 	const estimate = $derived(taskEstimate(task, execution.view?.steps ?? []));
 	const canStart = $derived(available(task, today.tasks, today.blockers, date));
 	const chain = $derived(links(task.id, today.blockers, today.tasks));
-	const movable = $derived(!listed && !!today.today?.plan && !today.today.day?.wrapped_at);
-	const moves: { to: Tier | null; label: string }[] = [
-		{ to: 'must', label: tierLabels.must },
-		{ to: 'should', label: tierLabels.should },
-		{ to: 'could', label: tierLabels.could },
-		{ to: null, label: 'Unplanned' }
-	];
 	const showingLinks = $derived(linked.source === task.id);
 	const titles = (tasks: { title: string }[]) => tasks.map((t) => t.title).join(', ');
 	const toggleLinks = () => linked.toggle(task.id, [...chain.waitingOn, ...chain.unblocks].map((t) => t.id));
@@ -58,30 +53,25 @@
 			box.checked = false;
 		}
 	}
-	function push() {
-		menuOpen = false;
-		toasts.track(`Pushed to tomorrow: ${task.title}`, () => api.push(task.id, addDays(date, 1)));
-	}
-	function drop() {
-		menuOpen = false;
-		toasts.track(`Dropped: ${task.title}`, () => api.setStatus(task.id, 'dropped'));
-	}
-	function move(to: Tier | null, label: string) {
-		menuOpen = false;
-		toasts.track(`Moved to ${label}: ${task.title}`, () => api.move(task.id, to));
-	}
-	function edit() {
-		menuOpen = false;
-		editor.open(task.id);
-	}
 	function restore() {
 		toasts.track(`Restored: ${task.title}`, () => api.setStatus(task.id, 'open'));
 	}
-	const short = (date: string) =>
-		new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+	// Keep the browser's editing menu available inside inline text/number fields.
+	function editingField(target: EventTarget | null) {
+		return target instanceof Element && !!target.closest('input, textarea, [contenteditable="true"]');
+	}
 </script>
 
+<ContextMenu.Root>
+<ContextMenu.Trigger disabled={task.status !== 'open'}>
+{#snippet child({ props })}
 <article
+	{...props}
+	oncontextmenu={(event) => { if (!editingField(event.target) && typeof props.oncontextmenu === 'function') props.oncontextmenu(event); }}
+	onpointerdown={(event) => {
+		// A long press on an editor, link or drag handle keeps its own interaction.
+		if (!(event.target instanceof Element && event.target.closest('button, a, input, textarea, summary, [contenteditable="true"]'))) { if (typeof props.onpointerdown === 'function') props.onpointerdown(event); }
+	}}
 	data-task={task.id}
 	class={['sticker card', tier ?? (listed ? 'listed' : 'unplanned'), {closed: task.status !== 'open', linked: linked.ids.includes(task.id)}]}
 >
@@ -152,24 +142,22 @@
 	{#if task.status === 'dropped'}
 		<button class="btn" onclick={restore}>Restore</button>
 	{:else if task.status === 'open'}
-		<details class="more" bind:open={menuOpen} {@attach dismiss}>
-			<summary aria-label="More actions">⋯</summary>
-			<div class="sticker menu">
-				<button onclick={edit}>Edit</button>
-				<button onclick={push}>Push to tomorrow</button>
-				<button onclick={drop}>Drop</button>
-				{#if movable}
-					<details class="sub">
-						<summary>Move ›</summary>
-						{#each moves as m (m.label)}
-							<button disabled={m.to === (tier ?? null)} onclick={() => move(m.to, m.label)}>{m.label}</button>
-						{/each}
-					</details>
-				{/if}
-			</div>
-		</details>
+        <DropdownMenu.Root>
+            <DropdownMenu.Trigger class={buttonVariants({variant: 'ghost', size: 'icon'})} aria-label={`Mais ações para ${task.title}`}>
+                <EllipsisIcon aria-hidden="true" />
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content align="end">
+                <TaskActionItems {task} {tier} {date} {listed} />
+            </DropdownMenu.Content>
+        </DropdownMenu.Root>
 	{/if}
 </article>
+{/snippet}
+</ContextMenu.Trigger>
+<ContextMenu.Content>
+	<TaskActionItems {task} {tier} {date} {listed} context />
+</ContextMenu.Content>
+</ContextMenu.Root>
 
 <style>
  .steps-ready { margin: 8px 0 0; font-size: 13px; }
@@ -180,8 +168,6 @@
  .execution { border-top: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); padding-top: 12px; }
 	.card-steps { font-size: 13px; }
 	.card-steps summary { cursor: pointer; min-height: 36px; padding-block: 7px; overflow-wrap: anywhere; }
-	.start { min-height: 44px; }
-	.start:disabled { opacity: .5; cursor: default; }
 	.card {
 		display: flex;
 		align-items: flex-start;
@@ -239,10 +225,7 @@
 	.title {
 		font-weight: var(--heavy);
 	}
-	.badges {
-		display: flex;
-		gap: 6px;
-	}
+
 	.badge {
 		font-size: 11px;
 		font-weight: var(--heavy);
@@ -273,11 +256,7 @@
 		outline: 2px dashed var(--primary);
 		outline-offset: 3px;
 	}
-	.feeling {
-		font-style: italic;
-		font-size: 13px;
-		color: var(--ink-soft);
-	}
+
 	.notes {
 		font-size: 13px;
 		white-space: pre-line;
@@ -300,51 +279,5 @@
 	.why.shown,
 	.card:hover .why {
 		display: block;
-	}
-	.more {
-		position: relative;
-	}
-	.more summary {
-		list-style: none;
-		cursor: pointer;
-		font-weight: var(--heavy);
-		padding: 0 4px;
-	}
-	.menu {
-		position: absolute;
-		right: 0;
-		top: 24px;
-		z-index: 10;
-		display: flex;
-		flex-direction: column;
-		padding: 6px;
-		min-width: 160px;
-	}
-	.menu button {
-		background: none;
-		border: none;
-		text-align: left;
-		padding: 6px 8px;
-		border-radius: var(--radius-sm);
-	}
-	.menu button:hover:not(:disabled) {
-		background: var(--chip);
-	}
-	.menu button:disabled {
-		opacity: 0.4;
-	}
-	.sub summary {
-		list-style: none;
-		cursor: pointer;
-		padding: 6px 8px;
-		border-radius: var(--radius-sm);
-	}
-	.sub summary:hover {
-		background: var(--chip);
-	}
-	.sub button {
-		display: block;
-		width: 100%;
-		padding-left: 20px;
 	}
 </style>
