@@ -7,7 +7,7 @@ import { chat } from './chat.svelte';
 import { Stream } from './stream.svelte';
 import { due, nudges, type Nudge } from './nudges';
 import { morningDue } from './time';
-import { toasts } from './toasts.svelte';
+import { toasts, type Toast } from './toasts.svelte';
 import { today } from './today.svelte';
 import { work } from './work.svelte';
 
@@ -70,7 +70,15 @@ class Live {
 
 	/** Connects once for the life of the page. Returns the disconnect. */
 	start(): () => void {
-		const stopExecution = execution.startLive();
+		const stopExecution = execution.startLive((notice) => {
+			const task = today.tasks.find((t) => t.id === notice.task_id);
+			const step = execution.view?.steps.find((s) => s.task_id === notice.task_id && s.id === notice.step_id);
+			const title = step?.description ?? task?.title ?? 'Sua ação';
+			deliver({ key: notice.key, text: `${title}: estimativa de ${notice.minutes} min atingida. O tempo continua registrando; conclua quando terminar.` }, {
+				label: 'Ver foco',
+				run: () => { void goto(`/focus?task=${notice.task_id}${notice.step_id === null ? '&direct=1' : `&step=${notice.step_id}`}`); }
+			});
+		});
 		Promise.all([today.refresh(), chat.load(), api.settings().then((v) => (this.view = v))]).catch(
 			(err) => toasts.error(err)
 		);
@@ -123,7 +131,9 @@ class Live {
 		const t = today.today;
 		if (this.view && t) {
 			const list = nudges(today.events, t.plan, today.tasks, this.view.settings, t.date, this.endOfDay);
-			for (const n of due(list, this.#lastTick, to)) deliver(n);
+			for (const n of due(list, this.#lastTick, to)) {
+				deliver(n, n.kind === 'event_end' ? { label: 'E agora?', run: () => { void goto('/?whatnow'); } } : undefined);
+			}
 		}
 		this.#lastTick = to;
 	}
@@ -133,18 +143,22 @@ class Live {
  * Shows a nudge as a notification when the browser allows it, else in the page. The tag makes
  * two open tabs share one notification. An event-end nudge opens What now when clicked.
  */
-function deliver(n: Nudge): void {
-	const open = n.kind === 'event_end' ? () => goto('/?whatnow') : undefined;
-	if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-		const note = new Notification('whatnow', { body: n.text, tag: n.key });
-		note.onclick = () => {
-			window.focus();
-			open?.();
-			note.close();
-		};
-	} else {
-		toasts.nudge(n.text, open && { label: 'E agora?', run: open });
+function deliver(n: Pick<Nudge, 'key' | 'text'>, action?: Toast['action']): void {
+	try {
+		if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+			const note = new Notification('whatnow', { body: n.text, tag: n.key });
+			note.onclick = () => {
+				window.focus();
+				action?.run();
+				note.close();
+			};
+			return;
+		}
+	} catch {
+		// Some mobile browsers expose permission but don't support the constructor.
+		// The in-page notice remains available without requesting another permission.
 	}
+	toasts.nudge(n.text, action);
 }
 
 export const live = new Live();

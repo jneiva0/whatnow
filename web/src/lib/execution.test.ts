@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { FocusSession, Step, Task } from './api';
-import { elapsedMs, orderedSteps, timerText, available, actionClock, actionActual, taskActual, draftTaskEstimate, focusTarget, reorderStepIDs } from './execution';
+import type { ExecutionState, FocusSession, Step, Task } from './api';
+import { elapsedMs, FocusEstimateAlerts, orderedSteps, timerText, available, actionClock, actionActual, taskActual, draftTaskEstimate, focusTarget, reorderStepIDs } from './execution';
 
 const session: FocusSession = {id: 1, task_id: 2, step_id: null, state: 'running', segment_started_at: '2026-10-25T10:00:00Z', accumulated_ms: 120000, created_at: '2026-10-25T09:58:00Z', ended_at: null};
 
@@ -18,6 +18,34 @@ describe('execution clock', () => {
  it('formats long actual sessions without wrapping minutes to zero', () => {
   expect(timerText(3661000)).toBe('61:01');
   expect(timerText(-1000)).toBe('00:00');
+ });
+});
+
+describe('focus estimate notice', () => {
+ it('uses the action total across segments and alerts once without stopping or completing it', () => {
+  const alerts = new FocusEstimateAlerts();
+  const now = Date.parse('2026-10-25T10:00:00Z');
+  const view: ExecutionState = {server_now: '', selected_id: 1, estimates: {2: {minutes: 30, partial: false}},
+   steps: [{id: 9, task_id: 2, description: 'A short action', estimate_minutes: 1, position: 0, done: false, deleted_at: null}],
+   sessions: [{...session, step_id: 9, accumulated_ms: 29000}, {...session, id: 8, step_id: 9, state: 'ended', accumulated_ms: 30000}]};
+  expect(alerts.observe(view, now)).toBeNull();
+  expect(alerts.observe(view, now + 2000)).toMatchObject({task_id: 2, step_id: 9, minutes: 1});
+  expect(alerts.observe(view, now + 60000)).toBeNull();
+  expect(alerts.observe({...view, sessions: view.sessions.map((s) => ({...s, state: 'paused'}))}, now + 60000)).toBeNull();
+  expect(alerts.observe(view, now + 60001)).toBeNull();
+  expect(view.sessions[0].state).toBe('running');
+  expect(view.steps[0].done).toBe(false);
+ });
+ it('does not replay expired timers on load or invent a budget for unknown estimates', () => {
+  const now = Date.parse('2026-10-25T10:00:00Z');
+  const view: ExecutionState = {server_now: '', selected_id: 1, estimates: {2: {minutes: 1, partial: false}}, steps: [], sessions: [session]};
+  const alerts = new FocusEstimateAlerts();
+  expect(alerts.observe(view, now)).toBeNull();
+  expect(alerts.observe(view, now + 5000)).toBeNull();
+  const fresh = new FocusEstimateAlerts();
+  const unknown = {...view, estimates: {2: {minutes: null, partial: false}}};
+  expect(fresh.observe(unknown, now)).toBeNull();
+  expect(fresh.observe(unknown, now + 60_000)).toBeNull();
  });
 });
 

@@ -1,5 +1,5 @@
 import { api, type Estimate, type ExecutionState, type FocusSession } from './api';
-import { elapsedMs, orderedSteps, requestID } from './execution';
+import { elapsedMs, FocusEstimateAlerts, type FocusEstimateNotice, orderedSteps, requestID } from './execution';
 import { today } from './today.svelte';
 
 export class Execution {
@@ -12,6 +12,8 @@ export class Execution {
  #generation = 0;
  #connected = true;
  #refreshPending = false;
+ #estimateAlerts = new FocusEstimateAlerts();
+ #onEstimateReached: ((notice: FocusEstimateNotice) => void) | undefined;
  #poll: ReturnType<typeof setInterval> | undefined;
  #correctionRetry: {key: string; request: string} | undefined;
  #retry: {key: string; request: string} | undefined;
@@ -31,6 +33,12 @@ export class Execution {
   this.now = Date.now() + this.#skew;
   this.view = view;
   this.#readProblem = '';
+  this.#checkEstimate();
+ }
+ #checkEstimate() {
+  if (!this.#onEstimateReached) return;
+  const notice = this.#estimateAlerts.observe(this.view, this.now);
+  if (notice) this.#onEstimateReached(notice);
  }
  async refresh(): Promise<void> {
   if (this.busy) { this.#refreshPending = true; return; }
@@ -102,14 +110,17 @@ export class Execution {
    }, 5000);
   }
  }
- startLive(): () => void {
+ startLive(onEstimateReached: (notice: FocusEstimateNotice) => void = () => {}): () => void {
+  this.#onEstimateReached = onEstimateReached;
+  this.#estimateAlerts = new FocusEstimateAlerts();
   void this.refresh();
-  const tick = setInterval(() => { this.now = Date.now() + this.#skew; }, 1000);
+  const tick = setInterval(() => { this.now = Date.now() + this.#skew; this.#checkEstimate(); }, 1000);
   const caughtUp = () => { if (document.visibilityState === 'visible') void this.refresh(); this.#polling(); };
   document.addEventListener('visibilitychange', caughtUp);
   window.addEventListener('focus', caughtUp);
   window.addEventListener('online', caughtUp);
   return () => {
+   this.#onEstimateReached = undefined;
    clearInterval(tick); clearInterval(this.#poll);
    document.removeEventListener('visibilitychange', caughtUp);
    window.removeEventListener('focus', caughtUp);

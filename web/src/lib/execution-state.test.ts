@@ -64,6 +64,29 @@ describe('execution authority and recovery', () => {
   expect(state.view).toBe(latest);
   expect(state.problem).toContain('não foi confirmada');
  });
+ it('announces the watched action estimate after a suspended tab catches up without a timer write', async () => {
+  vi.useFakeTimers();
+  vi.stubGlobal('document', Object.assign(new EventTarget(), {visibilityState: 'visible'}));
+  vi.stubGlobal('window', new EventTarget());
+  const start = new Date(Date.now() - 59000).toISOString();
+  const snapshot: ExecutionState = {server_now: new Date().toISOString(), selected_id: 1, steps: [],
+   estimates: {2: {minutes: 1, partial: false}}, sessions: [{id: 1, task_id: 2, step_id: null, state: 'running', segment_started_at: start, accumulated_ms: 0, created_at: start, ended_at: null}]};
+  vi.spyOn(api, 'execution').mockResolvedValue(snapshot);
+  const write = vi.spyOn(api, 'focusAction');
+  const notify = vi.fn();
+  const state = new Execution();
+  const stop = state.startLive(notify);
+  await vi.advanceTimersByTimeAsync(0);
+  vi.setSystemTime(Date.now() + 120000);
+  await vi.advanceTimersByTimeAsync(1000);
+  expect(notify).toHaveBeenCalledOnce();
+  expect(notify).toHaveBeenCalledWith(expect.objectContaining({task_id: 2, step_id: null, minutes: 1}));
+  await vi.advanceTimersByTimeAsync(3000);
+  expect(notify).toHaveBeenCalledOnce();
+  expect(write).not.toHaveBeenCalled();
+  expect(state.view?.sessions[0].state).toBe('running');
+  stop();
+ });
  it('polls every five seconds only while visible and SSE is disconnected', async () => {
   vi.useFakeTimers();
   const doc = Object.assign(new EventTarget(), {visibilityState: 'visible'});

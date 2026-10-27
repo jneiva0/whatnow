@@ -4,6 +4,20 @@ Atualizado em 27/10/2026. Fonte: feedback direto de João nesta conversa e leitu
 
 ## Estado atual — voltar ao produto
 
+**Aviso da estimativa — 27/10:** o cliente acompanha a mesma estimativa e tempo
+acumulado usados no Foco, inclusive segmentos anteriores. Ao atingir o tempo
+previsto de uma ação que estava sendo acompanhada, avisa uma vez e oferece Ver
+foco. O aviso usa as notificações já permitidas pelo navegador, com o toast
+existente como alternativa (inclusive quando o construtor de Notification não é
+suportado no celular). Não pede nova permissão, não toca áudio, não conclui,
+pausa ou inicia ações. Abrir uma página com um timer já excedido não repete um
+aviso antigo. A aba suspensa pode avisar quando volta a executar; com a página
+fechada não há processo novo para alarmes em segundo plano.
+Três testes relevantes cobrem soma dos segmentos, aviso único/ausência de
+estimativa e recuperação da aba sem comandos de timer. Os173 testes frontend,
+Svelte check, autofixer e build passaram. Detector Impeccable sem achados.
+Notificações/gestos em aparelho físico e QA visual não foram executados.
+
 **Continuidade entre dispositivos — retomada autônoma 27/10:** João autorizou
 avançar nas partes de maior impacto enquanto testa e descansa, sem transformar
 exemplos em regras rígidas. Foram reproduzidas e corrigidas duas condições de

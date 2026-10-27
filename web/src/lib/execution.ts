@@ -1,4 +1,4 @@
-import type { Estimate, FocusSession, Step, Task, Blocker } from './api';
+import type { ActionRef, Estimate, ExecutionState, FocusSession, Step, Task, Blocker } from './api';
 
 /** Derived from server timestamps, so sleeping tabs need no missed ticks replayed. */
 export function elapsedMs(session: FocusSession, serverNow: number): number {
@@ -54,6 +54,37 @@ export function actionClock(estimateMinutes: number | null | undefined, actual: 
  if (estimateMinutes == null) return {text: timerText(actual), label: 'Tempo dedicado'};
  const remaining = estimateMinutes * 60000 - actual;
  return {text: `${remaining < 0 ? '+' : ''}${timerText(Math.abs(remaining))}`, label: remaining < 0 ? 'Tempo excedido' : 'Tempo restante'};
+}
+
+export interface FocusEstimateNotice extends ActionRef {
+ key: string;
+ minutes: number;
+}
+
+/** Observe the same estimate/actual clock as Focus, without completing anything.
+ * A first load already over budget is quiet; a watched timer crossing zero alerts
+ * once per action/estimate, even across pause/resume and multiple work segments. */
+export class FocusEstimateAlerts {
+ #watched: string | null = null;
+ #notified = new Set<string>();
+
+ observe(view: ExecutionState | null, now: number): FocusEstimateNotice | null {
+  const running = view?.sessions.find((s) => s.state === 'running');
+  if (!view || !running) { this.#watched = null; return null; }
+  const step = running.step_id === null ? null : view.steps.find((s) => s.id === running.step_id && s.task_id === running.task_id && !s.done && !s.deleted_at);
+  const minutes = running.step_id === null ? view.estimates?.[running.task_id]?.minutes : step?.estimate_minutes;
+  if (minutes == null || minutes <= 0) { this.#watched = null; return null; }
+  const key = `focus-estimate:${running.task_id}:${running.step_id ?? 'task'}:${minutes}`;
+  const watching = this.#watched === key;
+  this.#watched = key;
+  const actual = running.step_id === null
+   ? taskActual(view.sessions, running.task_id, now)
+   : actionActual(view.sessions, running.task_id, running.step_id, now);
+  if (actual < minutes * 60_000 || this.#notified.has(key)) return null;
+  this.#notified.add(key);
+  if (!watching) return null;
+  return {key, minutes, task_id: running.task_id, step_id: running.step_id};
+ }
 }
 
 export interface ExecutionTarget { taskID: number; stepID: number | null; ready: boolean }
