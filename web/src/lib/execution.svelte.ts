@@ -5,11 +5,13 @@ import { today } from './today.svelte';
 export class Execution {
  view = $state.raw<ExecutionState | null>(null);
  now = $state(Date.now());
- problem = $state('');
+ #readProblem = $state('');
+ #writeProblem = $state('');
  busy = $state(false);
  #skew = 0;
  #generation = 0;
  #connected = true;
+ #refreshPending = false;
  #poll: ReturnType<typeof setInterval> | undefined;
  #correctionRetry: {key: string; request: string} | undefined;
  #retry: {key: string; request: string} | undefined;
@@ -17,6 +19,8 @@ export class Execution {
  get selected(): FocusSession | undefined {
   return this.view?.sessions.find((s) => s.id === this.view?.selected_id);
  }
+ /** A successful background read cannot confirm a command whose response was lost. */
+ get problem(): string { return this.#writeProblem || this.#readProblem; }
  steps(taskID: number) { return orderedSteps(this.view?.steps ?? [], taskID); }
  /** Saved totals are authoritative server facts, not a second client calculation. */
  estimate(taskID: number): Estimate { return this.view?.estimates?.[taskID] ?? {minutes: null, partial: false}; }
@@ -26,17 +30,18 @@ export class Execution {
   this.#skew = Date.parse(view.server_now) - (sent + Date.now()) / 2;
   this.now = Date.now() + this.#skew;
   this.view = view;
-  this.problem = '';
+  this.#readProblem = '';
  }
  async refresh(): Promise<void> {
-  if (this.busy) return;
+  if (this.busy) { this.#refreshPending = true; return; }
+  this.#refreshPending = false;
   const generation = ++this.#generation;
   const sent = Date.now();
   try {
    const view = await api.execution();
    if (generation === this.#generation) this.#accept(view, sent);
   } catch (err) {
-   if (generation === this.#generation) this.problem = `Não foi possível atualizar o foco: ${err instanceof Error ? err.message : String(err)}. Tente novamente.`;
+   if (generation === this.#generation) this.#readProblem = `Não foi possível atualizar o foco: ${err instanceof Error ? err.message : String(err)}. Tente novamente.`;
   }
  }
  async start(taskID: number, stepID: number | null): Promise<boolean> {
@@ -65,6 +70,7 @@ export class Execution {
  async #write(op: () => Promise<ExecutionState>): Promise<boolean> {
   if (this.busy) return false;
   this.busy = true;
+  this.#writeProblem = '';
   ++this.#generation;
   const sent = Date.now();
   try {
@@ -74,9 +80,14 @@ export class Execution {
    today.changed();
    return true;
   } catch (err) {
-   this.problem = `A ação não foi confirmada: ${err instanceof Error ? err.message : String(err)}. Tente novamente.`;
+   this.#writeProblem = `A ação não foi confirmada: ${err instanceof Error ? err.message : String(err)}. Tente novamente.`;
    return false;
-  } finally { this.busy = false; }
+  } finally {
+   this.busy = false;
+   // Coalesce updates received during the write, including this client's own SSE
+   // and changes from another device that happened after the mutation snapshot.
+   if (this.#refreshPending) void this.refresh();
+  }
  }
  connected(value: boolean) {
   this.#connected = value;

@@ -4,6 +4,17 @@ Atualizado em 27/10/2026. Fonte: feedback direto de João nesta conversa e leitu
 
 ## Estado atual — voltar ao produto
 
+**Continuidade entre dispositivos — retomada autônoma 27/10:** João autorizou
+avançar nas partes de maior impacto enquanto testa e descansa, sem transformar
+exemplos em regras rígidas. Foram reproduzidas e corrigidas duas condições de
+corrida no cliente: avisos SSE recebidos durante uma gravação de foco eram
+descartados, e uma leitura antiga do Dia podia substituir uma leitura nova.
+Agora uma atualização pendente é buscada após a gravação e respostas antigas são
+ignoradas. Erro de comando continua visível mesmo se uma leitura seguinte funciona;
+atualizar dados não equivale a confirmar uma gravação que perdeu a resposta.
+Três testes de regressão reproduziram as falhas antes da correção. Os170 testes,
+check Svelte e build passaram; banco, API e timer não foram alterados.
+
 **Conferência de entrega — 27/10:** o serviço local em7777 já serve HTML idêntico
 ao build atual e sua API expõe progresso compartilhado e estimativas do servidor.
 Verificação somente por leitura; não foi necessário reiniciar ou alterar dados.

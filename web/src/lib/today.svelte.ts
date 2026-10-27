@@ -10,14 +10,19 @@ export class TodayState {
 	tasks = $state<Task[]>([]);
 	blockers = $state<Blocker[]>([]);
 	#timer: ReturnType<typeof setTimeout> | undefined;
+	#generation = 0;
 
 	async refresh(): Promise<void> {
+		const generation = ++this.#generation;
 		const today = await api.today();
+		if (generation !== this.#generation) return;
 		const [events, tasks, blockers] = await Promise.all([
 			api.events(today.date),
 			api.tasks(),
 			api.blockers()
 		]);
+		// A slower earlier read must not replace a newer stream-triggered snapshot.
+		if (generation !== this.#generation) return;
 		this.today = today;
 		this.events = events;
 		this.tasks = tasks;

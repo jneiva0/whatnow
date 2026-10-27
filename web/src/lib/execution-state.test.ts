@@ -32,6 +32,38 @@ describe('execution authority and recovery', () => {
   await state.start(2, null);
   expect(start.mock.calls[2][2]).not.toBe(start.mock.calls[1][2]);
  });
+ it('catches up once when stream updates arrive while a local focus command is saving', async () => {
+  const pending = Promise.withResolvers<ExecutionState>();
+  const paused = {...view(), selected_id: 1};
+  const newer = {...view(), selected_id: 2};
+  vi.spyOn(api, 'focusAction').mockReturnValue(pending.promise);
+  const read = vi.spyOn(api, 'execution').mockResolvedValue(newer);
+  vi.spyOn(today, 'changed').mockImplementation(() => {});
+  const state = new Execution();
+  const saving = state.action(1, 'pause');
+  await state.refresh();
+  await state.refresh();
+  expect(read).not.toHaveBeenCalled();
+  pending.resolve(paused);
+  expect(await saving).toBe(true);
+  await Promise.resolve();
+  expect(read).toHaveBeenCalledTimes(1);
+  expect(state.view).toBe(newer);
+ });
+ it('keeps an unconfirmed command visible even when the catch-up read succeeds', async () => {
+  const pending = Promise.withResolvers<ExecutionState>();
+  vi.spyOn(api, 'focusAction').mockReturnValue(pending.promise);
+  const latest = view();
+  vi.spyOn(api, 'execution').mockResolvedValue(latest);
+  const state = new Execution();
+  const saving = state.action(1, 'pause');
+  await state.refresh();
+  pending.reject(new Error('response lost'));
+  expect(await saving).toBe(false);
+  await Promise.resolve();
+  expect(state.view).toBe(latest);
+  expect(state.problem).toContain('não foi confirmada');
+ });
  it('polls every five seconds only while visible and SSE is disconnected', async () => {
   vi.useFakeTimers();
   const doc = Object.assign(new EventTarget(), {visibilityState: 'visible'});

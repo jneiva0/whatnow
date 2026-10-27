@@ -41,4 +41,18 @@ describe('TodayState', () => {
 		await t.refresh();
 		expect(t.blockers).toEqual([{ task_id: 2, blocked_by_id: 1 }]);
 	});
+	it('Should ignore an older response that arrives after a newer day refresh', async () => {
+		const old = Promise.withResolvers<Today>();
+		const latest = { ...day, unplanned: [7] };
+		vi.spyOn(api, 'today').mockReturnValueOnce(old.promise).mockResolvedValue(latest);
+		vi.spyOn(api, 'events').mockResolvedValue([]);
+		vi.spyOn(api, 'tasks').mockResolvedValue([]);
+		vi.spyOn(api, 'blockers').mockResolvedValue([]);
+		const state = new TodayState();
+		const first = state.refresh();
+		await state.refresh();
+		old.resolve(day);
+		await first;
+		expect(state.today?.unplanned).toEqual([7]);
+	});
 });
