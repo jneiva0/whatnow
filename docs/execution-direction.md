@@ -90,3 +90,15 @@ Estado revalidado: HTTPS Tailscale :7000 aponta para 127.0.0.1:7777; o processo 
 Preparados localmente (ignorados pelo Git): `.demo/review-20261027/whatnow` com frontend do commit af78747 e `.demo/review-20261027/before-update.db`, backup via SQLite do banco real, diretório700/arquivo600; quick_check ok e zero erros de chaves estrangeiras. O backup contém dados privados, não deve entrar em Git/PR. O banco original não foi alterado.
 
 Executável iniciado para smoke em7791 com banco descartável, depois encerrado. GET raiz HTTP200 serviu o mesmo SHA256 do build: `0baa624cfb289e82c197b4f07dfde9dd23a2edf62e0bf217d3e7091c6e3f9da9`. GET /api/v1/execution retornou sessões/passos/estimativas e horário do servidor. Primeiro bind restrito foi negado; nova execução com permissão local passou. Nenhum teste visual. O processo principal segue intacto; seu HTML ainda é o build anterior. Trocar esse processo deve ser confirmado com João, pois agora é seu serviço principal, diferente do preview isolado anteriormente autorizado.
+
+## Auditoria de entrega antes da troca do serviço
+
+| Parte do fluxo | Evidência disponível | Estado |
+| --- | --- | --- |
+| Tarefa direta, CRUD/reordenação/divisão de passos, undo | Serviço único em steps.go/focus.go; TestStepCRUDReorderSplitUndo e TestCompleteStepWithoutStartingAndKeepActionTimeAcrossSegments; componente ExecutionSteps compartilhado | Implementado e coberto por testes lógicos; descoberta/gesto touch ainda depende de uso |
+| Tempo persistente e conclusão explícita | TestFocusClockSwitchIdempotencyAndUndo verifica 90s preservados na troca, 105s após retomada, pause idempotente e undo sem retroceder tempo ou concluir pai; actionClock cobre excedente | Implementado; sessão independente rejeitada continua removida |
+| Atualização entre dispositivos | live.svelte.ts invalida execução por SSE; Execution.startLive e teste de polling visível/desconectado; João relatou sincronização fluida na versão anterior | Base preservada; nova versão ainda não validada em aparelho |
+| IA e continuidade do plano | TestWhatNowNextActionAndReplanPreserveExecution verifica mesmo foco ativo, 70000ms e passo concluído após replan; avaliação real fictícia documentada acima | Implementado e verificado nos cenários limitados |
+| Interface e entrega em uso | Componentes/build verificados, pacote HTTP isolado confirmado, backup consistente pronto | Aceite visual aberto; atualização do serviço principal aguarda confirmação |
+
+A entrega não está declarada concluída. O próximo ato dependente é substituir o processo que atende7777/HTTPS7000, autorizado anteriormente apenas para um preview distinto. Pergunta enviada a João; continuação automática não é consentimento. Nenhuma nova feature ou teste cosmético será criado só para preencher essa espera. Após autorização, refazer backup recente, trocar com possibilidade de voltar ao executável anterior, verificar saúde/HTML e preservação dos dados. O teste de uso mais útil é capturar uma intenção, entrar pelo E agora e acompanhar um passo no celular.
