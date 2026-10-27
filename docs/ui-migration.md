@@ -119,11 +119,10 @@ missing components through `bunx --bun shadcn-svelte add <component>` from `web/
 and review their source. Consult https://shadcn-svelte-extras.com/ only for a
 concrete missing interaction.
 
-Separately, the architecture review identified estimate aggregation mirrored in
-Go and TypeScript. Evaluate consuming the API's authoritative estimate consistently
-when returning to that boundary; it is not a reason to interrupt product work or
-change the agreed estimate meaning. This is a refactoring candidate, not a new
-feature or a newly confirmed bug.
+The saved-estimate boundary was consolidated in `a970bbc`: task cards, metadata
+and focus now consume the API's authoritative totals. The local calculation is
+limited to the editor's unsaved draft preview. This item is no longer pending;
+do not redo it as part of the visual migration or change the estimate meaning.
 
 Keep task/step/timer operations, capture, chat, SSE and undo independent of this
 visual migration. João continues visual acceptance through actual use; build and

@@ -4,6 +4,17 @@ Atualizado em 27/10/2026. Fonte: feedback direto de João nesta conversa e leitu
 
 ## Estado atual — voltar ao produto
 
+**Conferência de entrega — 27/10:** o serviço local em7777 já serve HTML idêntico
+ao build atual e sua API expõe progresso compartilhado e estimativas do servidor.
+Verificação somente por leitura; não foi necessário reiniciar ou alterar dados.
+Foram relidos os cenários de preservação de foco/tempo/undo, validação REST/SSE,
+falha da IA com execução manual e referências de ação no histórico. Os ensaios
+reais fictícios continuam delimitados ao registro abaixo. O próximo aceite é
+o uso de João: pedir organização, conferir os passos salvos e iniciar a ação.
+O reinício recomendado anteriormente já não é necessário para esse teste.
+Não confundir entrega técnica com aprovação visual ou eficácia confirmada no uso
+cotidiano. A UI ampla e a calibração histórica permanecem adiadas.
+
 **Fatos na apresentação — 27/10:** cartões, metadados e foco agora leem a
 estimativa agregada de `ExecutionState.estimates`, calculada no Go. Não refazem
 a regra do total a partir de listas de tarefas/passos que podem atualizar em
