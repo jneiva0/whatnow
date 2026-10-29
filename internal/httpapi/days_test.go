@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -124,6 +125,24 @@ func TestWhatNowPassesContextWithoutSavingItAsFeeling(t *testing.T) {
 	tasks := decodeAs[[]domain.Task](t, api.do(http.MethodGet, "/api/v1/tasks", nil))
 	if len(tasks) != 1 || tasks[0].Feeling != "Interested" {
 		t.Fatalf("situational context was persisted as a task feeling: %+v", tasks)
+	}
+}
+
+func TestWhatNowExclusionWithContextDoesNotWriteFeeling(t *testing.T) {
+	api := newAPI(t)
+	first := decodeAs[taskMutation](t, api.do(http.MethodPost, "/api/v1/tasks", map[string]any{"title": "first", "feeling": "Interested"}))
+	second := decodeAs[taskMutation](t, api.do(http.MethodPost, "/api/v1/tasks", map[string]any{"title": "second"}))
+	api.model = modelFunc(func(req llm.Request) (string, error) {
+		if !strings.Contains(req.User, "tired right now") {
+			t.Fatal("missing current context")
+		}
+		return fmt.Sprintf(`{"reason":"Try this","task_id":%d}`, second.Data.ID), nil
+	})
+	before := decodeAs[[]domain.Task](t, api.do(http.MethodGet, "/api/v1/tasks", nil))
+	wantStatus(t, api.do(http.MethodPost, "/api/v1/whatnow", map[string]any{"exclude_task_id": first.Data.ID, "context": "tired right now", "reason": ""}), http.StatusOK)
+	after := decodeAs[[]domain.Task](t, api.do(http.MethodGet, "/api/v1/tasks", nil))
+	if !reflect.DeepEqual(before, after) {
+		t.Fatal("temporary refusal changed saved tasks")
 	}
 }
 

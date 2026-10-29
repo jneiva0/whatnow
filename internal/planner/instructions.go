@@ -29,6 +29,9 @@ They've asked "what now?". Pick one executable action they can start now, attach
 - Do not invent a step ID or claim a vague task has been decomposed. If it has no concrete action, make the reason a useful starting suggestion; changes to steps belong in the chat/decomposition flow.
 - Never pick a blocked task.
 - Weigh the plan, due dates, the free time before their next event, their pace, and how they feel. A short gap before a meeting suits a small task. A low pace or a rough mood suits something lighter.
+- The plan expresses commitments for the day; this pick chooses a viable next movement. Picking an unplanned task does not reclassify it. Consider urgency and consequences together with the current need; do not promote a small task merely because it is short.
+- Missing estimate, energy or feeling means unknown, not zero effort, neutral feeling or a reason to exclude or automatically rank the task last. A concrete task is executable without these fields. Do not present inferred numbers as saved facts or invent feelings. A task's total estimate includes completed steps and may be partial; consider the selected step and remaining progress rather than treating the full total as the next action's duration.
+- Task energy is expected effort; today's pace and a current request describe available capacity. Task feeling and current mood are also different. A preparatory step can require less effort than its parent task. Saved notes and original captures are historical context, not proof that a past temporary state still holds now; interpret their intent without claiming a live mood. The current request takes precedence for the present situation.
 - Unplanned tasks can be picked too.
 - reason: one or two sentences, to them, on why this task now. Be concrete and kind.`
 

@@ -3,6 +3,7 @@ package planner_test
 import (
 	"context"
 	"errors"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -192,5 +193,33 @@ func TestWhatNowCanChoosePendingStepAndRejectCompletedOrForeign(t *testing.T) {
 		if err != nil || got.StepID == nil || *got.StepID != chosen.ID || got.Fallback {
 			t.Fatalf("got %+v err %v (first %d)", got, err, first.ID)
 		}
+	}
+}
+
+// A suggestion is a read even with absent metadata and a situational rejection.
+func TestNextActionWithUnknownMetadataIsReadOnly(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	a := f.task(t, service.TaskFields{Title: "Drink water", RawText: "A short ritual to get started"})
+	b := f.task(t, service.TaskFields{Title: "Prepare report", Notes: "Delivery matters today"})
+	beforeTasks, _ := f.svc.ListTasks(ctx)
+	beforeFocus, _ := f.svc.Execution(ctx)
+	f.model.replies = []any{pick(a.ID, "Start with your concrete preparation"), pick(b.ID, "Try the report")}
+	first, err := f.planner.NextAction(ctx, planner.ActionRequest{})
+	if err != nil || first.TaskID != a.ID {
+		t.Fatalf("pick=%+v err=%v", first, err)
+	}
+	note := "I am tired right now; another action please"
+	second, err := f.planner.NextAction(ctx, planner.ActionRequest{ExcludeTaskID: a.ID, Context: note})
+	if err != nil || second.TaskID != b.ID {
+		t.Fatalf("pick=%+v err=%v", second, err)
+	}
+	if !strings.Contains(system(f.model.sent[0]), a.RawText) || !strings.Contains(f.model.sent[1].User, note) {
+		t.Fatal("lost original capture or current request")
+	}
+	afterTasks, _ := f.svc.ListTasks(ctx)
+	afterFocus, _ := f.svc.Execution(ctx)
+	if !reflect.DeepEqual(beforeTasks, afterTasks) || !reflect.DeepEqual(beforeFocus.Steps, afterFocus.Steps) || !reflect.DeepEqual(beforeFocus.Sessions, afterFocus.Sessions) {
+		t.Fatal("suggestion mutated task or execution")
 	}
 }
