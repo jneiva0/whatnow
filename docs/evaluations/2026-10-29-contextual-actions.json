@@ -1,0 +1,2172 @@
+{
+  "cases": [
+    {
+      "case": "unknown_metadata",
+      "context": "",
+      "execution_after": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 1,
+              "step_id": null
+            },
+            "running": null
+          },
+          "2": {
+            "task_id": 2,
+            "total_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 2,
+              "step_id": null
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": null,
+            "partial": false
+          },
+          "2": {
+            "minutes": null,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [],
+        "sessions": [],
+        "selected_id": null
+      },
+      "execution_before": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 1,
+              "step_id": null
+            },
+            "running": null
+          },
+          "2": {
+            "task_id": 2,
+            "total_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 2,
+              "step_id": null
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": null,
+            "partial": false
+          },
+          "2": {
+            "minutes": null,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [],
+        "sessions": [],
+        "selected_id": null
+      },
+      "pick": {
+        "task_id": 1,
+        "step_id": null,
+        "reason": "Ligue para confirmar o horário da consulta: é uma ação clara, sem precisar decidir por onde começar. Com o pique baixo hoje, deixe o objetivo só nessa confirmação.",
+        "fallback": false
+      },
+      "tasks_after": [
+        {
+          "estimate_minutes": null,
+          "id": 1,
+          "title": "Ligar para confirmar o horário da consulta",
+          "notes": "",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        },
+        {
+          "estimate_minutes": null,
+          "id": 2,
+          "title": "Organizar minhas finanças",
+          "notes": "Ainda não sei o que precisa mudar",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ],
+      "tasks_before": [
+        {
+          "estimate_minutes": null,
+          "id": 1,
+          "title": "Ligar para confirmar o horário da consulta",
+          "notes": "",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        },
+        {
+          "estimate_minutes": null,
+          "id": 2,
+          "title": "Organizar minhas finanças",
+          "notes": "Ainda não sei o que precisa mudar",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ]
+    },
+    {
+      "case": "unplanned_ritual",
+      "context": "",
+      "execution_after": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": 45,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 3,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [
+              {
+                "id": 1,
+                "task_id": 1,
+                "description": "Abrir rascunho",
+                "estimate_minutes": 3,
+                "position": 0,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              }
+            ],
+            "next": {
+              "task_id": 1,
+              "step_id": 1
+            },
+            "running": null
+          },
+          "2": {
+            "task_id": 2,
+            "total_estimate": {
+              "minutes": 7,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 7,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [
+              {
+                "id": 2,
+                "task_id": 2,
+                "description": "Beber água",
+                "estimate_minutes": 1,
+                "position": 0,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 3,
+                "task_id": 2,
+                "description": "Ir ao banheiro",
+                "estimate_minutes": 2,
+                "position": 1,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 4,
+                "task_id": 2,
+                "description": "Meditar",
+                "estimate_minutes": 3,
+                "position": 2,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 5,
+                "task_id": 2,
+                "description": "Beber mais água",
+                "estimate_minutes": 1,
+                "position": 3,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              }
+            ],
+            "next": {
+              "task_id": 2,
+              "step_id": 2
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": 45,
+            "partial": false
+          },
+          "2": {
+            "minutes": 7,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [
+          {
+            "id": 1,
+            "task_id": 1,
+            "description": "Abrir rascunho",
+            "estimate_minutes": 3,
+            "position": 0,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 2,
+            "task_id": 2,
+            "description": "Beber água",
+            "estimate_minutes": 1,
+            "position": 0,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 3,
+            "task_id": 2,
+            "description": "Ir ao banheiro",
+            "estimate_minutes": 2,
+            "position": 1,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 4,
+            "task_id": 2,
+            "description": "Meditar",
+            "estimate_minutes": 3,
+            "position": 2,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 5,
+            "task_id": 2,
+            "description": "Beber mais água",
+            "estimate_minutes": 1,
+            "position": 3,
+            "done": false,
+            "deleted_at": null
+          }
+        ],
+        "sessions": [],
+        "selected_id": null
+      },
+      "execution_before": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": 45,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 3,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [
+              {
+                "id": 1,
+                "task_id": 1,
+                "description": "Abrir rascunho",
+                "estimate_minutes": 3,
+                "position": 0,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              }
+            ],
+            "next": {
+              "task_id": 1,
+              "step_id": 1
+            },
+            "running": null
+          },
+          "2": {
+            "task_id": 2,
+            "total_estimate": {
+              "minutes": 7,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 7,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [
+              {
+                "id": 2,
+                "task_id": 2,
+                "description": "Beber água",
+                "estimate_minutes": 1,
+                "position": 0,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 3,
+                "task_id": 2,
+                "description": "Ir ao banheiro",
+                "estimate_minutes": 2,
+                "position": 1,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 4,
+                "task_id": 2,
+                "description": "Meditar",
+                "estimate_minutes": 3,
+                "position": 2,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 5,
+                "task_id": 2,
+                "description": "Beber mais água",
+                "estimate_minutes": 1,
+                "position": 3,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              }
+            ],
+            "next": {
+              "task_id": 2,
+              "step_id": 2
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": 45,
+            "partial": false
+          },
+          "2": {
+            "minutes": 7,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [
+          {
+            "id": 1,
+            "task_id": 1,
+            "description": "Abrir rascunho",
+            "estimate_minutes": 3,
+            "position": 0,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 2,
+            "task_id": 2,
+            "description": "Beber água",
+            "estimate_minutes": 1,
+            "position": 0,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 3,
+            "task_id": 2,
+            "description": "Ir ao banheiro",
+            "estimate_minutes": 2,
+            "position": 1,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 4,
+            "task_id": 2,
+            "description": "Meditar",
+            "estimate_minutes": 3,
+            "position": 2,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 5,
+            "task_id": 2,
+            "description": "Beber mais água",
+            "estimate_minutes": 1,
+            "position": 3,
+            "done": false,
+            "deleted_at": null
+          }
+        ],
+        "sessions": [],
+        "selected_id": null
+      },
+      "pick": {
+        "task_id": 2,
+        "step_id": 2,
+        "reason": "Beba um pouco de água, como você pediu para começar a destravar antes de trabalhar. O relatório é para amanhã; dá para respeitar esse primeiro passo sem atropelar seu ritmo hoje.",
+        "fallback": false
+      },
+      "tasks_after": [
+        {
+          "estimate_minutes": 45,
+          "id": 1,
+          "title": "Preparar relatório",
+          "notes": "Entrega amanhã",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        },
+        {
+          "estimate_minutes": null,
+          "id": 2,
+          "title": "Ritual para destravar",
+          "notes": "",
+          "raw_text": "Estou travado agora. Quero beber água, ir ao banheiro, meditar e beber mais um gole antes de trabalhar.",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ],
+      "tasks_before": [
+        {
+          "estimate_minutes": 45,
+          "id": 1,
+          "title": "Preparar relatório",
+          "notes": "Entrega amanhã",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        },
+        {
+          "estimate_minutes": null,
+          "id": 2,
+          "title": "Ritual para destravar",
+          "notes": "",
+          "raw_text": "Estou travado agora. Quero beber água, ir ao banheiro, meditar e beber mais um gole antes de trabalhar.",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ]
+    },
+    {
+      "case": "urgent_small_step",
+      "context": "Estou com pouca energia e travado, mas preciso cumprir o prazo do relatório.",
+      "execution_after": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": 60,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 4,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [
+              {
+                "id": 1,
+                "task_id": 1,
+                "description": "Abrir o rascunho revisado",
+                "estimate_minutes": 2,
+                "position": 0,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 2,
+                "task_id": 1,
+                "description": "Enviar o relatório",
+                "estimate_minutes": 2,
+                "position": 1,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              }
+            ],
+            "next": {
+              "task_id": 1,
+              "step_id": 1
+            },
+            "running": null
+          },
+          "2": {
+            "task_id": 2,
+            "total_estimate": {
+              "minutes": 1,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 1,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 2,
+              "step_id": null
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": 60,
+            "partial": false
+          },
+          "2": {
+            "minutes": 1,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [
+          {
+            "id": 1,
+            "task_id": 1,
+            "description": "Abrir o rascunho revisado",
+            "estimate_minutes": 2,
+            "position": 0,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 2,
+            "task_id": 1,
+            "description": "Enviar o relatório",
+            "estimate_minutes": 2,
+            "position": 1,
+            "done": false,
+            "deleted_at": null
+          }
+        ],
+        "sessions": [],
+        "selected_id": null
+      },
+      "execution_before": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": 60,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 4,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [
+              {
+                "id": 1,
+                "task_id": 1,
+                "description": "Abrir o rascunho revisado",
+                "estimate_minutes": 2,
+                "position": 0,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 2,
+                "task_id": 1,
+                "description": "Enviar o relatório",
+                "estimate_minutes": 2,
+                "position": 1,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              }
+            ],
+            "next": {
+              "task_id": 1,
+              "step_id": 1
+            },
+            "running": null
+          },
+          "2": {
+            "task_id": 2,
+            "total_estimate": {
+              "minutes": 1,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 1,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 2,
+              "step_id": null
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": 60,
+            "partial": false
+          },
+          "2": {
+            "minutes": 1,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [
+          {
+            "id": 1,
+            "task_id": 1,
+            "description": "Abrir o rascunho revisado",
+            "estimate_minutes": 2,
+            "position": 0,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 2,
+            "task_id": 1,
+            "description": "Enviar o relatório",
+            "estimate_minutes": 2,
+            "position": 1,
+            "done": false,
+            "deleted_at": null
+          }
+        ],
+        "sessions": [],
+        "selected_id": null
+      },
+      "pick": {
+        "task_id": 1,
+        "step_id": 1,
+        "reason": "Abra o rascunho já revisado — são só 2 minutos, sem precisar revisar de novo agora. É um começo pequeno que respeita sua pouca energia e deixa o relatório pronto para o envio antes das 11h.",
+        "fallback": false
+      },
+      "tasks_after": [
+        {
+          "estimate_minutes": 60,
+          "id": 1,
+          "title": "Enviar relatório até 11h",
+          "notes": "Já revisado, só falta enviar; prazo firme em uma hora",
+          "raw_text": "",
+          "size": null,
+          "energy": "high",
+          "feeling": "Resistência para encerrar",
+          "due_on": "2026-10-29",
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        },
+        {
+          "estimate_minutes": 1,
+          "id": 2,
+          "title": "Limpar um copo",
+          "notes": "",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ],
+      "tasks_before": [
+        {
+          "estimate_minutes": 60,
+          "id": 1,
+          "title": "Enviar relatório até 11h",
+          "notes": "Já revisado, só falta enviar; prazo firme em uma hora",
+          "raw_text": "",
+          "size": null,
+          "energy": "high",
+          "feeling": "Resistência para encerrar",
+          "due_on": "2026-10-29",
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        },
+        {
+          "estimate_minutes": 1,
+          "id": 2,
+          "title": "Limpar um copo",
+          "notes": "",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ]
+    },
+    {
+      "answer": {
+        "id": 4,
+        "date": "2026-10-29",
+        "role": "assistant",
+        "text": "I couldn't reach the AI provider just now. Check settings, or try again in a bit.",
+        "tools": [
+          {
+            "tool": "update_task",
+            "label": "Updated #1 \"Organizar documentos\"",
+            "error": ""
+          }
+        ],
+        "batch_id": 2,
+        "error": "openai: received error while streaming: {\"message\":\"An error occurred while processing your request. You can retry your request, or contact us through our help center at help.openai.com if the error persists.\",\"type\":\"server_error\",\"param\":null,\"code\":\"upstream_server_error\"}",
+        "created_at": "2026-10-29T13:00:00Z"
+      },
+      "case": "clarification",
+      "context": "",
+      "execution_after": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 1,
+              "step_id": null
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": null,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [],
+        "sessions": [],
+        "selected_id": null
+      },
+      "execution_before": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 1,
+              "step_id": null
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": null,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [],
+        "sessions": [],
+        "selected_id": null
+      },
+      "question": {
+        "id": 2,
+        "date": "2026-10-29",
+        "role": "assistant",
+        "text": "O que precisa ficar resolvido com esses documentos para você considerar a tarefa feita o suficiente, sem precisar deixar tudo perfeito?",
+        "tools": [],
+        "batch_id": 0,
+        "error": "",
+        "created_at": "2026-10-29T13:00:00Z"
+      },
+      "tasks_after": [
+        {
+          "estimate_minutes": null,
+          "id": 1,
+          "title": "Organizar documentos",
+          "notes": "Está pendente, ainda não defini o resultado suficiente\nResultado suficiente esclarecido: juntar os comprovantes deste ano numa pasta, sem classificar tudo agora.",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ],
+      "tasks_after_question": [
+        {
+          "estimate_minutes": null,
+          "id": 1,
+          "title": "Organizar documentos",
+          "notes": "Está pendente, ainda não defini o resultado suficiente",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ],
+      "tasks_before": [
+        {
+          "estimate_minutes": null,
+          "id": 1,
+          "title": "Organizar documentos",
+          "notes": "Está pendente, ainda não defini o resultado suficiente",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ]
+    }
+  ],
+  "date": "2026-10-29",
+  "limits": [
+    "One sample per case; not a reliability estimate",
+    "Only provider configuration loaded from read-only real settings; no personal tasks, profile or chat copied",
+    "All writes in newly created disposable databases"
+  ],
+  "main_model": "gpt-6.1-sol",
+  "provider": "openai",
+  "purpose": "Bounded real-provider evaluation of contextual suggestions, missing metadata and one-question clarification",
+  "earlier_pass": [
+    {
+      "case": "unknown_metadata",
+      "context": "",
+      "execution_after": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 1,
+              "step_id": null
+            },
+            "running": null
+          },
+          "2": {
+            "task_id": 2,
+            "total_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 2,
+              "step_id": null
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": null,
+            "partial": false
+          },
+          "2": {
+            "minutes": null,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [],
+        "sessions": [],
+        "selected_id": null
+      },
+      "execution_before": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 1,
+              "step_id": null
+            },
+            "running": null
+          },
+          "2": {
+            "task_id": 2,
+            "total_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 2,
+              "step_id": null
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": null,
+            "partial": false
+          },
+          "2": {
+            "minutes": null,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [],
+        "sessions": [],
+        "selected_id": null
+      },
+      "pick": {
+        "task_id": 1,
+        "step_id": null,
+        "reason": "Ligue para confirmar o horário da consulta: é uma ação clara, sem precisar decidir por onde começar. Com o pique baixo hoje, deixe o objetivo só nessa confirmação.",
+        "fallback": false
+      },
+      "tasks_after": [
+        {
+          "estimate_minutes": null,
+          "id": 1,
+          "title": "Ligar para confirmar o horário da consulta",
+          "notes": "",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        },
+        {
+          "estimate_minutes": null,
+          "id": 2,
+          "title": "Organizar minhas finanças",
+          "notes": "Ainda não sei o que precisa mudar",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ],
+      "tasks_before": [
+        {
+          "estimate_minutes": null,
+          "id": 1,
+          "title": "Ligar para confirmar o horário da consulta",
+          "notes": "",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        },
+        {
+          "estimate_minutes": null,
+          "id": 2,
+          "title": "Organizar minhas finanças",
+          "notes": "Ainda não sei o que precisa mudar",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ]
+    },
+    {
+      "case": "unplanned_ritual",
+      "context": "",
+      "execution_after": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": 45,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 3,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [
+              {
+                "id": 1,
+                "task_id": 1,
+                "description": "Abrir rascunho",
+                "estimate_minutes": 3,
+                "position": 0,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              }
+            ],
+            "next": {
+              "task_id": 1,
+              "step_id": 1
+            },
+            "running": null
+          },
+          "2": {
+            "task_id": 2,
+            "total_estimate": {
+              "minutes": 7,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 7,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [
+              {
+                "id": 2,
+                "task_id": 2,
+                "description": "Beber água",
+                "estimate_minutes": 1,
+                "position": 0,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 3,
+                "task_id": 2,
+                "description": "Ir ao banheiro",
+                "estimate_minutes": 2,
+                "position": 1,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 4,
+                "task_id": 2,
+                "description": "Meditar",
+                "estimate_minutes": 3,
+                "position": 2,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 5,
+                "task_id": 2,
+                "description": "Beber mais água",
+                "estimate_minutes": 1,
+                "position": 3,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              }
+            ],
+            "next": {
+              "task_id": 2,
+              "step_id": 2
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": 45,
+            "partial": false
+          },
+          "2": {
+            "minutes": 7,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [
+          {
+            "id": 1,
+            "task_id": 1,
+            "description": "Abrir rascunho",
+            "estimate_minutes": 3,
+            "position": 0,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 2,
+            "task_id": 2,
+            "description": "Beber água",
+            "estimate_minutes": 1,
+            "position": 0,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 3,
+            "task_id": 2,
+            "description": "Ir ao banheiro",
+            "estimate_minutes": 2,
+            "position": 1,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 4,
+            "task_id": 2,
+            "description": "Meditar",
+            "estimate_minutes": 3,
+            "position": 2,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 5,
+            "task_id": 2,
+            "description": "Beber mais água",
+            "estimate_minutes": 1,
+            "position": 3,
+            "done": false,
+            "deleted_at": null
+          }
+        ],
+        "sessions": [],
+        "selected_id": null
+      },
+      "execution_before": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": 45,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 3,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [
+              {
+                "id": 1,
+                "task_id": 1,
+                "description": "Abrir rascunho",
+                "estimate_minutes": 3,
+                "position": 0,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              }
+            ],
+            "next": {
+              "task_id": 1,
+              "step_id": 1
+            },
+            "running": null
+          },
+          "2": {
+            "task_id": 2,
+            "total_estimate": {
+              "minutes": 7,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 7,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [
+              {
+                "id": 2,
+                "task_id": 2,
+                "description": "Beber água",
+                "estimate_minutes": 1,
+                "position": 0,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 3,
+                "task_id": 2,
+                "description": "Ir ao banheiro",
+                "estimate_minutes": 2,
+                "position": 1,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 4,
+                "task_id": 2,
+                "description": "Meditar",
+                "estimate_minutes": 3,
+                "position": 2,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 5,
+                "task_id": 2,
+                "description": "Beber mais água",
+                "estimate_minutes": 1,
+                "position": 3,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              }
+            ],
+            "next": {
+              "task_id": 2,
+              "step_id": 2
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": 45,
+            "partial": false
+          },
+          "2": {
+            "minutes": 7,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [
+          {
+            "id": 1,
+            "task_id": 1,
+            "description": "Abrir rascunho",
+            "estimate_minutes": 3,
+            "position": 0,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 2,
+            "task_id": 2,
+            "description": "Beber água",
+            "estimate_minutes": 1,
+            "position": 0,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 3,
+            "task_id": 2,
+            "description": "Ir ao banheiro",
+            "estimate_minutes": 2,
+            "position": 1,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 4,
+            "task_id": 2,
+            "description": "Meditar",
+            "estimate_minutes": 3,
+            "position": 2,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 5,
+            "task_id": 2,
+            "description": "Beber mais água",
+            "estimate_minutes": 1,
+            "position": 3,
+            "done": false,
+            "deleted_at": null
+          }
+        ],
+        "sessions": [],
+        "selected_id": null
+      },
+      "pick": {
+        "task_id": 2,
+        "step_id": 2,
+        "reason": "Beba um pouco de água, como você pediu para começar a destravar antes de trabalhar. O relatório é para amanhã; dá para respeitar esse primeiro passo sem atropelar seu ritmo hoje.",
+        "fallback": false
+      },
+      "tasks_after": [
+        {
+          "estimate_minutes": 45,
+          "id": 1,
+          "title": "Preparar relatório",
+          "notes": "Entrega amanhã",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        },
+        {
+          "estimate_minutes": null,
+          "id": 2,
+          "title": "Ritual para destravar",
+          "notes": "",
+          "raw_text": "Estou travado agora. Quero beber água, ir ao banheiro, meditar e beber mais um gole antes de trabalhar.",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ],
+      "tasks_before": [
+        {
+          "estimate_minutes": 45,
+          "id": 1,
+          "title": "Preparar relatório",
+          "notes": "Entrega amanhã",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        },
+        {
+          "estimate_minutes": null,
+          "id": 2,
+          "title": "Ritual para destravar",
+          "notes": "",
+          "raw_text": "Estou travado agora. Quero beber água, ir ao banheiro, meditar e beber mais um gole antes de trabalhar.",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ]
+    },
+    {
+      "case": "urgent_small_step",
+      "context": "Estou com pouca energia e travado, mas preciso cumprir o prazo do relatório.",
+      "execution_after": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": 60,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 4,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [
+              {
+                "id": 1,
+                "task_id": 1,
+                "description": "Abrir o rascunho revisado",
+                "estimate_minutes": 2,
+                "position": 0,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 2,
+                "task_id": 1,
+                "description": "Enviar o relatório",
+                "estimate_minutes": 2,
+                "position": 1,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              }
+            ],
+            "next": {
+              "task_id": 1,
+              "step_id": 1
+            },
+            "running": null
+          },
+          "2": {
+            "task_id": 2,
+            "total_estimate": {
+              "minutes": 1,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 1,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 2,
+              "step_id": null
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": 60,
+            "partial": false
+          },
+          "2": {
+            "minutes": 1,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [
+          {
+            "id": 1,
+            "task_id": 1,
+            "description": "Abrir o rascunho revisado",
+            "estimate_minutes": 2,
+            "position": 0,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 2,
+            "task_id": 1,
+            "description": "Enviar o relatório",
+            "estimate_minutes": 2,
+            "position": 1,
+            "done": false,
+            "deleted_at": null
+          }
+        ],
+        "sessions": [],
+        "selected_id": null
+      },
+      "execution_before": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": 60,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 4,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [
+              {
+                "id": 1,
+                "task_id": 1,
+                "description": "Abrir o rascunho revisado",
+                "estimate_minutes": 2,
+                "position": 0,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              },
+              {
+                "id": 2,
+                "task_id": 1,
+                "description": "Enviar o relatório",
+                "estimate_minutes": 2,
+                "position": 1,
+                "done": false,
+                "deleted_at": null,
+                "actual_ms": 0,
+                "running": false
+              }
+            ],
+            "next": {
+              "task_id": 1,
+              "step_id": 1
+            },
+            "running": null
+          },
+          "2": {
+            "task_id": 2,
+            "total_estimate": {
+              "minutes": 1,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": 1,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 2,
+              "step_id": null
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": 60,
+            "partial": false
+          },
+          "2": {
+            "minutes": 1,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [
+          {
+            "id": 1,
+            "task_id": 1,
+            "description": "Abrir o rascunho revisado",
+            "estimate_minutes": 2,
+            "position": 0,
+            "done": false,
+            "deleted_at": null
+          },
+          {
+            "id": 2,
+            "task_id": 1,
+            "description": "Enviar o relatório",
+            "estimate_minutes": 2,
+            "position": 1,
+            "done": false,
+            "deleted_at": null
+          }
+        ],
+        "sessions": [],
+        "selected_id": null
+      },
+      "pick": {
+        "task_id": 1,
+        "step_id": 1,
+        "reason": "Abra o rascunho já revisado — são só 2 minutos, sem precisar revisar de novo agora. É um começo pequeno que respeita sua pouca energia e deixa o relatório pronto para o envio antes das 11h.",
+        "fallback": false
+      },
+      "tasks_after": [
+        {
+          "estimate_minutes": 60,
+          "id": 1,
+          "title": "Enviar relatório até 11h",
+          "notes": "Já revisado, só falta enviar; prazo firme em uma hora",
+          "raw_text": "",
+          "size": null,
+          "energy": "high",
+          "feeling": "Resistência para encerrar",
+          "due_on": "2026-10-29",
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        },
+        {
+          "estimate_minutes": 1,
+          "id": 2,
+          "title": "Limpar um copo",
+          "notes": "",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ],
+      "tasks_before": [
+        {
+          "estimate_minutes": 60,
+          "id": 1,
+          "title": "Enviar relatório até 11h",
+          "notes": "Já revisado, só falta enviar; prazo firme em uma hora",
+          "raw_text": "",
+          "size": null,
+          "energy": "high",
+          "feeling": "Resistência para encerrar",
+          "due_on": "2026-10-29",
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        },
+        {
+          "estimate_minutes": 1,
+          "id": 2,
+          "title": "Limpar um copo",
+          "notes": "",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ]
+    },
+    {
+      "answer": {
+        "id": 4,
+        "date": "2026-10-29",
+        "role": "assistant",
+        "text": "I couldn't reach the AI provider just now. Check settings, or try again in a bit.",
+        "tools": [
+          {
+            "tool": "update_task",
+            "label": "Updated #1 \"Organizar documentos\"",
+            "error": ""
+          }
+        ],
+        "batch_id": 2,
+        "error": "openai: received error while streaming: {\"message\":\"An error occurred while processing your request. You can retry your request, or contact us through our help center at help.openai.com if the error persists.\",\"type\":\"server_error\",\"param\":null,\"code\":\"upstream_server_error\"}",
+        "created_at": "2026-10-29T13:00:00Z"
+      },
+      "case": "clarification",
+      "context": "",
+      "execution_after": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 1,
+              "step_id": null
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": null,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [],
+        "sessions": [],
+        "selected_id": null
+      },
+      "execution_before": {
+        "progress": {
+          "1": {
+            "task_id": 1,
+            "total_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "pending_estimate": {
+              "minutes": null,
+              "partial": false
+            },
+            "completed_steps": 0,
+            "actual_ms": 0,
+            "direct_actual_ms": 0,
+            "archived_actual_ms": 0,
+            "steps": [],
+            "next": {
+              "task_id": 1,
+              "step_id": null
+            },
+            "running": null
+          }
+        },
+        "estimates": {
+          "1": {
+            "minutes": null,
+            "partial": false
+          }
+        },
+        "corrections": [],
+        "server_now": "2026-10-29T13:00:00Z",
+        "steps": [],
+        "sessions": [],
+        "selected_id": null
+      },
+      "question": {
+        "id": 2,
+        "date": "2026-10-29",
+        "role": "assistant",
+        "text": "O que precisa ficar resolvido com esses documentos para você considerar a tarefa feita o suficiente, sem precisar deixar tudo perfeito?",
+        "tools": [],
+        "batch_id": 0,
+        "error": "",
+        "created_at": "2026-10-29T13:00:00Z"
+      },
+      "tasks_after": [
+        {
+          "estimate_minutes": null,
+          "id": 1,
+          "title": "Organizar documentos",
+          "notes": "Está pendente, ainda não defini o resultado suficiente\nResultado suficiente esclarecido: juntar os comprovantes deste ano numa pasta, sem classificar tudo agora.",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ],
+      "tasks_after_question": [
+        {
+          "estimate_minutes": null,
+          "id": 1,
+          "title": "Organizar documentos",
+          "notes": "Está pendente, ainda não defini o resultado suficiente",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ],
+      "tasks_before": [
+        {
+          "estimate_minutes": null,
+          "id": 1,
+          "title": "Organizar documentos",
+          "notes": "Está pendente, ainda não defini o resultado suficiente",
+          "raw_text": "",
+          "size": null,
+          "energy": null,
+          "feeling": "",
+          "due_on": null,
+          "not_before": null,
+          "status": "open",
+          "refs": [],
+          "created_by": "user",
+          "created_at": "2026-10-29T13:00:00Z",
+          "updated_at": "2026-10-29T13:00:00Z",
+          "deleted_at": null
+        }
+      ]
+    }
+  ],
+  "observations": [
+    "Initial unplanned ritual case chose the report; instructions clarified recent explicit preparation and capture timestamps now include minutes. Repeated bounded case chose first ritual step.",
+    "Clarification first pass asked without mutations and updated after the answer. Second pass asked without mutations but provider failed on answer; failure preserved in results.",
+    "These are synthetic single samples, not clinical or reliability evidence."
+  ]
+}

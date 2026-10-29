@@ -9,6 +9,7 @@ import (
 
 	"github.com/jameynakama/whatnow/internal/domain"
 	"github.com/jameynakama/whatnow/internal/llm"
+	"github.com/jameynakama/whatnow/internal/prompt"
 	"github.com/jameynakama/whatnow/internal/service"
 	"github.com/jameynakama/whatnow/internal/stream"
 )
@@ -215,6 +216,18 @@ func (p *Planner) summarize(ctx context.Context, day domain.Day, done, unfinishe
 	})
 	if day.TomorrowNote != "" {
 		fmt.Fprintf(&b, "\nTheir note for next time: %q.", day.TomorrowNote)
+	}
+	execution, err := p.svc.Execution(ctx)
+	if err != nil {
+		return "", err
+	}
+	b.WriteString("\nCurrent task progress (cumulative recorded focus, NOT time attributed to this day):\n")
+	for _, tasks := range [][]domain.Task{done, unfinished} {
+		for _, task := range tasks {
+			if progress, ok := execution.Progress[task.ID]; ok {
+				fmt.Fprintf(&b, "%q:\n%s", task.Title, prompt.Execution(progress))
+			}
+		}
 	}
 
 	reply, err := model.Complete(ctx, llm.Request{

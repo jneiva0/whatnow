@@ -3,6 +3,9 @@
 	import { api, type ToolUse } from '#lib/api.ts';
 	import { chat } from '#lib/chat.svelte.ts';
 	import { toasts } from '#lib/toasts.svelte.ts';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import XIcon from '@lucide/svelte/icons/x';
+	import ChatAction from '#lib/components/ChatAction.svelte';
 
 	interface Props {
 		/** The plan's opening line, shown first. It isn't a stored message. */
@@ -59,24 +62,31 @@
 	}
 
 	const chipText = (t: ToolUse) => `${t.error ? '✕' : '✓'} ${t.label || t.tool}`;
+	const offeredAction = (tools: ToolUse[] | null) => tools?.findLast((t) => !t.error && t.action)?.action;
 </script>
 
 {#if chat.open}
 	<aside class="sticker dock">
 		<header>
 			<span class="label">Chat</span>
-			<button class="collapse" aria-label="Collapse chat" onclick={toggle}>⟩</button>
+			<Button variant="outline" size="icon" aria-label="Fechar chat" title="Fechar chat" onclick={toggle}>
+				<XIcon aria-hidden="true" />
+			</Button>
 		</header>
 		<div class="log" bind:this={log}>
 			{#if opening}
 				<p class="bubble assistant">{opening}</p>
 			{/if}
 			{#each chat.messages as m (m.id)}
-				<div class="bubble {m.role}" class:failed={m.error}>
+				{@const action = offeredAction(m.tools)}
+				<div class={['bubble', m.role, {failed: m.error}]}>
 					{#each m.tools ?? [] as t, i (i)}
-						<span class="toolchip" class:bad={t.error} title={t.error}>{chipText(t)}</span>
+						<span class={['toolchip', {bad: t.error}]} title={t.error}>{chipText(t)}</span>
 					{/each}
 					<p>{m.text}</p>
+					{#if action && !chat.undone.includes(m.batch_id)}
+						<ChatAction {action} />
+					{/if}
 					{#if m.error}
 						<a href="/settings">Check settings</a>
 					{/if}
@@ -92,7 +102,7 @@
 			{#if chat.draft}
 				<div class="bubble assistant">
 					{#each chat.draft.tools as t, i (i)}
-						<span class="toolchip" class:bad={t.error}>{chipText(t)}</span>
+						<span class={['toolchip', {bad: t.error}]}>{chipText(t)}</span>
 					{/each}
 					<p>{chat.draft.text || '…'}</p>
 				</div>
@@ -119,6 +129,8 @@
 		display: flex;
 		flex-direction: column;
 		width: 360px;
+		min-width: 0;
+		max-width: 100%;
 		height: calc(100vh - 32px);
 		position: sticky;
 		top: 16px;
@@ -129,15 +141,12 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-	}
-	.collapse {
-		background: none;
-		border: none;
-		font-size: 18px;
-		font-weight: var(--heavy);
+		flex-shrink: 0;
 	}
 	.log {
 		flex: 1;
+		min-height: 0;
+		min-width: 0;
 		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
@@ -147,6 +156,8 @@
 		border-radius: var(--radius);
 		padding: 8px 12px;
 		max-width: 90%;
+		min-width: 0;
+		overflow-wrap: anywhere;
 		margin: 0;
 		display: flex;
 		flex-direction: column;
@@ -171,6 +182,7 @@
 		color: var(--ink-soft);
 	}
 	.toolchip {
+		max-width: 100%;
 		font-size: 11px;
 		font-weight: var(--heavy);
 		background: var(--chip);

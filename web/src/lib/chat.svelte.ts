@@ -17,29 +17,52 @@ export class Chat {
 	open = $state(true);
 	/** A reply landed while the dock was collapsed. */
 	unread = $state(false);
+	#loadGeneration = 0;
+	#draftRevision = 0;
+	// Request-local bookkeeping, not rendered/reactive collections.
+	#duringLoad: Map<number, Message> | null = null;
 
-	/** Stored history is authoritative, so a draft whose reply was lost to a dropped stream goes. */
+	/** Recover history, retaining confirmed messages that arrive while it is in flight. */
 	async load(): Promise<void> {
-		this.messages = await api.chat();
-		this.draft = null;
+		const generation = ++this.#loadGeneration;
+		const draftRevision = this.#draftRevision;
+		const received = new Map<number, Message>();
+		this.#duringLoad = received;
+		try {
+			const history = await api.chat();
+			if (generation !== this.#loadGeneration) return;
+			const merged = new Map(history.map((m) => [m.id, m]));
+			for (const [id, message] of received) merged.set(id, message);
+			this.messages = [...merged.values()].sort((a, b) => a.id - b.id);
+			// Clear a stranded draft, but never a new reply arriving over the recovered stream.
+			if (draftRevision === this.#draftRevision) this.draft = null;
+		} finally {
+			if (generation === this.#loadGeneration) this.#duringLoad = null;
+		}
 	}
 
 	delta(text: string): void {
+		++this.#draftRevision;
 		this.draft ??= { text: '', tools: [] };
 		this.draft.text += text;
 	}
 
 	tool(use: ToolUse): void {
+		++this.#draftRevision;
 		this.draft ??= { text: '', tools: [] };
 		this.draft.tools.push(use);
 	}
 
 	/** A stored message is authoritative: it replaces the draft it finishes. */
 	message(m: Message): void {
+		this.#duringLoad?.set(m.id, m);
 		const i = this.messages.findIndex((x) => x.id === m.id);
 		if (i >= 0) this.messages[i] = m;
 		else this.messages.push(m);
-		if (m.role === 'assistant') {
+		// SSE and the POST response carry the same persisted message. Re-delivery
+		// must not finish a newer draft or mark the old reply unread again.
+		if (m.role === 'assistant' && i < 0) {
+			++this.#draftRevision;
 			this.draft = null;
 			if (!this.open) this.unread = true;
 		}
@@ -53,6 +76,13 @@ export class Chat {
 		this.open = !this.open;
 		if (this.open) this.unread = false;
 	}
+
+	async helpOrganize(taskID?: number): Promise<void> {
+  if (this.busy || this.draft) return;
+  this.open = true; this.unread = false;
+  const target = taskID ? ` a tarefa #${taskID}` : ' minhas tarefas pendentes, inclusive as antigas quando fizer sentido';
+  await this.send(`Estou sem clareza por onde começar. Me ajude a esclarecer${target}. Faça uma pergunta útil por vez para entender o que falta e só atualize tarefas a partir das minhas respostas. Não preciso preencher todos os campos.`);
+ }
 
 	/** Sends a message. Returns false when it wasn't taken, so the input keeps the text. */
 	async send(text: string): Promise<boolean> {

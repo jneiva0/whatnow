@@ -175,6 +175,7 @@ func (s *Server) whatNow(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		ExcludeTaskID int64  `json:"exclude_task_id"`
 		Reason        string `json:"reason"`
+		Context       string `json:"context"`
 	}
 	if err := decode(r, &body); err != nil {
 		writeError(w, err)
@@ -193,7 +194,7 @@ func (s *Server) whatNow(w http.ResponseWriter, r *http.Request) {
 		}
 		s.publishBatch(ctx, batch)
 	}
-	pick, err := s.Planner.WhatNow(ctx, body.ExcludeTaskID)
+	pick, err := s.Planner.NextAction(ctx, planner.ActionRequest{ExcludeTaskID: body.ExcludeTaskID, Context: body.Context})
 	if err != nil {
 		writeError(w, err)
 		return

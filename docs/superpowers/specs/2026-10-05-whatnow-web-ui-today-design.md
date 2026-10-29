@@ -31,7 +31,7 @@ tokens and never raw colors.
   fallback. Shared modules are imported through `#lib/...`, with the `.ts` extension.
 - Styling is plain scoped Svelte CSS plus `tokens.css`. No Tailwind and no component library.
 - API types are written by hand in `api.ts`.
-- Vitest tests client logic. npm is the package manager, and `web/.nvmrc` pins the Node version.
+- Vitest tests client logic. Bun is the package manager (pinned in `web/package.json`), and `web/.nvmrc` pins the Node version used by tooling.
 
 ## Layout
 

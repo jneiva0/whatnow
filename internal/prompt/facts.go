@@ -3,7 +3,9 @@ package prompt
 import (
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/jameynakama/whatnow/internal/domain"
 	"github.com/jameynakama/whatnow/internal/facts"
 )
 
@@ -45,8 +47,11 @@ func Facts(f facts.Facts) string {
 		t := tf.Task
 		fmt.Fprintf(&b, "#%d %s", t.ID, t.Title)
 		var details []string
-		if t.Size != nil {
-			details = append(details, "size "+string(*t.Size))
+		if tf.Estimate.Minutes != nil {
+			details = append(details, fmt.Sprintf("estimated total %d min", *tf.Estimate.Minutes))
+		}
+		if tf.Estimate.Partial {
+			details = append(details, "some steps have no estimate")
 		}
 		if t.Energy != nil {
 			details = append(details, string(*t.Energy)+" energy")
@@ -58,9 +63,58 @@ func Facts(f facts.Facts) string {
 			fmt.Fprintf(&b, " feeling: %q", t.Feeling)
 		}
 		b.WriteByte('\n')
+		if !t.CreatedAt.IsZero() {
+			fmt.Fprintf(&b, "  Created: %s; last updated: %s. Age is not proof of avoidance.\n", t.CreatedAt.In(f.Now.Location()).Format("2006-01-02 15:04"), t.UpdatedAt.In(f.Now.Location()).Format("2006-01-02 15:04"))
+		}
+		if t.Notes != "" {
+			fmt.Fprintf(&b, "  Notes: %q\n", t.Notes)
+		}
+		if t.RawText != "" && t.RawText != t.Title && t.RawText != t.Notes {
+			fmt.Fprintf(&b, "  Original capture: %q\n", t.RawText)
+		}
+		if tf.Progress != nil {
+			b.WriteString(Execution(*tf.Progress))
+		}
 		for _, a := range tf.Annotations {
 			fmt.Fprintf(&b, "  - %s\n", a)
 		}
+	}
+	return b.String()
+}
+
+// Execution renders computed facts, not raw session history. Times are cumulative
+// recorded focus, never a claim of activity or time spent on a particular day.
+func Execution(p domain.TaskProgress) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "  Recorded focus (cumulative): %s; completed steps: %d/%d.\n", time.Duration(p.ActualMS)*time.Millisecond, p.CompletedSteps, len(p.Steps))
+	if p.PendingEstimate.Minutes != nil {
+		fmt.Fprintf(&b, "  Pending action estimates: %d min (partial=%t); not reduced by recorded time.\n", *p.PendingEstimate.Minutes, p.PendingEstimate.Partial)
+	} else {
+		b.WriteString("  Pending action estimates: unknown.\n")
+	}
+	if p.ArchivedActualMS > 0 {
+		fmt.Fprintf(&b, "  Recorded focus on removed actions (included in task total): %s.\n", time.Duration(p.ArchivedActualMS)*time.Millisecond)
+	}
+	if p.Focus != nil {
+		target := "task directly"
+		if p.Focus.StepID != nil {
+			target = fmt.Sprintf("step #%d", *p.Focus.StepID)
+		}
+		fmt.Fprintf(&b, "  Selected focus: session #%d, %s, %s.\n", p.Focus.ID, p.Focus.State, target)
+	}
+	if p.Running != nil {
+		if p.Running.StepID == nil {
+			b.WriteString("  Currently running: task directly.\n")
+		} else {
+			fmt.Fprintf(&b, "  Currently running: step #%d.\n", *p.Running.StepID)
+		}
+	}
+	for _, step := range p.Steps {
+		estimate := "unknown"
+		if step.EstimateMinutes != nil {
+			estimate = fmt.Sprintf("%d min", *step.EstimateMinutes)
+		}
+		fmt.Fprintf(&b, "  Step #%d (done=%t): %s; estimate %s; recorded %s.\n", step.ID, step.Done, step.Description, estimate, time.Duration(step.ActualMS)*time.Millisecond)
 	}
 	return b.String()
 }

@@ -14,7 +14,7 @@
 
 	const layout = $derived(strip(events, now, endOfDay, startedAt));
 	const time = (d: Date | string) =>
-		new Date(d).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+		new Date(d).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 	const remove = (event: CalendarEvent) =>
 		toasts.track(`Removed: ${event.title}`, () => api.deleteEvent(event.id));
 </script>

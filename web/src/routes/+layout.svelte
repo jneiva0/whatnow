@@ -1,11 +1,12 @@
 <script lang="ts">
+	import './layout.css';
+	import ActiveFocusBar from '#lib/components/ActiveFocusBar.svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import '#lib/tokens.css';
-	import '#lib/themes.css';
 	import favicon from '#lib/assets/favicon.svg';
 	import Toasts from '#lib/components/Toasts.svelte';
+	import { editor } from '#lib/editor.svelte.ts';
 	import { live } from '#lib/live.svelte.ts';
 	import { applyTheme } from '#lib/theme.ts';
 	import { welcomeDue } from '#lib/welcome.ts';
@@ -29,5 +30,6 @@
 	<title>whatnow</title>
 </svelte:head>
 
+{#if page.url.pathname !== '/focus'}<ActiveFocusBar />{/if}
 {@render children()}
-<Toasts />
+{#if !editor.creating && editor.taskId === null}<Toasts />{/if}

@@ -515,3 +515,82 @@ func TestOnlyAnOpenTaskWithTheSameTicketKeyJoins(t *testing.T) {
 		})
 	}
 }
+
+func TestCaptureContinuesRoomTaskWithStepsAndUndo(t *testing.T) {
+	ctx := context.Background()
+	var existingID int64
+	var doneID int64
+	f := newFixture(t, func(req llm.Request) (string, error) {
+		var contextText strings.Builder
+		for _, b := range req.System {
+			contextText.WriteString(b.Text)
+		}
+		if !strings.Contains(contextText.String(), "done=true): Pick up clothes") {
+			t.Error("model must see completed actions")
+		}
+		return reply(t, map[string]any{"original": task(map[string]any{"keep": true, "title": "Pick things up", "existing_task_id": existingID,
+			"steps": []any{map[string]any{"step_id": doneID}, map[string]any{"description": "Put rubbish in a bag", "estimate_minutes": 3}}})})(req)
+	})
+	existing := f.capture(t, "Organize the room")
+	existingID = existing.ID
+	b, _ := f.svc.NewBatch(ctx, domain.ActorUser)
+	done, err := f.svc.CreateStep(ctx, b, existingID, service.StepFields{Description: "Pick up clothes", Done: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	doneID = done.ID
+	captured := f.capture(t, "Picking the mess up is getting urgent")
+	batch, err := f.runner.Clean(ctx, captured)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tasks, _ := f.svc.ListTasks(ctx)
+	if len(tasks) != 1 || tasks[0].ID != existingID || tasks[0].RawText != existing.RawText || !strings.Contains(tasks[0].Notes, captured.RawText) {
+		t.Fatalf("lost intention/source: %+v", tasks)
+	}
+	steps, _ := f.svc.ListSteps(ctx, existingID)
+	if len(steps) != 2 || steps[0].ID != done.ID || !steps[0].Done || *steps[1].EstimateMinutes != 3 {
+		t.Fatalf("steps: %+v", steps)
+	}
+	if err := f.svc.Undo(ctx, batch); err != nil {
+		t.Fatal(err)
+	}
+	tasks, _ = f.svc.ListTasks(ctx)
+	steps, _ = f.svc.ListSteps(ctx, existingID)
+	if len(tasks) != 2 || len(steps) != 1 || !steps[0].Done {
+		t.Fatalf("undo lost original progress: tasks=%+v steps=%+v", tasks, steps)
+	}
+}
+
+func TestCaptureCreatesEstimatedTaskWithSteps(t *testing.T) {
+	f := newFixture(t, reply(t, map[string]any{"original": task(map[string]any{"keep": true, "title": "Prepare room", "estimate_minutes": 5,
+		"steps": []any{map[string]any{"description": "Clear floor", "estimate_minutes": 15}, map[string]any{"description": "Clear table", "estimate_minutes": 15}, map[string]any{"description": "Put tools away", "estimate_minutes": 15}}})}))
+	ctx := context.Background()
+	captured := f.capture(t, "I need help getting the room ready")
+	if _, err := f.runner.Clean(ctx, captured); err != nil {
+		t.Fatal(err)
+	}
+	state, err := f.svc.Execution(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	estimate := state.Estimates[captured.ID]
+	if estimate.Minutes == nil || *estimate.Minutes != 45 || estimate.Partial {
+		t.Fatalf("estimate: %+v", estimate)
+	}
+}
+
+func TestCaptureStepFailureRollsBackAndKeepsRawNote(t *testing.T) {
+	f := newFixture(t, reply(t, map[string]any{"original": task(map[string]any{"keep": true, "title": "Changed",
+		"steps": []any{map[string]any{"description": "Valid", "estimate_minutes": 2}, map[string]any{"description": "Invalid", "estimate_minutes": -1}}})}))
+	ctx := context.Background()
+	captured := f.capture(t, "Raw intention")
+	if _, err := f.runner.Clean(ctx, captured); err == nil {
+		t.Fatal("invalid estimate accepted")
+	}
+	after, _ := f.svc.GetTask(ctx, captured.ID)
+	steps, _ := f.svc.ListSteps(ctx, captured.ID)
+	if after.Title != captured.Title || len(steps) != 0 {
+		t.Fatalf("partial cleanup persisted: %+v %+v", after, steps)
+	}
+}

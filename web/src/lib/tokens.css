@@ -19,7 +19,9 @@
 	--danger: #ff4d6d;
 	--backdrop: var(--paper);
 
-	--line: 2px solid var(--ink);
+	--stroke: 2px;
+	--border-color: var(--ink);
+	--line: var(--stroke) solid var(--border-color);
 	--shadow: 3px 3px 0 var(--ink);
 	--shadow-sm: 2px 2px 0 var(--ink);
 	--shadow-danger: 3px 3px 0 var(--danger);
@@ -31,6 +33,7 @@
 	--heavy: 800;
 }
 
+@layer base {
 *,
 *::before,
 *::after {
@@ -62,6 +65,9 @@ a {
 	font-weight: var(--heavy);
 }
 
+}
+
+@layer components {
 .sticker {
 	background: var(--card);
 	border: var(--line);
@@ -116,4 +122,6 @@ select.field {
 	border-radius: var(--radius-sm);
 	padding: 8px 10px;
 	width: 100%;
+}
+
 }

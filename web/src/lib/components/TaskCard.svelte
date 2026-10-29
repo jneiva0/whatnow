@@ -1,11 +1,20 @@
 <script lang="ts">
+	import { startAndOpenFocus } from '#lib/focus-navigation.ts';
+	import { execution } from '#lib/execution.svelte.ts';
+	import TaskMetadata from './TaskMetadata.svelte';
+	import PlayToggle from './PlayToggle.svelte';
+	import ExecutionSteps from './ExecutionSteps.svelte';
+	import { available, actionActual, taskActual, timerText } from '#lib/execution.ts';
 	import { api, type Tier } from '#lib/api.ts';
-	import { dismiss } from '#lib/dismiss.ts';
+	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.js';
+	import * as ContextMenu from '#lib/components/ui/context-menu/index.js';
+	import TaskActionItems from './TaskActionItems.svelte';
+	import { buttonVariants } from '#lib/components/ui/button/index.js';
+	import EllipsisIcon from '@lucide/svelte/icons/ellipsis';
 	import { editor } from '#lib/editor.svelte.ts';
 	import { linked } from '#lib/linked.svelte.ts';
 	import { linkify } from '#lib/linkify.ts';
 	import { links, type Card } from '#lib/plan.ts';
-	import { addDays } from '#lib/time.ts';
 	import { toasts } from '#lib/toasts.svelte.ts';
 	import { today } from '#lib/today.svelte.ts';
 
@@ -17,23 +26,35 @@
 		date: string;
 		/** All tasks shows dates, and opens the editor on a click instead of expanding the card. */
 		listed?: boolean;
+		/** Present one executable action using the shared step controls. */
+		actionView?: boolean;
 	}
-	let { card, tier, date, listed = false }: Props = $props();
+	let { card, tier, date, listed = false, actionView = false }: Props = $props();
 
-	let menuOpen = $state(false);
 	let expanded = $state(false);
 	const task = $derived(card.task);
+	const steps = $derived(execution.steps(task.id));
+	const running = $derived(execution.view?.sessions.find((s) => s.task_id === task.id && s.state === 'running'));
+ const nextStep = $derived(running ? steps.find((s) => s.id === running.step_id) : steps.find((s) => !s.done));
+ const nextActual = $derived(nextStep ? actionActual(execution.view?.sessions ?? [], task.id, nextStep.id, execution.now) : 0);
+	const completed = $derived(steps.filter((s) => s.done).length);
+	const actual = $derived(taskActual(execution.view?.sessions ?? [], task.id, execution.now));
+	const estimate = $derived(execution.estimate(task.id));
+	const canStart = $derived(available(task, today.tasks, today.blockers, date));
 	const chain = $derived(links(task.id, today.blockers, today.tasks));
-	const movable = $derived(!listed && !!today.today?.plan && !today.today.day?.wrapped_at);
-	const moves: { to: Tier | null; label: string }[] = [
-		{ to: 'must', label: 'Must' },
-		{ to: 'should', label: 'Should' },
-		{ to: 'could', label: 'Could' },
-		{ to: null, label: 'Unplanned' }
-	];
 	const showingLinks = $derived(linked.source === task.id);
 	const titles = (tasks: { title: string }[]) => tasks.map((t) => t.title).join(', ');
 	const toggleLinks = () => linked.toggle(task.id, [...chain.waitingOn, ...chain.unblocks].map((t) => t.id));
+
+	async function toggleFocus() {
+		if (execution.busy) return;
+		if (running) {
+			if (!await execution.action(running.id, 'pause')) toasts.error(execution.problem);
+			return;
+		}
+		const error = await startAndOpenFocus({task_id: task.id, step_id: nextStep?.id ?? null}, actionView);
+		if (error) toasts.error(error);
+	}
 
 	// The card leaves once the refetch lands. If the write failed, untick it again.
 	async function complete(e: Event & { currentTarget: HTMLInputElement }) {
@@ -42,58 +63,58 @@
 			box.checked = false;
 		}
 	}
-	function push() {
-		menuOpen = false;
-		toasts.track(`Pushed to tomorrow: ${task.title}`, () => api.push(task.id, addDays(date, 1)));
-	}
-	function drop() {
-		menuOpen = false;
-		toasts.track(`Dropped: ${task.title}`, () => api.setStatus(task.id, 'dropped'));
-	}
-	function move(to: Tier | null, label: string) {
-		menuOpen = false;
-		toasts.track(`Moved to ${label}: ${task.title}`, () => api.move(task.id, to));
-	}
-	function edit() {
-		menuOpen = false;
-		editor.open(task.id);
-	}
 	function restore() {
 		toasts.track(`Restored: ${task.title}`, () => api.setStatus(task.id, 'open'));
 	}
-	const short = (date: string) =>
-		new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+	// Keep the browser's editing menu available inside inline text/number fields.
+	function editingField(target: EventTarget | null) {
+		return target instanceof Element && !!target.closest('input, textarea, [contenteditable="true"]');
+	}
 </script>
 
+{#snippet taskMenu()}
+        <DropdownMenu.Root>
+            <DropdownMenu.Trigger class={buttonVariants({variant: 'ghost', size: 'icon'})} aria-label={`Mais ações para ${task.title}`}>
+                <EllipsisIcon aria-hidden="true" />
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content align="end">
+                <TaskActionItems {task} {tier} {date} {listed} />
+            </DropdownMenu.Content>
+        </DropdownMenu.Root>
+{/snippet}
+
+<ContextMenu.Root>
+<ContextMenu.Trigger disabled={task.status !== 'open'}>
+{#snippet child({ props })}
 <article
+	{...props}
+	oncontextmenu={(event) => { if (!editingField(event.target) && typeof props.oncontextmenu === 'function') props.oncontextmenu(event); }}
+	onpointerdown={(event) => {
+		// A long press on an editor, link or drag handle keeps its own interaction.
+		if (!(event.target instanceof Element && event.target.closest('button, a, input, textarea, summary, [contenteditable="true"]'))) { if (typeof props.onpointerdown === 'function') props.onpointerdown(event); }
+	}}
 	data-task={task.id}
-	class="sticker card {tier ?? (listed ? 'listed' : 'unplanned')}"
-	class:closed={task.status !== 'open'}
-	class:linked={linked.ids.includes(task.id)}
+	class={['sticker card', tier ?? (listed ? 'listed' : 'unplanned'), {'action-card': actionView, 'has-step': actionView && !!nextStep, closed: task.status !== 'open', linked: linked.ids.includes(task.id)}]}
 >
+	<div class="main">
+		<div class="card-heading">
 	{#if task.status === 'open'}
-		<input type="checkbox" aria-label="Mark done" onchange={complete} />
+		<input type="checkbox" aria-label={actionView ? `Concluir tarefa: ${task.title}` : 'Mark done'} onchange={complete} />
 	{:else}
 		<span class="mark" aria-label={task.status}>{task.status === 'done' ? '✓' : '✕'}</span>
 	{/if}
-	<div class="main">
 		<button
 			class="body"
 			onclick={() => (listed ? editor.open(task.id) : (expanded = !expanded))}
 			disabled={!listed && !card.rationale && !task.notes}
 			aria-expanded={listed ? undefined : expanded}
 		>
-			<span class="title">{task.title}</span>
-			<span class="badges">
-				{#if task.size}<span class="badge">{task.size}</span>{/if}
-				{#if task.energy}<span class="badge">{task.energy} energy</span>{/if}
-				{#if listed && task.due_on}<span class="badge">due {short(task.due_on)}</span>{/if}
-				{#if listed && task.not_before}<span class="badge">from {short(task.not_before)}</span>{/if}
-			</span>
-			{#if task.feeling}<span class="feeling">"{task.feeling}"</span>{/if}
-			{#if task.notes && !expanded}<span class="notes">{task.notes}</span>{/if}
-			{#if card.rationale}<span class="why" class:shown={expanded}>{card.rationale}</span>{/if}
+			<span class="title">{task.title}</span>{#if !listed && (task.notes || card.rationale)}<span class="context-toggle">{expanded ? 'Ocultar contexto' : 'Ver contexto'}</span>{/if}
 		</button>
+		<div class="metadata-row"><div class="metadata-values"><TaskMetadata {task} compact /></div>{@render taskMenu()}</div>
+		</div>
+
+			{#if card.rationale}<span class={['why', {shown: expanded}]}>{card.rationale}</span>{/if}
 		<!-- Expanded notes sit outside the button, so their links work and their text can be copied. -->
 		{#if task.notes && expanded}
 			<p class="notes shown">{#each linkify(task.notes) as s, i (i)}{#if s.href}<a href={s.href} target="_blank" rel="noopener noreferrer">{s.text}</a>{:else}{s.text}{/if}{/each}</p>
@@ -126,30 +147,61 @@
 				</p>
 			{/if}
 		{/if}
+
+        {#if task.status === 'open'}
+          {#if actionView && steps.length && !(running && running.step_id === null)}
+            {#if !nextStep}<p class="steps-ready">Passos concluídos. Marque a tarefa quando estiver pronta.</p>{/if}
+            <ExecutionSteps taskId={task.id} eligible={canStart} preview />
+          {:else}
+            <div class="execution">
+                {#if nextStep}<span class="next-action">{nextStep.description}</span><span class="next-time">{timerText(nextActual)} / {nextStep.estimate_minutes == null ? '—' : timerText(nextStep.estimate_minutes * 60000)}{running ? ' · Em foco' : ''}</span>{:else}<span class="next-action total-time">{timerText(actual)} / {estimate.minutes == null ? '—' : timerText(estimate.minutes * 60000)}{estimate.partial ? '+' : ''}</span>{/if}
+                {#if !steps.length || nextStep || running}<PlayToggle running={!!running} disabled={(!canStart && !running) || execution.busy} label={running ? `Pausar ${task.title}` : `Começar ${task.title}`} onclick={toggleFocus} />{/if}
+                <a class="focus-icon" href={`/focus?task=${task.id}${nextStep ? `&step=${nextStep.id}` : ''}`} aria-label={`Abrir foco de ${task.title}`} title="Abrir foco"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M8 21H3v-5"/><circle cx="12" cy="12" r="3"/></svg></a>
+            </div>
+            <details class="card-steps"><summary>{steps.length ? `${completed}/${steps.length} passos` : 'Adicionar passos'}{steps.length && !nextStep ? ' · Todos concluídos' : ''}{#if nextStep}<span class="summary-total">Total {timerText(actual)} / {estimate.minutes == null ? '—' : timerText(estimate.minutes * 60000)}{estimate.partial ? '+' : ''}</span>{/if}</summary><ExecutionSteps taskId={task.id} eligible={canStart} /></details>
+          {/if}
+        {/if}
 	</div>
 	{#if task.status === 'dropped'}
 		<button class="btn" onclick={restore}>Restore</button>
-	{:else if task.status === 'open'}
-		<details class="more" bind:open={menuOpen} {@attach dismiss}>
-			<summary aria-label="More actions">⋯</summary>
-			<div class="sticker menu">
-				<button onclick={edit}>Edit</button>
-				<button onclick={push}>Push to tomorrow</button>
-				<button onclick={drop}>Drop</button>
-				{#if movable}
-					<details class="sub">
-						<summary>Move ›</summary>
-						{#each moves as m (m.label)}
-							<button disabled={m.to === (tier ?? null)} onclick={() => move(m.to, m.label)}>{m.label}</button>
-						{/each}
-					</details>
-				{/if}
-			</div>
-		</details>
 	{/if}
 </article>
+{/snippet}
+</ContextMenu.Trigger>
+<ContextMenu.Content>
+	<TaskActionItems {task} {tier} {date} {listed} context />
+</ContextMenu.Content>
+</ContextMenu.Root>
 
 <style>
+ .card-heading { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: center; gap: 0 10px; }
+ .card-heading .body { min-width: 0; min-height: 44px; align-content: center; overflow-wrap: anywhere; }
+ .metadata-row { display: flex; align-items: flex-start; gap: 4px; min-width: 0; }
+ .metadata-values { flex: 1; min-width: 0; }
+ .action-card .metadata-row { justify-content: space-between; }
+ .card .body { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+ .action-card.has-step .title { font-size: 14px; font-weight: 500; color: var(--ink-soft); }
+ .context-toggle { font-size: 12px; text-decoration: underline; text-underline-offset: 3px; color: var(--ink-soft); }
+ .action-card { gap: 8px; }
+
+
+ .steps-ready { margin: 8px 0 0; font-size: 13px; }
+ .focus-icon { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; color: var(--ink); }
+	.execution { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; margin-top: 4px; }
+ .next-action { flex: 1; min-width: 0; font-size: 16px; font-weight: 650; overflow-wrap: anywhere; }
+ .next-time, .total-time { font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+ .summary-total { float: right; margin-left: 8px; color: var(--ink-soft); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+ @media (max-width: 600px) {
+  .card-heading { grid-template-columns: 20px minmax(0, 1fr); }
+  .metadata-row { grid-column: 2; }
+  .execution { flex-wrap: wrap; gap: 0 4px; }
+  .execution .next-action { flex-basis: 100%; }
+  .execution .next-time { margin-right: auto; }
+ }
+
+ .execution { border-top: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); padding-top: 4px; }
+	.card-steps { font-size: 13px; }
+	.card-steps summary { cursor: pointer; min-height: 36px; padding-block: 7px; overflow-wrap: anywhere; }
 	.card {
 		display: flex;
 		align-items: flex-start;
@@ -181,7 +233,7 @@
 	input[type='checkbox'] {
 		width: 20px;
 		height: 20px;
-		margin-top: 2px;
+		margin: 0;
 		accent-color: var(--primary);
 	}
 	.main {
@@ -207,10 +259,7 @@
 	.title {
 		font-weight: var(--heavy);
 	}
-	.badges {
-		display: flex;
-		gap: 6px;
-	}
+
 	.badge {
 		font-size: 11px;
 		font-weight: var(--heavy);
@@ -241,11 +290,7 @@
 		outline: 2px dashed var(--primary);
 		outline-offset: 3px;
 	}
-	.feeling {
-		font-style: italic;
-		font-size: 13px;
-		color: var(--ink-soft);
-	}
+
 	.notes {
 		font-size: 13px;
 		white-space: pre-line;
@@ -265,54 +310,7 @@
 		display: none;
 		font-size: 13px;
 	}
-	.why.shown,
-	.card:hover .why {
+	.why.shown {
 		display: block;
-	}
-	.more {
-		position: relative;
-	}
-	.more summary {
-		list-style: none;
-		cursor: pointer;
-		font-weight: var(--heavy);
-		padding: 0 4px;
-	}
-	.menu {
-		position: absolute;
-		right: 0;
-		top: 24px;
-		z-index: 10;
-		display: flex;
-		flex-direction: column;
-		padding: 6px;
-		min-width: 160px;
-	}
-	.menu button {
-		background: none;
-		border: none;
-		text-align: left;
-		padding: 6px 8px;
-		border-radius: var(--radius-sm);
-	}
-	.menu button:hover:not(:disabled) {
-		background: var(--chip);
-	}
-	.menu button:disabled {
-		opacity: 0.4;
-	}
-	.sub summary {
-		list-style: none;
-		cursor: pointer;
-		padding: 6px 8px;
-		border-radius: var(--radius-sm);
-	}
-	.sub summary:hover {
-		background: var(--chip);
-	}
-	.sub button {
-		display: block;
-		width: 100%;
-		padding-left: 20px;
 	}
 </style>

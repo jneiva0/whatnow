@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Status, Task, Today } from './api';
-import { doneOn, links, tiers, unplanned, winLine } from './plan';
+import { actionCards, doneOn, links, tiers, unplanned, winLine } from './plan';
 
 const task = (id: number, status: Status = 'open', updated_at = '2026-10-05T15:00:00Z'): Task => ({
 	id,
@@ -67,6 +67,23 @@ describe('unplanned', () => {
 	it('Should keep the server order and skip tasks it no longer has', () => {
 		const got = unplanned(today({ unplanned: [9, 7, 8] }), [task(7), task(9)]);
 		expect(got.map((c) => c.task.id)).toEqual([9, 7]);
+	});
+});
+
+describe('next actions', () => {
+	it('keeps plan order within priorities and excludes blocked, deferred, or closed work', () => {
+		const state = today({unplanned: [9, 2, 7, 8]});
+		const tasks = [task(1), task(2), task(3), task(4, 'done'), task(9), {...task(7), not_before: '2026-10-06'}, task(8)];
+		const result = actionCards(state, tasks, [{task_id: 2, blocked_by_id: 8}]);
+		expect(result.map(({card}) => card.task.id)).toEqual([1, 3, 9, 8]);
+		expect(result[1].card.rationale).toBe('r3');
+	});
+	it('keeps live focus reachable first even while eligibility or plan membership catches up', () => {
+		const tasks = [task(1), task(2), task(3), task(9)];
+		const state = today({unplanned: [9, 9]});
+		const blocked = [{task_id: 2, blocked_by_id: 1}];
+		expect(actionCards(state, tasks, blocked, 2).map(({card}) => card.task.id)).toEqual([2, 1, 3, 9]);
+		expect(actionCards(today(), tasks, [], 9).map(({card}) => card.task.id)).toEqual([9, 1, 3, 2]);
 	});
 });
 

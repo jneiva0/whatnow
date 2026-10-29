@@ -1,0 +1,12 @@
+{
+  "detected_files": 266,
+  "code_files": 241,
+  "code_files_without_nodes": [],
+  "skipped_sensitive": [
+    "/Users/joao/space/whatnow/web/.npmrc",
+    "/Users/joao/space/whatnow/web/src/lib/tokens.css"
+  ],
+  "semantic_files": 25,
+  "semantic_files_with_nodes": 25,
+  "partial_files": []
+}

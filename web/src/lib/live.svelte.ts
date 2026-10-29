@@ -1,3 +1,5 @@
+import { suggestion } from './suggestion.svelte';
+import { execution } from './execution.svelte';
 import { goto } from '$app/navigation';
 import { api, type SettingsView } from './api';
 import { celebration } from './celebrate';
@@ -6,7 +8,7 @@ import { chat } from './chat.svelte';
 import { Stream } from './stream.svelte';
 import { due, nudges, type Nudge } from './nudges';
 import { morningDue } from './time';
-import { toasts } from './toasts.svelte';
+import { toasts, type Toast } from './toasts.svelte';
 import { today } from './today.svelte';
 import { work } from './work.svelte';
 
@@ -25,17 +27,23 @@ class Live {
 	#stream = new Stream(
 		{
 			'batch.applied': (d) => {
+				const captures = d.source === 'cleanup' ? [...new Set(d.activity.filter((a) => a.entity === 'task').map((a) => a.after?.raw_text ?? a.before?.raw_text).filter((text): text is string => !!text))] : [];
+    suggestion.changed(d.source === 'cleanup', captures.length ? `A capture was just organized on this client. Treat this as the user's recent input for this suggestion, not a permanent mood or priority. Captured words: ${JSON.stringify(captures)}` : '');
 				const size = celebration(d, today.today, today.tasks);
 				if (size) cheer(size, d.activity.filter((a) => a.entity === 'task').map((a) => a.entity_id));
 				today.changed();
+				void execution.refresh();
 				toasts.applied(d);
 			},
 			'batch.undone': (d) => {
+				suggestion.changed();
 				today.changed();
+				void execution.refresh();
 				toasts.undone(d.batch_id);
 				chat.markUndone(d.batch_id);
 			},
-			'plan.updated': () => today.changed(),
+			'plan.updated': () => { suggestion.changed(); today.changed(); },
+			'focus.changed': () => { void execution.refresh(); today.changed(); },
 			'chat.delta': (d) => chat.delta(d.text),
 			'chat.tool': (d) => chat.tool(d),
 			'chat.message': (d) => chat.message(d),
@@ -48,7 +56,10 @@ class Live {
 			work.reset();
 			today.changed();
 			chat.load().catch((err) => toasts.error(err));
-		}
+			void execution.refresh();
+		},
+		undefined,
+		(connected) => execution.connected(connected)
 	);
 
 	get connected(): boolean {
@@ -63,6 +74,15 @@ class Live {
 
 	/** Connects once for the life of the page. Returns the disconnect. */
 	start(): () => void {
+		const stopExecution = execution.startLive((notice) => {
+			const task = today.tasks.find((t) => t.id === notice.task_id);
+			const step = execution.view?.steps.find((s) => s.task_id === notice.task_id && s.id === notice.step_id);
+			const title = step?.description ?? task?.title ?? 'Sua ação';
+			deliver({ key: notice.key, text: `${title}: estimativa de ${notice.minutes} min atingida. O tempo continua registrando; conclua quando terminar.` }, {
+				label: 'Ver foco',
+				run: () => { void goto(`/focus?task=${notice.task_id}${notice.step_id === null ? '&direct=1' : `&step=${notice.step_id}`}`); }
+			});
+		});
 		Promise.all([today.refresh(), chat.load(), api.settings().then((v) => (this.view = v))]).catch(
 			(err) => toasts.error(err)
 		);
@@ -73,6 +93,7 @@ class Live {
 		window.addEventListener('focus', focus);
 		return () => {
 			clearInterval(clock);
+			stopExecution();
 			window.removeEventListener('focus', focus);
 			this.#stream.close();
 		};
@@ -114,7 +135,9 @@ class Live {
 		const t = today.today;
 		if (this.view && t) {
 			const list = nudges(today.events, t.plan, today.tasks, this.view.settings, t.date, this.endOfDay);
-			for (const n of due(list, this.#lastTick, to)) deliver(n);
+			for (const n of due(list, this.#lastTick, to)) {
+				deliver(n, n.kind === 'event_end' ? { label: 'E agora?', run: () => { void goto('/?whatnow'); } } : undefined);
+			}
 		}
 		this.#lastTick = to;
 	}
@@ -124,18 +147,22 @@ class Live {
  * Shows a nudge as a notification when the browser allows it, else in the page. The tag makes
  * two open tabs share one notification. An event-end nudge opens What now when clicked.
  */
-function deliver(n: Nudge): void {
-	const open = n.kind === 'event_end' ? () => goto('/?whatnow') : undefined;
-	if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-		const note = new Notification('whatnow', { body: n.text, tag: n.key });
-		note.onclick = () => {
-			window.focus();
-			open?.();
-			note.close();
-		};
-	} else {
-		toasts.nudge(n.text, open && { label: 'What now?', run: open });
+function deliver(n: Pick<Nudge, 'key' | 'text'>, action?: Toast['action']): void {
+	try {
+		if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+			const note = new Notification('whatnow', { body: n.text, tag: n.key });
+			note.onclick = () => {
+				window.focus();
+				action?.run();
+				note.close();
+			};
+			return;
+		}
+	} catch {
+		// Some mobile browsers expose permission but don't support the constructor.
+		// The in-page notice remains available without requesting another permission.
 	}
+	toasts.nudge(n.text, action);
 }
 
 export const live = new Live();

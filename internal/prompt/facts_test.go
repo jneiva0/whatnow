@@ -1,6 +1,7 @@
 package prompt_test
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -14,6 +15,7 @@ func TestFactsRenderInLocalTime(t *testing.T) {
 	at := func(h, m int) time.Time { return time.Date(2026, 10, 5, h, m, 0, 0, loc) }
 	standupEnd := at(10, 15).UTC()
 	size, energy := domain.SizeL, domain.EnergyHigh
+	minutes := 45
 	f := facts.Facts{
 		Now:    at(9, 0),
 		DayEnd: at(17, 30),
@@ -24,7 +26,7 @@ func TestFactsRenderInLocalTime(t *testing.T) {
 		},
 		Tasks: []facts.TaskFacts{
 			{Task: domain.Task{ID: 3, Title: "Do FLEX1-666", Size: &size, Energy: &energy, Feeling: "dreading it"},
-				Annotations: []string{"due today", `blocked by #4 "Research pubsub"`}},
+				Estimate: domain.Estimate{Minutes: &minutes}, Annotations: []string{"due today", `blocked by #4 "Research pubsub"`}},
 			{Task: domain.Task{ID: 9, Title: "water plants"}},
 		},
 	}
@@ -36,7 +38,7 @@ Today's events:
 - 15:00 dentist
 
 Eligible tasks, as #<id> title:
-#3 Do FLEX1-666 [size L, high energy] feeling: "dreading it"
+#3 Do FLEX1-666 [estimated total 45 min, high energy] feeling: "dreading it"
   - due today
   - blocked by #4 "Research pubsub"
 #9 water plants
@@ -60,5 +62,24 @@ Eligible tasks, as #<id> title:
 `
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s", got, want)
+	}
+}
+
+func TestTaskContextPreservesMeaningBeyondTitle(t *testing.T) {
+	f := facts.Facts{Tasks: []facts.TaskFacts{{Task: domain.Task{ID: 1, Title: "Organize room", Notes: "Picking up the floor is now urgent", RawText: "I feel stuck and want a small start"}}}}
+	got := prompt.Facts(f)
+	for _, want := range []string{"Picking up the floor is now urgent", "I feel stuck and want a small start"} {
+		if !strings.Contains(got, want) {
+			t.Fatalf("task context missing %q: %s", want, got)
+		}
+	}
+}
+
+func TestFactsExposeTaskDatesWithoutInferringAvoidance(t *testing.T) {
+	now := time.Date(2026, 10, 29, 9, 0, 0, 0, time.UTC)
+	f := facts.Facts{Now: now, Tasks: []facts.TaskFacts{{Task: domain.Task{ID: 1, Title: "Old task", CreatedAt: now.AddDate(0, -1, 0), UpdatedAt: now.AddDate(0, 0, -2)}}}}
+	got := prompt.Facts(f)
+	if !strings.Contains(got, "Created: 2026-09-29 09:00; last updated: 2026-10-27 09:00") || !strings.Contains(got, "Age is not proof of avoidance") {
+		t.Fatalf("missing age context: %s", got)
 	}
 }

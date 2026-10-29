@@ -1,0 +1,231 @@
+{
+  "date": "2026-10-27",
+  "code_commit": "147777b",
+  "purpose": "Bounded architectural evaluation of organizing an implicit action sequence versus conversation only; no prompt changes.",
+  "limits": [
+    "One sample per case; not a reliability estimate.",
+    "Synthetic tasks and messages; real user profile/history and database were not copied.",
+    "No automatic process exit-code acceptance: inspect mutations and meaning."
+  ],
+  "fixture": {
+    "tasks": 2,
+    "initial_steps": 6,
+    "completed_positions": [
+      0,
+      2
+    ],
+    "initial_descriptions": [
+      "Pegar água e beber alguns goles",
+      "Meditar por três minutos",
+      "Beber mais água e levantar",
+      "Recolher cinco objetos do chão",
+      "Liberar a área do teclado",
+      "Arrumar por dez minutos"
+    ]
+  },
+  "requests": {
+    "organize": "Ok, eu tô travado, eu vou precisar ir manualmente, fazendo coisas manuais. Uma coisa de cada vez. Beber água de novo e fazer xixi. Me alongar, fazer flexões. E aí eu volto e começo a arrumar meu espaço. Depois penso nas decisões importantes, mas agora preciso deixar as coisas simples.",
+    "reflect": "Hoje estou me sentindo travado e só queria desabafar. Não organize nem altere minhas tarefas por enquanto; não quero uma lista de coisas para fazer."
+  },
+  "cases": [
+    {
+      "case": "organize",
+      "model": "gpt-6.1-sol",
+      "synthetic_data": true,
+      "reply": "Vamos uma coisa de cada vez, sem decisões importantes agora. **Beba alguns goles de água**; quando terminar, me diga e seguimos para o próximo movimento.",
+      "error": "",
+      "batch_id": 2,
+      "tools": [
+        {
+          "tool": "list_steps",
+          "label": "Read task steps",
+          "error": ""
+        },
+        {
+          "tool": "split_step",
+          "label": "Made the action smaller",
+          "error": ""
+        }
+      ],
+      "tasks": [
+        {
+          "id": 1,
+          "title": "Organizar meu espaço de trabalho"
+        },
+        {
+          "id": 2,
+          "title": "Enviar um orçamento"
+        }
+      ],
+      "steps": [
+        {
+          "id": 1,
+          "task_id": 1,
+          "description": "Pegar água e beber alguns goles",
+          "estimate_minutes": 1,
+          "position": 0,
+          "done": true,
+          "deleted": false
+        },
+        {
+          "id": 2,
+          "task_id": 1,
+          "description": "Meditar por três minutos",
+          "estimate_minutes": 3,
+          "position": 1,
+          "done": false,
+          "deleted": true
+        },
+        {
+          "id": 7,
+          "task_id": 1,
+          "description": "Beber água de novo",
+          "estimate_minutes": null,
+          "position": 1,
+          "done": false,
+          "deleted": false
+        },
+        {
+          "id": 8,
+          "task_id": 1,
+          "description": "Ir ao banheiro fazer xixi",
+          "estimate_minutes": null,
+          "position": 2,
+          "done": false,
+          "deleted": false
+        },
+        {
+          "id": 9,
+          "task_id": 1,
+          "description": "Alongar o corpo",
+          "estimate_minutes": null,
+          "position": 3,
+          "done": false,
+          "deleted": false
+        },
+        {
+          "id": 10,
+          "task_id": 1,
+          "description": "Fazer algumas flexões",
+          "estimate_minutes": null,
+          "position": 4,
+          "done": false,
+          "deleted": false
+        },
+        {
+          "id": 3,
+          "task_id": 1,
+          "description": "Beber mais água e levantar",
+          "estimate_minutes": 1,
+          "position": 5,
+          "done": true,
+          "deleted": false
+        },
+        {
+          "id": 4,
+          "task_id": 1,
+          "description": "Recolher cinco objetos do chão",
+          "estimate_minutes": 3,
+          "position": 6,
+          "done": false,
+          "deleted": false
+        },
+        {
+          "id": 5,
+          "task_id": 1,
+          "description": "Liberar a área do teclado",
+          "estimate_minutes": 8,
+          "position": 7,
+          "done": false,
+          "deleted": false
+        },
+        {
+          "id": 6,
+          "task_id": 1,
+          "description": "Arrumar por dez minutos",
+          "estimate_minutes": 10,
+          "position": 8,
+          "done": false,
+          "deleted": false
+        }
+      ],
+      "focus_session_count": 0
+    },
+    {
+      "case": "reflect",
+      "model": "gpt-6.1-sol",
+      "synthetic_data": true,
+      "reply": "Pode desabafar. Não vou mexer nas suas tarefas nem te passar coisas para fazer. O que está pesando mais hoje?",
+      "error": "",
+      "batch_id": 0,
+      "tools": [],
+      "tasks": [
+        {
+          "id": 1,
+          "title": "Organizar meu espaço de trabalho"
+        },
+        {
+          "id": 2,
+          "title": "Enviar um orçamento"
+        }
+      ],
+      "steps": [
+        {
+          "id": 1,
+          "task_id": 1,
+          "description": "Pegar água e beber alguns goles",
+          "estimate_minutes": 1,
+          "position": 0,
+          "done": true,
+          "deleted": false
+        },
+        {
+          "id": 2,
+          "task_id": 1,
+          "description": "Meditar por três minutos",
+          "estimate_minutes": 3,
+          "position": 1,
+          "done": false,
+          "deleted": false
+        },
+        {
+          "id": 3,
+          "task_id": 1,
+          "description": "Beber mais água e levantar",
+          "estimate_minutes": 1,
+          "position": 2,
+          "done": true,
+          "deleted": false
+        },
+        {
+          "id": 4,
+          "task_id": 1,
+          "description": "Recolher cinco objetos do chão",
+          "estimate_minutes": 3,
+          "position": 3,
+          "done": false,
+          "deleted": false
+        },
+        {
+          "id": 5,
+          "task_id": 1,
+          "description": "Liberar a área do teclado",
+          "estimate_minutes": 8,
+          "position": 4,
+          "done": false,
+          "deleted": false
+        },
+        {
+          "id": 6,
+          "task_id": 1,
+          "description": "Arrumar por dez minutos",
+          "estimate_minutes": 10,
+          "position": 5,
+          "done": false,
+          "deleted": false
+        }
+      ],
+      "focus_session_count": 0
+    }
+  ]
+}

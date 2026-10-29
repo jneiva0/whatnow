@@ -222,10 +222,13 @@ func TestPushAnnotations(t *testing.T) {
 func TestTooBigForTheGaps(t *testing.T) {
 	tasks := []domain.Task{task(1, "small", sized(domain.SizeS)), task(2, "medium", sized(domain.SizeM)),
 		task(3, "large", sized(domain.SizeL))}
+	for i, n := range []int{5, 60, 180} {
+		tasks[i].EstimateMinutes = &n
+	}
 	meetings := []domain.Event{event("a", at(5, 10, 0), 4*time.Hour), event("b", at(5, 15, 0), 2*time.Hour)}
 	// Free: 09:00-10:00, 14:00-15:00, 17:00-17:30. The longest gap is 1h.
 	f := facts.Compute(facts.Input{Now: at(5, 9, 0), Loc: loc, EndOfDay: "17:30", Tasks: tasks, Events: meetings})
-	for id, want := range map[int64][]string{1: nil, 2: nil, 3: {"too big for any free gap today (the longest is 1h)"}} {
+	for id, want := range map[int64][]string{1: nil, 2: nil, 3: {"full estimate exceeds any free gap today (the longest is 1h); a smaller step may fit"}} {
 		if diff := cmp.Diff(want, annotations(t, f, id)); diff != "" {
 			t.Errorf("task %d (-want +got):\n%s", id, diff)
 		}

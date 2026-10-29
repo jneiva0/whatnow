@@ -131,8 +131,12 @@ func (p *Planner) gather(ctx context.Context, withModel bool) (state, error) {
 			}
 		}
 	}
+	execution, err := p.svc.Execution(ctx)
+	if err != nil {
+		return st, err
+	}
 	st.facts = facts.Compute(facts.Input{Now: now, Loc: p.loc, EndOfDay: st.settings.EndOfDay, Tasks: tasks,
-		Blockers: blockers, Events: events, PushCounts: pushes, Musts: musts})
+		Steps: execution.Steps, Sessions: execution.Sessions, SelectedID: execution.SelectedID, Blockers: blockers, Events: events, PushCounts: pushes, Musts: musts})
 	return st, nil
 }
 

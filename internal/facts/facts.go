@@ -14,12 +14,15 @@ import (
 // Input is what facts are computed from. Tasks, Blockers, and Events must leave out anything
 // deleted. Events may include ones outside today; only today's count.
 type Input struct {
-	Now      time.Time
-	Loc      *time.Location
-	EndOfDay string // local HH:MM
-	Tasks    []domain.Task
-	Blockers []domain.Blocker
-	Events   []domain.Event
+	Now        time.Time
+	Loc        *time.Location
+	EndOfDay   string // local HH:MM
+	Tasks      []domain.Task
+	Steps      []domain.Step
+	Sessions   []domain.FocusSession
+	SelectedID *int64
+	Blockers   []domain.Blocker
+	Events     []domain.Event
 	// PushCounts maps a task ID to how many times it was pushed.
 	PushCounts map[int64]int
 	// Musts are the current plan's must tier. A must raises the urgency of whatever blocks it.
@@ -34,7 +37,9 @@ type Gap struct {
 func (g Gap) Duration() time.Duration { return g.End.Sub(g.Start) }
 
 type TaskFacts struct {
-	Task domain.Task
+	Task     domain.Task
+	Estimate domain.Estimate
+	Progress *domain.TaskProgress
 	// BlockedBy lists the open tasks this one waits on.
 	BlockedBy   []int64
 	Annotations []string
@@ -64,9 +69,6 @@ func (f Facts) Task(id int64) (TaskFacts, bool) {
 
 // PointEventLength is how long an event without an end is taken to last.
 const PointEventLength = 30 * time.Minute
-
-// minGap is the shortest free gap a task of each size fits in. An S task fits anywhere.
-var minGap = map[domain.Size]time.Duration{domain.SizeM: time.Hour, domain.SizeL: 3 * time.Hour}
 
 // Today returns the date it is in loc.
 func Today(now time.Time, loc *time.Location) domain.Date {
@@ -121,11 +123,13 @@ func Compute(in Input) Facts {
 		longest = max(longest, g.Duration())
 	}
 
+	progress := Execution(in.Now, in.Tasks, in.Steps, in.Sessions, in.SelectedID)
 	for _, t := range in.Tasks {
 		if !Eligible(t, f.Today) {
 			continue
 		}
-		tf := TaskFacts{Task: t, BlockedBy: waitsOn[t.ID]}
+		p := progress[t.ID]
+		tf := TaskFacts{Task: t, Estimate: p.TotalEstimate, Progress: &p, BlockedBy: waitsOn[t.ID]}
 		if t.DueOn != nil {
 			tf.Annotations = append(tf.Annotations, due(*t.DueOn, f.Today))
 		}
@@ -143,8 +147,8 @@ func Compute(in Input) Facts {
 		case n > 1:
 			tf.Annotations = append(tf.Annotations, fmt.Sprintf("pushed %d times", n))
 		}
-		if t.Size != nil && len(f.Gaps) > 0 && longest < minGap[*t.Size] {
-			tf.Annotations = append(tf.Annotations, fmt.Sprintf("too big for any free gap today (the longest is %s)", Duration(longest)))
+		if tf.Estimate.Minutes != nil && len(f.Gaps) > 0 && longest < time.Duration(*tf.Estimate.Minutes)*time.Minute {
+			tf.Annotations = append(tf.Annotations, fmt.Sprintf("full estimate exceeds any free gap today (the longest is %s); a smaller step may fit", Duration(longest)))
 		}
 		f.Tasks = append(f.Tasks, tf)
 	}

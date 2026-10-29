@@ -1,9 +1,11 @@
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
 import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
 	plugins: [
+		tailwindcss(),
 		sveltekit({
 			compilerOptions: {
 				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
@@ -15,6 +17,7 @@ export default defineConfig({
 		})
 	],
 	server: {
+		allowedHosts: ['mac.antelope-garibaldi.ts.net'],
 		// `just serve` runs the API here. The SSE stream goes through the same proxy.
 		proxy: { '/api': 'http://127.0.0.1:7777' }
 	},

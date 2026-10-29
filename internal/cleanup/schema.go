@@ -1,6 +1,9 @@
 package cleanup
 
-import js "github.com/jameynakama/whatnow/internal/jsonschema"
+import (
+	js "github.com/jameynakama/whatnow/internal/jsonschema"
+	"github.com/jameynakama/whatnow/internal/prompt"
+)
 
 // schema is the reply shape. Empty strings stand for "none". A task's ref and title come before
 // its details, and blockers come after the tasks they refer to.
@@ -26,7 +29,9 @@ func taskFields() []js.Field {
 	return []js.Field{
 		js.Prop("title", js.String("Short and concrete.")),
 		js.Prop("notes", js.String("Useful detail that doesn't fit the title, or empty.")),
-		js.Prop("size", js.Enum("S, M, or L, or empty if unclear.", "", "S", "M", "L")),
+		js.Prop("existing_task_id", js.Integer("ID of an existing open task this continues, or 0 for a new intention. Do not match merely related tasks.")),
+		js.Prop("estimate_minutes", js.Integer("Estimated total minutes, or 0 if unknown. At least the sum of known step estimates.")),
+		js.Prop("steps", prompt.StepSequence),
 		js.Prop("energy", js.Enum("Mental effort: low, med, or high, or empty if unclear.", "", "low", "med", "high")),
 		js.Prop("feeling", js.String("How the user feels about it, in their words, or empty.")),
 		js.Prop("due_on", js.String("YYYY-MM-DD, or empty.")),

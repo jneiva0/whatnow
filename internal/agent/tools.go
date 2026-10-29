@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -45,7 +46,7 @@ var (
 	taskProps = []js.Field{
 		js.Prop("title", js.String("Short and specific, starting with a verb when it fits.")),
 		js.Prop("notes", js.String("Details worth keeping, or empty.")),
-		js.Prop("size", js.Enum("S (under an hour), M (one to three hours), L (more), or empty if unclear.", "S", "M", "L", "")),
+		js.Prop("estimate_minutes", js.Integer("Rough estimated minutes, 1..1440; 0 if unknown. Energy is independent.")),
 		js.Prop("energy", js.Enum("How much it takes out of them, or empty if unclear.", "low", "med", "high", "")),
 		js.Prop("feeling", js.String("How they feel about it, in their words, or empty.")),
 		js.Prop("due_on", dateProp("When it's due,")),
@@ -65,7 +66,7 @@ var tools = []tool{
 	{"create_task", "Add a task. It waits in the unplanned tray until the next replan.", js.Object(taskProps...), createTask},
 	{"update_task", "Change some of a task's fields. To put a task off, use push_task instead.",
 		js.Object(js.Prop("task_id", taskID),
-			js.Prop("changes", changes("title", "notes", "size", "energy", "feeling", "due_on", "not_before"))), updateTask},
+			js.Prop("changes", changes("title", "notes", "size", "energy", "feeling", "due_on", "not_before", "estimate_minutes"))), updateTask},
 	{"complete_task", "Mark a task done.", js.Object(js.Prop("task_id", taskID)), statusTool(domain.StatusDone, "Done")},
 	{"drop_task", "Stop carrying a task without doing it.", js.Object(js.Prop("task_id", taskID)), statusTool(domain.StatusDropped, "Dropped")},
 	{"push_task", "Put a task off until a later date. Pushes are counted.",
@@ -83,7 +84,8 @@ var tools = []tool{
 	{"delete_event", "Remove an event.", js.Object(js.Prop("event_id", eventID)), deleteEvent},
 	{"replan", "Make a new version of today's plan. Use it when what they've told you changes what today should hold.",
 		js.Object(js.Prop("reason", js.String("What changed, in a few words."))), replan},
-	{"what_now", "Pick the one task they should start right now.", js.Object(), whatNow},
+	{"what_now", "Pick one executable action for their current situation. Pass relevant conversation context so the planner understands what help they need now.",
+		js.Object(js.Prop("context", js.String("Brief relevant context from this conversation: difficulty starting, need for a smaller action, resuming after distraction, or current constraints. Empty when none; never invent a mood or a fixed support level."))), whatNow},
 	{"set_pace", "Change today's pace. The plan updates on its own.",
 		js.Object(js.Prop("level", js.Integer("1 running on fumes, 2 gentle, 3 steady, 4 full steam, 5 go hard.")),
 			js.Prop("note", js.String("What's on their mind, if they said, or empty."))), setPace},
@@ -99,6 +101,24 @@ func toolDefs() []llm.Tool {
 	return defs
 }
 
+func decompositionTool(name string) bool {
+	return name == "list_steps" || name == "organize_steps" || name == "split_step"
+}
+
+// A contextual request advertises only the tools its task-scoped dispatcher allows.
+func (t *turn) toolDefs() []llm.Tool {
+	if t.taskScope == 0 {
+		return toolDefs()
+	}
+	out := []llm.Tool{}
+	for _, tl := range tools {
+		if decompositionTool(tl.name) {
+			out = append(out, llm.Tool{Name: tl.name, Description: tl.description, Schema: tl.schema})
+		}
+	}
+	return out
+}
+
 // runTool runs one call and records its chip. The model gets the result as JSON, or the error.
 func (t *turn) runTool(ctx context.Context, c llm.ToolCall) llm.ToolResult {
 	use := domain.ToolUse{Tool: c.Name}
@@ -108,6 +128,15 @@ func (t *turn) runTool(ctx context.Context, c llm.ToolCall) llm.ToolResult {
 		var b []byte
 		if b, err = json.Marshal(out); err == nil {
 			use.Label, result.Content = label, string(b)
+			// Only successful, validated results can offer a real execution target.
+			// These fields persist with the existing tool JSON and stream to clients.
+			switch value := out.(type) {
+			case organizationResult:
+				use.Outcome, use.Action = value.Outcome, value.Next
+			case planner.Pick:
+				use.Outcome = "suggested"
+				use.Action = &domain.ActionRef{TaskID: value.TaskID, StepID: value.StepID}
+			}
 		}
 	}
 	if err != nil {
@@ -120,6 +149,21 @@ func (t *turn) runTool(ctx context.Context, c llm.ToolCall) llm.ToolResult {
 }
 
 func (t *turn) dispatch(ctx context.Context, c llm.ToolCall) (string, any, error) {
+	if t.taskScope != 0 {
+		if !decompositionTool(c.Name) {
+			return "", nil, fmt.Errorf("%w: task decomposition can only read/organize/split steps of its task", service.ErrInvalid)
+		}
+		in, err := args[struct {
+			TaskID int64 `json:"task_id"`
+		}](c.Input)
+		if err != nil {
+			return "", nil, err
+		}
+		if in.TaskID != t.taskScope {
+			return "", nil, fmt.Errorf("%w: decomposition is limited to task #%d", service.ErrInvalid, t.taskScope)
+		}
+	}
+
 	for _, tl := range tools {
 		if tl.name == c.Name {
 			return tl.run(ctx, t, c.Input)
@@ -130,19 +174,21 @@ func (t *turn) dispatch(ctx context.Context, c llm.ToolCall) (string, any, error
 
 // brief is a task as the model reads it in tool results.
 type brief struct {
-	ID        int64          `json:"id"`
-	Title     string         `json:"title"`
-	Status    domain.Status  `json:"status"`
-	Notes     string         `json:"notes,omitempty"`
-	Size      *domain.Size   `json:"size,omitempty"`
-	Energy    *domain.Energy `json:"energy,omitempty"`
-	Feeling   string         `json:"feeling,omitempty"`
-	DueOn     *domain.Date   `json:"due_on,omitempty"`
-	NotBefore *domain.Date   `json:"not_before,omitempty"`
+	Progress        *domain.TaskProgress `json:"progress,omitempty"`
+	EstimateMinutes *int                 `json:"estimate_minutes"`
+	ID              int64                `json:"id"`
+	Title           string               `json:"title"`
+	Status          domain.Status        `json:"status"`
+	Notes           string               `json:"notes,omitempty"`
+	Size            *domain.Size         `json:"size,omitempty"`
+	Energy          *domain.Energy       `json:"energy,omitempty"`
+	Feeling         string               `json:"feeling,omitempty"`
+	DueOn           *domain.Date         `json:"due_on,omitempty"`
+	NotBefore       *domain.Date         `json:"not_before,omitempty"`
 }
 
 func briefOf(t domain.Task) brief {
-	return brief{ID: t.ID, Title: t.Title, Status: t.Status, Notes: t.Notes, Size: t.Size, Energy: t.Energy,
+	return brief{EstimateMinutes: t.EstimateMinutes, ID: t.ID, Title: t.Title, Status: t.Status, Notes: t.Notes, Size: t.Size, Energy: t.Energy,
 		Feeling: t.Feeling, DueOn: t.DueOn, NotBefore: t.NotBefore}
 }
 
@@ -159,10 +205,19 @@ func listTasks(ctx context.Context, t *turn, input json.RawMessage) (string, any
 	if err != nil {
 		return "", nil, err
 	}
+	execution, err := t.agent.svc.Execution(ctx)
+	if err != nil {
+		return "", nil, err
+	}
 	out := []brief{}
 	for _, task := range all {
 		if task.Status == in.Status {
-			out = append(out, briefOf(task))
+			item := briefOf(task)
+			if p, ok := execution.Progress[task.ID]; ok {
+				item.Progress = &p
+				item.EstimateMinutes = p.TotalEstimate.Minutes
+			}
+			out = append(out, item)
 		}
 	}
 	return fmt.Sprintf("Looked at %s tasks", in.Status), out, nil
@@ -170,6 +225,7 @@ func listTasks(ctx context.Context, t *turn, input json.RawMessage) (string, any
 
 // taskArgs are create_task's input. Empty strings are unset fields.
 type taskArgs struct {
+	Estimate  int    `json:"estimate_minutes"`
 	Title     string `json:"title"`
 	Notes     string `json:"notes"`
 	Size      string `json:"size"`
@@ -197,7 +253,7 @@ func createTask(ctx context.Context, t *turn, input json.RawMessage) (string, an
 		return "", nil, err
 	}
 	task, err := t.agent.svc.CreateTask(ctx, batch, service.TaskFields{
-		Title: in.Title, Notes: in.Notes, Size: optional[domain.Size](in.Size), Energy: optional[domain.Energy](in.Energy),
+		EstimateMinutes: estimated(in.Estimate), Title: in.Title, Notes: in.Notes, Size: optional[domain.Size](in.Size), Energy: optional[domain.Energy](in.Energy),
 		Feeling: in.Feeling, DueOn: optional[domain.Date](in.DueOn), NotBefore: optional[domain.Date](in.NotBefore),
 	})
 	if err != nil {
@@ -225,9 +281,19 @@ func updateTask(ctx context.Context, t *turn, input json.RawMessage) (string, an
 		return "", nil, err
 	}
 	f := service.TaskFields{Title: task.Title, Notes: task.Notes, Size: task.Size, Energy: task.Energy, Feeling: task.Feeling,
-		DueOn: task.DueOn, NotBefore: task.NotBefore, Refs: task.Refs}
+		DueOn: task.DueOn, NotBefore: task.NotBefore, Refs: task.Refs, EstimateMinutes: task.EstimateMinutes}
 	for _, c := range in.Changes {
 		switch c.Field {
+		case "estimate_minutes":
+			if c.Value == "" {
+				f.EstimateMinutes = nil
+			} else {
+				n, err := strconv.Atoi(c.Value)
+				if err != nil {
+					return "", nil, fmt.Errorf("%w: estimate_minutes must be an integer", service.ErrInvalid)
+				}
+				f.EstimateMinutes = &n
+			}
 		case "title":
 			f.Title = c.Value
 		case "notes":
@@ -482,8 +548,19 @@ func replan(ctx context.Context, t *turn, input json.RawMessage) (string, any, e
 	}{plan.Opening, plan.Entries, plan.Fallback}, nil
 }
 
-func whatNow(ctx context.Context, t *turn, _ json.RawMessage) (string, any, error) {
-	pick, err := t.agent.planner.WhatNow(ctx, 0)
+func whatNow(ctx context.Context, t *turn, input json.RawMessage) (string, any, error) {
+	in, err := args[struct {
+		Context string `json:"context"`
+	}](input)
+	if err != nil {
+		return "", nil, err
+	}
+	// The original request is always retained; the model can also carry useful earlier context.
+	note := t.request
+	if extra := strings.TrimSpace(in.Context); extra != "" && extra != note {
+		note = joinText(note, extra)
+	}
+	pick, err := t.agent.planner.NextAction(ctx, planner.ActionRequest{Context: note})
 	if err != nil {
 		return "", nil, err
 	}

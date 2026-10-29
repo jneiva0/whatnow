@@ -21,7 +21,7 @@ func TestEveryToolIsOffered(t *testing.T) {
 		names = append(names, tl.Name)
 	}
 	want := []string{"list_tasks", "create_task", "update_task", "complete_task", "drop_task", "push_task", "add_blocker",
-		"remove_blocker", "create_event", "update_event", "delete_event", "replan", "what_now", "set_pace", "undo_last"}
+		"remove_blocker", "create_event", "update_event", "delete_event", "replan", "what_now", "set_pace", "undo_last", "correct_focus_time", "list_steps", "organize_steps", "add_step", "update_step", "delete_step", "reorder_steps", "split_step", "execution_context"}
 	if diff := cmp.Diff(want, names); diff != "" {
 		t.Errorf("tools (-want +got):\n%s", diff)
 	}
@@ -172,6 +172,31 @@ func TestWhatNow(t *testing.T) {
 	}
 }
 
+func TestWhatNowCarriesCurrentRequestAndEarlierContextToPlanner(t *testing.T) {
+	for _, recap := range []string{"", "The user has only five minutes before leaving."} {
+		t.Run(recap, func(t *testing.T) {
+			f := newFixture(t,
+				calls(call("pick", "what_now", map[string]any{"context": recap})),
+				text("Try opening the document."))
+			task := f.task(t, service.TaskFields{Title: "Prepare presentation", Feeling: "Interested"})
+			f.model.completions = []any{map[string]any{"task_id": task.ID, "reason": "First movement"}}
+			request := "I am stuck; I need something concrete to begin."
+			reply := f.send(t, request)
+			if reply.Tools[0].Outcome != "suggested" || reply.Tools[0].Action == nil || reply.Tools[0].Action.TaskID != task.ID {
+				t.Fatalf("suggestion lost executable reference: %+v", reply.Tools)
+			}
+			if len(f.model.completes) != 1 || !strings.Contains(f.model.completes[0].User, request) ||
+				(recap != "" && !strings.Contains(f.model.completes[0].User, recap)) {
+				t.Fatalf("chat context lost during planner delegation: %+v", f.model.completes)
+			}
+			after, err := f.svc.GetTask(context.Background(), task.ID)
+			if err != nil || after.Feeling != "Interested" {
+				t.Fatalf("temporary need changed persistent task: %+v, %v", after, err)
+			}
+		})
+	}
+}
+
 func TestUndoLastLeavesThisTurnAlone(t *testing.T) {
 	f := newFixture(t)
 	add := func(id, title string) llm.ToolCall {
@@ -202,5 +227,81 @@ func TestUndoLastLeavesThisTurnAlone(t *testing.T) {
 	got = results(t, f, call("c4", "undo_last", map[string]any{}), call("c5", "undo_last", map[string]any{}))
 	if got[0].IsError || !got[1].IsError {
 		t.Errorf("undoing until nothing is left: %+v", got)
+	}
+}
+
+func TestExecutionToolsAndEstimates(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	task := f.task(t, service.TaskFields{Title: "Write report", RawText: "My original capture"})
+	got := results(t, f, call("s1", "add_step", map[string]any{"task_id": task.ID, "description": "Open document", "estimate_minutes": 2}))
+	if got[0].IsError {
+		t.Fatal(got[0].Content)
+	}
+	steps, _ := f.svc.ListSteps(ctx, task.ID)
+	step := steps[0]
+	got = results(t, f, call("s2", "update_task", map[string]any{"task_id": task.ID, "changes": []map[string]string{{"field": "estimate_minutes", "value": "35"}}}), call("s3", "update_step", map[string]any{"task_id": task.ID, "step_id": step.ID, "description": step.Description, "estimate_minutes": 4, "status": "pending"}))
+	for _, r := range got {
+		if r.IsError {
+			t.Fatal(r.Content)
+		}
+	}
+	parent, _ := f.svc.GetTask(ctx, task.ID)
+	steps, _ = f.svc.ListSteps(ctx, task.ID)
+	if parent.EstimateMinutes == nil || *parent.EstimateMinutes != 35 || *steps[0].EstimateMinutes != 4 || parent.RawText != "My original capture" {
+		t.Fatal("estimates/origin lost")
+	}
+	st, err := f.svc.StartFocus(ctx, service.StartFocusFields{TaskID: task.ID, StepID: &step.ID, RequestID: "agent-focus-start"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	session := *st.SelectedID
+	got = results(t, f, call("s4", "correct_focus_time", map[string]any{"session_id": session, "total_ms": 90000, "reason": "User recorded one and a half minutes", "request_id": "agent-time-correct"}))
+	if got[0].IsError {
+		t.Fatal(got[0].Content)
+	}
+	st, _ = f.svc.Execution(ctx)
+	if st.Sessions[0].AccumulatedMS != 90000 || st.Corrections[0].Actor != domain.ActorAgent {
+		t.Fatal("correction missing")
+	}
+	got = results(t, f, call("s5", "update_task", map[string]any{"task_id": task.ID, "changes": []map[string]string{{"field": "estimate_minutes", "value": "12"}}}), call("s6", "split_step", map[string]any{"task_id": task.ID, "step_id": step.ID, "steps": []map[string]any{{"description": "Find report URL", "estimate_minutes": 1}, {"description": "Open report URL", "estimate_minutes": 1}}}))
+	for _, r := range got {
+		if r.IsError {
+			t.Fatal(r.Content)
+		}
+	}
+	st, _ = f.svc.Execution(ctx)
+	if st.Sessions[0].AccumulatedMS != 90000 {
+		t.Fatal("estimate or split reset time")
+	}
+	steps, _ = f.svc.ListSteps(ctx, task.ID)
+	if len(steps) != 2 {
+		t.Fatal("split failed")
+	}
+	// The model's next turn sees progress and the correction in live context.
+	got = results(t, f, call("s7", "execution_context", map[string]any{}))
+	if got[0].IsError || !strings.Contains(got[0].Content, "User recorded one and a half minutes") {
+		t.Fatal(got)
+	}
+}
+
+func TestCreateTaskAcceptsEstimateAndReturnsItToAgent(t *testing.T) {
+	f := newFixture(t)
+	got := results(t, f, call("estimate-create", "create_task", map[string]any{"title": "Reply to message", "estimate_minutes": 5}))
+	if got[0].IsError {
+		t.Fatal(got[0].Content)
+	}
+	var result struct {
+		Estimate *int `json:"estimate_minutes"`
+	}
+	if err := json.Unmarshal([]byte(got[0].Content), &result); err != nil {
+		t.Fatal(err)
+	}
+	tasks, err := f.svc.ListTasks(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Estimate == nil || *result.Estimate != 5 || len(tasks) != 1 || tasks[0].EstimateMinutes == nil || *tasks[0].EstimateMinutes != 5 {
+		t.Fatalf("result=%+v tasks=%+v", result, tasks)
 	}
 }

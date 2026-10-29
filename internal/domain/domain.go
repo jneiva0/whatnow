@@ -61,21 +61,22 @@ type Ref struct {
 }
 
 type Task struct {
-	ID        int64      `json:"id"`
-	Title     string     `json:"title"`
-	Notes     string     `json:"notes"`
-	RawText   string     `json:"raw_text"`
-	Size      *Size      `json:"size"`
-	Energy    *Energy    `json:"energy"`
-	Feeling   string     `json:"feeling"`
-	DueOn     *Date      `json:"due_on"`
-	NotBefore *Date      `json:"not_before"`
-	Status    Status     `json:"status"`
-	Refs      []Ref      `json:"refs"`
-	CreatedBy Actor      `json:"created_by"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	EstimateMinutes *int       `json:"estimate_minutes"`
+	ID              int64      `json:"id"`
+	Title           string     `json:"title"`
+	Notes           string     `json:"notes"`
+	RawText         string     `json:"raw_text"`
+	Size            *Size      `json:"size"`
+	Energy          *Energy    `json:"energy"`
+	Feeling         string     `json:"feeling"`
+	DueOn           *Date      `json:"due_on"`
+	NotBefore       *Date      `json:"not_before"`
+	Status          Status     `json:"status"`
+	Refs            []Ref      `json:"refs"`
+	CreatedBy       Actor      `json:"created_by"`
+	CreatedAt       time.Time  `json:"created_at"`
+	UpdatedAt       time.Time  `json:"updated_at"`
+	DeletedAt       *time.Time `json:"deleted_at"`
 }
 
 // Blocker says TaskID cannot start until BlockedByID is finished.
@@ -200,9 +201,11 @@ const (
 
 // ToolUse is one tool the agent ran in a reply, shown as a chip. Error is set when it failed.
 type ToolUse struct {
-	Tool  string `json:"tool"`
-	Label string `json:"label"`
-	Error string `json:"error"`
+	Tool    string     `json:"tool"`
+	Label   string     `json:"label"`
+	Error   string     `json:"error"`
+	Outcome string     `json:"outcome,omitempty"`
+	Action  *ActionRef `json:"action,omitempty"`
 }
 
 // Message is one chat message. BatchID is the reply's changes, or 0 when it changed nothing. Error
@@ -222,4 +225,47 @@ type Message struct {
 type ChatFold struct {
 	Summary   string `json:"summary"`
 	ThroughID int64  `json:"through_id"`
+}
+
+// Step is a flat action owned by a task, never a planning entry or a parent.
+type Step struct {
+	ID              int64      `json:"id"`
+	TaskID          int64      `json:"task_id"`
+	Description     string     `json:"description"`
+	EstimateMinutes *int       `json:"estimate_minutes"`
+	Position        int        `json:"position"`
+	Done            bool       `json:"done"`
+	DeletedAt       *time.Time `json:"deleted_at"`
+}
+
+type FocusSession struct {
+	ID               int64      `json:"id"`
+	TaskID           int64      `json:"task_id"`
+	StepID           *int64     `json:"step_id"`
+	State            string     `json:"state"`
+	SegmentStartedAt *time.Time `json:"segment_started_at"`
+	AccumulatedMS    int64      `json:"accumulated_ms"`
+	CreatedAt        time.Time  `json:"created_at"`
+	EndedAt          *time.Time `json:"ended_at"`
+}
+
+type ExecutionState struct {
+	Progress    map[int64]TaskProgress `json:"progress"`
+	Estimates   map[int64]Estimate     `json:"estimates"`
+	Corrections []FocusCorrection      `json:"corrections"`
+	ServerNow   time.Time              `json:"server_now"`
+	Steps       []Step                 `json:"steps"`
+	Sessions    []FocusSession         `json:"sessions"`
+	SelectedID  *int64                 `json:"selected_id"`
+}
+
+// FocusCorrection is an audit entry, never a generic undo activity.
+type FocusCorrection struct {
+	ID        int64     `json:"id"`
+	SessionID int64     `json:"session_id"`
+	BeforeMS  int64     `json:"before_ms"`
+	AfterMS   int64     `json:"after_ms"`
+	Reason    string    `json:"reason"`
+	Actor     Actor     `json:"actor"`
+	CreatedAt time.Time `json:"created_at"`
 }

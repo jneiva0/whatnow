@@ -3,7 +3,7 @@ default:
 
 test:
     go test ./...
-    cd web && npm test
+    cd web && bun run test
 
 cover:
     go test -coverpkg=./... -coverprofile=coverage.out ./...
@@ -11,11 +11,11 @@ cover:
 
 lint:
     go vet ./...
-    cd web && npm run check
+    cd web && bun run check
 
 # Builds the web client into the directory the Go binary embeds.
 web:
-    cd web && npm ci && npm run build
+    cd web && bun install --frozen-lockfile && bun run build
     find internal/web/dist -mindepth 1 ! -name .gitkeep -delete
     cp -R web/build/. internal/web/dist/
 
@@ -64,11 +64,11 @@ dev *args:
     #!/usr/bin/env bash
     trap 'kill 0' EXIT
     go run ./cmd/whatnow serve "$@" &
-    cd web && npm run dev
+    cd web && bun run dev
 
 # Runs the Playwright suite against a server built with the fake model, so no model is ever called.
 e2e: web
-    cd web && npx playwright install chromium && npx playwright test
+    cd web && bunx playwright install chromium && bunx playwright test
 
 # A demo run on its own database and port, on a clock `just clock` moves. Delete .demo to start over.
 [positional-arguments]

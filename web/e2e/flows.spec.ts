@@ -29,38 +29,38 @@ test('good morning: a dump becomes a plan in tiers, and Replan takes in a new ta
 
 	await page.getByLabel("What's on your plate").fill('buy milk, call mom, water the plants');
 	await page.getByRole('button', { name: 'Next →' }).click();
-	await page.getByRole('button', { name: 'gentle' }).click();
+	await page.getByRole('button', { name: 'pegando leve', exact: true }).click();
 	await page.getByRole('button', { name: 'Plan my day →' }).click();
 
 	await expect(page.getByText(fake.opening)).toBeVisible();
 	await page.getByRole('button', { name: "Let's go →" }).click();
 	await expect(page).toHaveURL(/\/$/);
-	await expect(tier(page, 'must').getByText('buy milk', { exact: true })).toBeVisible();
-	await expect(tier(page, 'should').getByText('call mom', { exact: true })).toBeVisible();
-	await expect(tier(page, 'could').getByText('water the plants', { exact: true })).toBeVisible();
+	await expect(tier(page, 'Must (Essencial)').getByText('buy milk', { exact: true })).toBeVisible();
+	await expect(tier(page, 'Should (Importante)').getByText('call mom', { exact: true })).toBeVisible();
+	await expect(tier(page, 'Could (Se der)').getByText('water the plants', { exact: true })).toBeVisible();
 
 	await page.getByLabel('Capture').fill('feed the cat');
 	await page.getByLabel('Capture').press('Enter');
 	await expect(tier(page, 'Unplanned').getByText('feed the cat', { exact: true })).toBeVisible();
 	await page.getByRole('button', { name: 'Replan' }).click();
-	await expect(tier(page, 'could').getByText('feed the cat', { exact: true })).toBeVisible();
+	await expect(tier(page, 'Could (Se der)').getByText('feed the cat', { exact: true })).toBeVisible();
 });
 
-test('what now picks the first free task, skips a pass, and done ticks it off', async ({ page, request }) => {
+test('what now picks the first free task, skips a pass, and opens execution', async ({ page, request }) => {
 	await setUp(request);
 	await startDay(request, 'buy milk and call mom');
 	await page.goto('/');
 
-	await page.getByRole('button', { name: 'What now?' }).click();
-	const pick = page.locator('section', { hasText: 'Do this now' });
+	await page.getByRole('button', { name: 'E agora?' }).click();
+	const pick = page.locator('section.whatnow');
 	await expect(pick.getByRole('heading', { name: 'buy milk' })).toBeVisible();
 	await expect(pick.getByText(fake.reason)).toBeVisible();
 
-	await pick.getByRole('button', { name: 'Not this one' }).click();
-	await pick.getByRole('button', { name: 'Ask again' }).click();
+	await pick.getByRole('button', { name: 'Outra sugestão' }).click();
 	await expect(pick.getByRole('heading', { name: 'call mom' })).toBeVisible();
 
-	await pick.getByRole('button', { name: 'Done' }).click();
-	await expect(page.getByRole('status').filter({ hasText: 'Done: call mom' })).toBeVisible();
-	await expect(pick).toHaveCount(0);
+	await pick.getByRole('button', { name: 'Começar' }).click();
+	await expect(page.getByRole('heading', { name: 'call mom', exact: true })).toBeVisible();
+	await page.getByRole('checkbox', { name: 'Concluir tarefa', exact: true }).check();
+	await expect(page.getByText('Ação concluída', { exact: true })).toBeVisible();
 });

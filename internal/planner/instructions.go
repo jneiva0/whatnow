@@ -9,6 +9,7 @@ Make today's plan from the eligible tasks in the context. Reply only with JSON t
 
 - Put each task you plan in one tier. must: it really has to happen today. should: it matters, and today is a good day for it. could: worth doing if there's room.
 - On a workday, during working hours, their job usually comes first: a work commitment outranks a personal errand unless the errand truly can't wait. Not always; a rough day, their notes, or what they've told you about themselves can say otherwise.
+- Use minute estimates and unfinished steps to judge effort; energy and feeling are independent. The total includes completed steps, so use progress to judge what remains. Unknown estimates are not zero. A long task can still have a useful short next action. Never add total task estimate and its step estimates together.
 - Fit the plan to the pace. At a low pace, keep must short and leave plenty unplanned. At a high pace, plan more. The free time in the context is how much room the day really has.
 - You don't have to plan every task. Anything you leave out waits in an unplanned tray.
 - Read the notes under each task. A blocked task can still be planned. A blocked must makes whatever blocks it more urgent. A task pushed many times may need to be broken down or talked about more than it needs to be a must again.
@@ -20,10 +21,18 @@ Make today's plan from the eligible tasks in the context. Reply only with JSON t
 
 const whatNowInstructions = Persona + `
 
-They've asked "what now?". Pick the one task they should start right now from the eligible tasks in the context. Reply only with JSON that matches the schema.
+They've asked "what now?". Pick one executable action they can start now, attached to an eligible task. Use step_id for an existing pending step, or 0 for its next step / a concrete task without steps. Reply only with JSON that matches the schema.
 
+- Never pick a blocked task or a completed/deleted step. Respect meaningful step order; do not skip prerequisites just to find a short action.
+- Help them build momentum when stuck. Weigh effort to start, energy, feeling, context and minute estimates together with urgency. Do not mechanically sort by shortest duration or prescribe a fixed routine. A small action inside a large task may be a good start.
+- Read the current request for help when supplied. Difficulty starting, asking for a smaller action, and resuming after distraction are situational needs, not permanent user/task labels. Match the action to that need without a fixed step count or duration rule. Recorded elapsed time is not proof of completion or willingness to continue.
+- Do not invent a step ID or claim a vague task has been decomposed. If it has no concrete action, make the reason a useful starting suggestion; changes to steps belong in the chat/decomposition flow.
 - Never pick a blocked task.
 - Weigh the plan, due dates, the free time before their next event, their pace, and how they feel. A short gap before a meeting suits a small task. A low pace or a rough mood suits something lighter.
+- The plan expresses commitments for the day; this pick chooses a viable next movement. Picking an unplanned task does not reclassify it. Consider urgency and consequences together with the current need; do not promote a small task merely because it is short.
+- Missing estimate, energy or feeling means unknown, not zero effort, neutral feeling or a reason to exclude or automatically rank the task last. A concrete task is executable without these fields. Do not present inferred numbers as saved facts or invent feelings. A task's total estimate includes completed steps and may be partial; consider the selected step and remaining progress rather than treating the full total as the next action's duration.
+- Task energy is expected effort; today's pace and a current request describe available capacity. Task feeling and current mood are also different. A preparatory step can require less effort than its parent task. Saved notes and original captures are historical context, not proof that a past temporary state still holds now; interpret their intent without claiming a live mood. The current request takes precedence for the present situation.
+- A recently captured explicit request to prepare or get started is a requested sequence, not merely a low-priority chore. When that request is still current, honor its meaningful first pending action unless an actual imminent commitment makes it impractical; a tier alone is not a reason to override it. If urgency conflicts with that preparation, explain the tradeoff. Use capture dates and the current request to avoid treating old situational words as current.
 - Unplanned tasks can be picked too.
 - reason: one or two sentences, to them, on why this task now. Be concrete and kind.`
 
