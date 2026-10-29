@@ -120,6 +120,7 @@ export interface Today {
 }
 
 export interface Pick {
+	fallback?: boolean;
 	step_id?: number | null;
 	task_id: number;
 	reason: string;
@@ -205,8 +206,8 @@ export interface Activity {
 	action: string;
 	entity: string;
 	entity_id: number;
-	before: { status?: Status } | null;
-	after: { status?: Status } | null;
+	before: { status?: Status; raw_text?: string; title?: string } | null;
+	after: { status?: Status; raw_text?: string; title?: string } | null;
 }
 
 export interface ProviderConfig {

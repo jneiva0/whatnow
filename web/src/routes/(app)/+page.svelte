@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { onDestroy, untrack } from 'svelte';
+	import { suggestion } from '#lib/suggestion.svelte.ts';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { api, ApiError, type Pick, type Tier } from '#lib/api.ts';
+	import { api, type Tier } from '#lib/api.ts';
 	import { live } from '#lib/live.svelte.ts';
 	import { actionCards, doneOn, tierLabels, tiers, unplanned } from '#lib/plan.ts';
 	import { execution } from '#lib/execution.svelte.ts';
@@ -20,22 +22,38 @@
 	import Working from '#lib/components/Working.svelte';
 	import { work } from '#lib/work.svelte.ts';
 
-	let pick = $state<Pick | null>(null);
-	let asking = $state(false);
+	let interacting = $state(false);
+ let editingField = $state(false);
+ function isEditing(target: EventTarget | null) {
+  return target instanceof Element && !!target.closest('input, textarea, [contenteditable="true"]');
+ }
+	const asking = $derived(suggestion.asking);
 	let replanning = $state(false);
-	/** What now found nothing open and eligible. */
-	let nothing = $state(false);
+
 
 	const t = $derived(today.today);
 	const planned = $derived(t ? tiers(t, today.tasks) : null);
 	const tray = $derived(t ? unplanned(t, today.tasks) : []);
 	const done = $derived(t ? doneOn(t.date, today.tasks) : []);
-	const pickTask = $derived(pick ? today.tasks.find((x) => x.id === pick?.task_id) : undefined);
+	const pick = $derived(suggestion.pick);
+ const pickTask = $derived(pick ? today.tasks.find((x) => x.id === pick.task_id) : undefined);
+ const running = $derived(execution.view?.sessions.find((s) => s.state === 'running'));
+ const runningTask = $derived(today.tasks.find((task) => task.id === running?.task_id));
+ const runningStep = $derived(execution.view?.steps.find((step) => step.id === running?.step_id));
 	const actionView = $derived(page.url.searchParams.get('view') === 'actions');
 	const actions = $derived(t ? actionCards(t, today.tasks, today.blockers, execution.view?.sessions.find((s) => s.state === 'running')?.task_id) : []);
 	const tierNames: Tier[] = ['must', 'should', 'could'];
 	// A replan can come from anywhere: this button, a pace change, the agent, or an edit that matters.
 	const replanBusy = $derived(replanning || work.busy('replan'));
+
+ $effect(() => {
+  const snapshot = t && execution.view ? {day: t, tasks: today.tasks, blockers: today.blockers, execution: execution.view, events: today.events, revision: today.revision} : null;
+  const active = actionView;
+  const editing = interacting || editingField || editor.taskId !== null || editor.creating;
+  const busy = execution.busy || work.busy('cleanup') || replanBusy;
+  if (snapshot) untrack(() => suggestion.sync(snapshot, active, editing, busy));
+ });
+ onDestroy(() => suggestion.deactivate());
 
 	// A day with no plan starts with the morning check-in, once first-run setup has had its turn.
 	$effect(() => {
@@ -62,21 +80,20 @@
 		}
 	}
 
-	async function whatNow(exclude = 0, reason = '') {
-		asking = true;
-		nothing = false;
-		try {
-			pick = await api.whatNow(exclude, reason);
-		} catch (err) {
-			pick = null;
-			// 404 means nothing is open and eligible: news to say gently, not an error.
-			if (err instanceof ApiError && err.status === 404) nothing = true;
-			else toasts.error(err);
-		} finally {
-			asking = false;
-		}
-	}
+ function whatNow(exclude = 0, context = '') {
+  if (running) { void goto(`/focus?task=${running.task_id}&${running.step_id == null ? 'direct=1' : `step=${running.step_id}`}`); return; }
+  void suggestion.ask(exclude, context);
+ }
+
 </script>
+
+<svelte:document onfocusin={(event) => editingField = isEditing(event.target)} onfocusout={(event) => editingField = isEditing(event.relatedTarget)} />
+
+{#snippet suggestionPanel(inline: boolean)}
+ <WhatNow {pick} task={pickTask} {asking} problem={suggestion.problem} stale={suggestion.stale} nothing={suggestion.nothing} {inline}
+  onask={(context) => whatNow(0, context)} onnotthis={(context) => whatNow(pick?.task_id ?? 0, context)}
+  onclose={() => suggestion.dismiss()} oninteraction={(value) => interacting = value} />
+{/snippet}
 
 {#if t?.plan}
 	<Header today={t} {asking} onwhatnow={() => whatNow()} />
@@ -86,17 +103,9 @@
 		<button class="btn" onclick={() => editor.openNew()}>+ Task</button>
 	</div>
 
-	{#if pick}
-		<WhatNow
-			{pick}
-			task={pickTask}
-			{asking}
-			onnotthis={(reason) => whatNow(pick?.task_id, reason)}
-			onclose={() => (pick = null)}
-		/>
-	{:else if nothing}
-		<p class="sticker nothing">Nothing to do right now. Enjoy it.</p>
-	{/if}
+ {#if !actionView && !running && (pick || suggestion.asking || suggestion.nothing || suggestion.problem)}
+  {@render suggestionPanel(false)}
+ {/if}
 
 	{#if t.day?.wrapped_at}
 		<DaysDone day={t.day} done={done.length} meetings={survived(today.events, live.now)} />
@@ -111,11 +120,20 @@
 		{/if}
 		{#if actionView}
 			<section aria-label="Próximas ações">
-				<p class="action-hint">Uma ação por tarefa, na ordem do plano. O que está em foco vem primeiro.</p>
-				{#each actions as item (item.card.task.id)}
+    {#if running}
+     <div class="sticker continuation">
+      <h2>Continue de onde está</h2>
+      <p>{runningStep?.description ?? runningTask?.title ?? 'Foco em andamento'}</p>
+      <a class="btn" href={`/focus?task=${running.task_id}&${running.step_id == null ? 'direct=1' : `step=${running.step_id}`}&from=actions`}>Voltar ao foco</a>
+     </div>
+    {:else}
+     {@render suggestionPanel(true)}
+    {/if}
+    <p class="action-hint">Outras ações disponíveis · você também pode escolher por aqui.</p>
+				{#each actions.filter((item) => running || !pick || item.card.task.id !== pick.task_id) as item (item.card.task.id)}
 					<TaskCard card={item.card} tier={item.tier} date={t.date} actionView />
 				{:else}
-					<p class="muted empty">Nenhuma ação disponível agora. Veja as tarefas em Prioridades.</p>
+					<p class="muted empty">Sem outras ações disponíveis agora.</p>
 				{/each}
 			</section>
 		{:else}
@@ -163,6 +181,9 @@
 	.day-view a { display: inline-flex; align-items: center; min-height: 44px; padding: 6px 16px; color: var(--ink); text-decoration: none; border-radius: calc(var(--radius-sm) / 2); }
 	.day-view a[aria-current='page'] { background: var(--chip); }
 	.day-view a:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+	.continuation { padding: 12px 16px; margin-bottom: 12px; background: var(--chip); }
+	.continuation h2 { font-size: 18px; margin: 0; }
+	.continuation p { margin: 4px 0 8px; overflow-wrap: anywhere; }
 	.action-hint { margin: 0 0 12px; color: var(--ink-soft); font-size: 13px; }
 	.lower.actions { grid-template-columns: minmax(0, 1fr); }
 	h2 {
@@ -171,11 +192,6 @@
 	.empty {
 		margin: 0 0 8px;
 		font-size: 14px;
-	}
-	.nothing {
-		margin: 0;
-		padding: 12px 16px;
-		font-weight: var(--heavy);
 	}
 	.rough {
 		align-self: flex-start;

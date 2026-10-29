@@ -2,6 +2,36 @@
 
 ## 2026-10-29
 
+### Escolha contextual em Ações
+
+- Ações pede uma sugestão ao entrar, com ação, contexto pai, dedicado/estimado,
+  justificativa, Começar, Outra sugestão e Ver tarefa. Usa o planejador existente,
+  incluindo Não planejado, e retira o cartão duplicado da lista manual.
+- Estado compartilhado com E agora preserva a escolha entre telas, invalida
+  alvos indisponíveis e descarta respostas antigas. Captura aplicada reavalia a
+  escolha com contexto recente; aguarda snapshots e o fim da edição. Relógio não
+  dispara consultas. Timer ativo apresenta continuidade; concluir permite nova
+  escolha sem iniciar automaticamente.
+- Motivo/contexto do novo fluxo é temporário e não grava sentimento. Erros de
+  comunicação deixam escolha manual e retry explícito; fallback por prazo aparece
+  identificado. Compatibilidade do parâmetro legado da API/terminal preservada.
+- Go test/vet completos, 191 testes frontend, check sem erros/avisos e build
+  aprovados. Quatro cenários Chromium cobrem integração, captura durante edição,
+  pausa/conclusão, contexto temporário, falha e larguras320/390/1440.
+
+### Esclarecer tarefas com perguntas
+
+- “Me ajude a organizar” abre o chat para esclarecer a tarefa sugerida ou as
+  pendências. Agente orientado a uma pergunta útil por vez antes de alterar dados;
+  resposta pode atualizar a tarefa com operações existentes e undo.
+- Contexto expõe datas de criação/atualização para revisar tarefas antigas sem
+  inferir desinteresse. Campos ausentes continuam desconhecidos.
+- Avaliação real em dados fictícios registrada em
+  docs/evaluations/2026-10-29-contextual-actions.json: preservou campos vazios,
+  escolheu ritual após ajuste e pequeno passo urgente. Esclarecimento perguntou
+  sem gravações e aplicou resposta no primeiro ensaio; no segundo, falha do
+  provedor na resposta permaneceu explícita. São amostras limitadas.
+
 - Checkbox de tarefa integra a grade do cabeçalho e alinha ao título, em vez
   de ficar presa ao topo do cartão. No celular os metadados ocupam a linha
   seguinte; título e checkbox continuam alinhados.

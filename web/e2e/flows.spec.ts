@@ -56,13 +56,11 @@ test('what now picks the first free task, skips a pass, and opens execution', as
 	await expect(pick.getByRole('heading', { name: 'buy milk' })).toBeVisible();
 	await expect(pick.getByText(fake.reason)).toBeVisible();
 
-	await pick.getByRole('button', { name: 'Not this one' }).click();
-	await pick.getByRole('button', { name: 'Ask again' }).click();
+	await pick.getByRole('button', { name: 'Outra sugestão' }).click();
 	await expect(pick.getByRole('heading', { name: 'call mom' })).toBeVisible();
 
 	await pick.getByRole('button', { name: 'Começar' }).click();
 	await expect(page.getByRole('heading', { name: 'call mom', exact: true })).toBeVisible();
-	await page.getByRole('button', { name: 'Iniciar foco', exact: true }).click();
-	await page.getByRole('button', { name: 'Concluir tarefa', exact: true }).click();
+	await page.getByRole('checkbox', { name: 'Concluir tarefa', exact: true }).check();
 	await expect(page.getByText('Ação concluída', { exact: true })).toBeVisible();
 });

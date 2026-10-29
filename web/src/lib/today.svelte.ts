@@ -9,6 +9,7 @@ export class TodayState {
 	events = $state<CalendarEvent[]>([]);
 	tasks = $state<Task[]>([]);
 	blockers = $state<Blocker[]>([]);
+	revision = $state(0);
 	#timer: ReturnType<typeof setTimeout> | undefined;
 	#generation = 0;
 
@@ -27,6 +28,7 @@ export class TodayState {
 		this.events = events;
 		this.tasks = tasks;
 		this.blockers = blockers;
+		this.revision++;
 	}
 
 	/** Refreshes once a burst of changes settles. */

@@ -1,3 +1,4 @@
+import { suggestion } from './suggestion.svelte';
 import { execution } from './execution.svelte';
 import { goto } from '$app/navigation';
 import { api, type SettingsView } from './api';
@@ -26,6 +27,8 @@ class Live {
 	#stream = new Stream(
 		{
 			'batch.applied': (d) => {
+				const captures = d.source === 'cleanup' ? [...new Set(d.activity.filter((a) => a.entity === 'task').map((a) => a.after?.raw_text ?? a.before?.raw_text).filter((text): text is string => !!text))] : [];
+    suggestion.changed(d.source === 'cleanup', captures.length ? `A capture was just organized on this client. Treat this as the user's recent input for this suggestion, not a permanent mood or priority. Captured words: ${JSON.stringify(captures)}` : '');
 				const size = celebration(d, today.today, today.tasks);
 				if (size) cheer(size, d.activity.filter((a) => a.entity === 'task').map((a) => a.entity_id));
 				today.changed();
@@ -33,12 +36,13 @@ class Live {
 				toasts.applied(d);
 			},
 			'batch.undone': (d) => {
+				suggestion.changed();
 				today.changed();
 				void execution.refresh();
 				toasts.undone(d.batch_id);
 				chat.markUndone(d.batch_id);
 			},
-			'plan.updated': () => today.changed(),
+			'plan.updated': () => { suggestion.changed(); today.changed(); },
 			'focus.changed': () => { void execution.refresh(); today.changed(); },
 			'chat.delta': (d) => chat.delta(d.text),
 			'chat.tool': (d) => chat.tool(d),

@@ -10,11 +10,11 @@ substituir silenciosamente o objetivo. Ao fechar uma rodada, informar o que foi
 entregue e qual é a próxima fatia deste plano.
 
 - **Objetivo:** ajudar a escolher uma ação viável, começar e continuar.
-- **Em fechamento:** faixa persistente de foco e cartões compactos, com os
-  refinamentos de tempo/energia/layout pedidos durante o uso.
-- **Próxima fatia:** escolha contextual em Ações, incluindo Não planejado e
-  capturas para destravar, sem exigir pedido extra pelo chat. Definir a menor
-  solução coerente usando as regras/fatos do Go e o planejador existente.
+- **Entregue no código:** faixa persistente/cartões compactos; escolha contextual
+  automática em Ações, com Não planejado e captura recente; ajuda por perguntas
+  no chat para esclarecer tarefas.
+- **Próximo recorte de uso:** abrir Ações, conferir a escolha e usar Começar;
+  se faltar clareza, usar Me ajude a organizar e responder uma pergunta.
 - **Depois:** avaliar continuidade pelo uso. Migração ampla, calibração histórica
   e voz permanecem posteriores; o pequeno bug PWA não assume a prioridade.
 
@@ -37,6 +37,29 @@ compactar cartões não resolve por si só a escolha da próxima ação. Migraç
 calibração histórica e voz continuam posteriores.
 
 ### Próxima implementação — escolha contextual em Ações
+
+**Estado após execução de 29/10:** plano abaixo implementado. Sugestão compartilhada
+com E agora, atualização após captura aplicada, continuidade do foco e tratamento
+de respostas antigas/falhas verificados. Sem novo endpoint/schema ou fila.
+Motivo do novo caminho usa `context` com `reason` vazio; caminho legado continua
+compatível. Datas de tarefa aparecem no contexto; captura recém-aplicada é
+identificada como entrada recente e não como sentimento permanente.
+
+João acrescentou ajuda por perguntas para tarefas sem clareza e pendências antigas.
+Entrada no painel abre chat com pedido de uma pergunta útil por vez; instruções
+orientam esclarecer antes de alterar e aplicar apenas o que a resposta sustenta.
+Não há interrogatório para preencher todos os campos nem revisão forçada por idade.
+
+Verificação: Go test/vet completos;191 testes frontend, check e build; quatro
+cenários Chromium com banco temporário. Autofixer sem issues nos novos componentes
+e estado; sugestões preexistentes de Maps locais e efeitos de navegação/sincronização
+foram revisadas e mantidas. Detector sem achados; capturas mobile/desktop inspecionadas.
+Avaliação com provedor real em `evaluations/2026-10-29-contextual-actions.json`
+preserva o primeiro resultado que ignorou o ritual e a repetição após ajuste,
+além de falha transitória do provedor durante esclarecimento. Não é garantia
+de qualidade geral nem aceite no celular físico de João.
+
+O plano detalhado abaixo é o contrato da entrega, não uma lista ainda pendente.
 
 #### Critérios e dados incompletos — proposta explicada em 29/10
 
