@@ -63,6 +63,9 @@ func Facts(f facts.Facts) string {
 			fmt.Fprintf(&b, " feeling: %q", t.Feeling)
 		}
 		b.WriteByte('\n')
+		if !t.CreatedAt.IsZero() {
+			fmt.Fprintf(&b, "  Created: %s; last updated: %s. Age is not proof of avoidance.\n", t.CreatedAt.In(f.Now.Location()).Format("2006-01-02 15:04"), t.UpdatedAt.In(f.Now.Location()).Format("2006-01-02 15:04"))
+		}
 		if t.Notes != "" {
 			fmt.Fprintf(&b, "  Notes: %q\n", t.Notes)
 		}

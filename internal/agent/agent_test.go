@@ -246,3 +246,31 @@ func TestAReplyWhoseWritesAllFailedHasNoBatch(t *testing.T) {
 		t.Errorf("published %d empty batches", len(got))
 	}
 }
+
+func TestClarificationQuestionThenSupportedAnswer(t *testing.T) {
+	f := newFixture(t, text("What would count as enough for this task?"))
+	ctx := context.Background()
+	task := f.task(t, service.TaskFields{Title: "Organize files", Notes: "Keep tax documents", Feeling: ""})
+	before, _ := f.svc.ListTasks(ctx)
+	question := f.send(t, "I am disoriented. Help clarify this task with one question before changing it.")
+	if question.BatchID != 0 || question.Text == "" {
+		t.Fatalf("clarification wrote changes: %+v", question)
+	}
+	after, _ := f.svc.ListTasks(ctx)
+	if diff := cmp.Diff(before, after); diff != "" {
+		t.Fatalf("question changed task: %s", diff)
+	}
+	f.model.replies = append(f.model.replies, calls(call("c1", "update_task", map[string]any{"task_id": task.ID, "changes": []map[string]string{{"field": "notes", "value": "Keep tax documents. Enough for now: collect this year's invoices in one folder."}}})), text("Updated what counts as enough."))
+	reply := f.send(t, "Enough is collecting this year's invoices in one folder. Save that clarification.")
+	updated, _ := f.svc.GetTask(ctx, task.ID)
+	if reply.BatchID == 0 || !strings.Contains(updated.Notes, "Keep tax documents") || !strings.Contains(updated.Notes, "invoices") || updated.Energy != nil || updated.EstimateMinutes != nil || updated.Feeling != "" {
+		t.Fatalf("unsupported changes: %+v", updated)
+	}
+	if err := f.svc.Undo(ctx, reply.BatchID); err != nil {
+		t.Fatal(err)
+	}
+	restored, _ := f.svc.GetTask(ctx, task.ID)
+	if diff := cmp.Diff(task, restored); diff != "" {
+		t.Fatalf("undo failed: %s", diff)
+	}
+}

@@ -74,3 +74,12 @@ func TestTaskContextPreservesMeaningBeyondTitle(t *testing.T) {
 		}
 	}
 }
+
+func TestFactsExposeTaskDatesWithoutInferringAvoidance(t *testing.T) {
+	now := time.Date(2026, 10, 29, 9, 0, 0, 0, time.UTC)
+	f := facts.Facts{Now: now, Tasks: []facts.TaskFacts{{Task: domain.Task{ID: 1, Title: "Old task", CreatedAt: now.AddDate(0, -1, 0), UpdatedAt: now.AddDate(0, 0, -2)}}}}
+	got := prompt.Facts(f)
+	if !strings.Contains(got, "Created: 2026-09-29 09:00; last updated: 2026-10-27 09:00") || !strings.Contains(got, "Age is not proof of avoidance") {
+		t.Fatalf("missing age context: %s", got)
+	}
+}

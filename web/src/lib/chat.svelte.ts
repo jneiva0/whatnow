@@ -77,6 +77,13 @@ export class Chat {
 		if (this.open) this.unread = false;
 	}
 
+	async helpOrganize(taskID?: number): Promise<void> {
+  if (this.busy || this.draft) return;
+  this.open = true; this.unread = false;
+  const target = taskID ? ` a tarefa #${taskID}` : ' minhas tarefas pendentes, inclusive as antigas quando fizer sentido';
+  await this.send(`Estou sem clareza por onde começar. Me ajude a esclarecer${target}. Faça uma pergunta útil por vez para entender o que falta e só atualize tarefas a partir das minhas respostas. Não preciso preencher todos os campos.`);
+ }
+
 	/** Sends a message. Returns false when it wasn't taken, so the input keeps the text. */
 	async send(text: string): Promise<boolean> {
 		this.busy = true;
