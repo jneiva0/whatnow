@@ -32,9 +32,8 @@ destravar ficou em Não planejado. Relato completo em `feedback.md`.
    incluindo Não planejado, sem exigir pedido extra no chat. A forma de seleção
    ainda está aberta; não implementar ordenação universal por menor duração.
 
-Os itens 1–2 estão implementados nesta rodada. O item 3 permanece planejado;
-compactar cartões não resolve por si só a escolha da próxima ação. Migração ampla,
-calibração histórica e voz continuam posteriores.
+Os itens 1–3 estão implementados nesta rodada, com as verificações e limites
+descritos abaixo. Migração ampla, calibração histórica e voz continuam posteriores.
 
 ### Próxima implementação — escolha contextual em Ações
 
