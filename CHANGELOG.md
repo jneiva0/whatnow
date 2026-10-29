@@ -1,5 +1,45 @@
 # Changelog
 
+## 2026-10-29
+
+- Checkbox de tarefa integra a grade do cabeçalho e alinha ao título, em vez
+  de ficar presa ao topo do cartão. No celular os metadados ocupam a linha
+  seguinte; título e checkbox continuam alinhados.
+
+- Estimativas numéricas permanecem em uma linha (`28+ min`). Energia usa número
+  e um/dois/três raios Lucide da mesma cor para baixa/média/alta, inclusive no
+  seletor. Cartão de Prioridades reúne ação, tempo e controles na mesma linha
+  quando cabe; total da tarefa acompanha a contagem de passos à direita.
+
+- Faixa persistente fora da tela Foco mostra a ação em andamento, tempo dedicado,
+  pausa e link de retorno. Usa o estado sincronizado e as operações existentes;
+  navegar de volta não inicia outro registro de tempo.
+- A faixa destaca tempo restante/excedente, mostra dedicado / estimativa da
+  ação e transforma o separador em progresso. Sem estimativa, mostra dedicado
+  e total desconhecido, sem barra percentual fictícia.
+- Refinamento pedido após uso: tempos na mesma linha (`restante | dedicado /
+  estimativa`), restante maior, sem rótulo visual redundante; descrição acessível
+  preservada e excedente continua com sinal `+`.
+- Cartões compartilham metadados compactos em Prioridades e Ações. Título e
+  controles aproveitam a mesma linha quando cabe; energia abre seleção pelo
+  indicador, estimativa edita ao clicar e contexto expande explicitamente.
+  Removida expansão por hover e reduzido espaçamento da área de execução.
+- João confirmou instalação PWA funcionando; faixa azul em standalone permanece
+  como pequeno bug de viewport sem causa confirmada.
+- Validação: 181 testes unitários, Svelte check sem erros/avisos, build e
+  autofixer dos componentes alterados passaram. Teste Chromium com banco
+  temporário verificou navegação/retorno, faixa sticky, pausa sem nova sessão,
+  edição de energia/estimativa e ausência de overflow em320/390/1440px.
+  Capturas inspecionadas; aceite no aparelho físico permanece com João.
+
+## 2026-10-28
+
+- Adicionado manifesto PWA vinculado no HTML, com nome Whatnow, abertura
+  standalone, escopo/entrada na raiz e ícones PNG192/512 derivados do favicon.
+  Sem dependências ou cache de dados. Build passou; manifesto no HTML gerado
+  e dimensões/caminhos dos ícones verificados. Instalação no Android fica para
+  teste de João após `just install`.
+
 ## 2026-10-27
 
 ### Ações e Foco: ação primeiro, contexto compacto

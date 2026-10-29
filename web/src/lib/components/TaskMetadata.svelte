@@ -7,9 +7,6 @@
 	import { Textarea } from '#lib/components/ui/textarea/index.js';
 	import ClockIcon from '@lucide/svelte/icons/clock';
 	import ZapIcon from '@lucide/svelte/icons/zap';
-	import BatteryLowIcon from '@lucide/svelte/icons/battery-low';
-	import BatteryMediumIcon from '@lucide/svelte/icons/battery-medium';
-	import BatteryFullIcon from '@lucide/svelte/icons/battery-full';
 	import MessageCircleIcon from '@lucide/svelte/icons/message-circle';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import CheckIcon from '@lucide/svelte/icons/check';
@@ -29,10 +26,10 @@
 	let energyError = $state('');
 	const estimate = $derived(execution.estimate(task.id));
 	const energyOptions = [
-		{ value: 'none', label: 'Não definida', icon: ZapIcon },
-		{ value: 'low', label: 'Baixa', icon: BatteryLowIcon },
-		{ value: 'med', label: 'Média', icon: BatteryMediumIcon },
-		{ value: 'high', label: 'Alta', icon: BatteryFullIcon }
+		{ value: 'none', label: 'Não definida', level: 0 },
+		{ value: 'low', label: 'Baixa', level: 1 },
+		{ value: 'med', label: 'Média', level: 2 },
+		{ value: 'high', label: 'Alta', level: 3 }
 	];
 	const energy = $derived(energyOptions.find((option) => option.value === task.energy) ?? energyOptions[0]);
 
@@ -85,8 +82,15 @@
 	}
 </script>
 
-<div class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm" aria-busy={busy}>
-	<div class="flex w-28 min-w-0 items-center gap-1 rounded-md border border-border/25 bg-card/60 pr-1 pl-2">
+{#snippet energyDisplay(level: number)}
+ <span class="energy-level" aria-hidden="true">
+  {#if level}<span>{level}</span>{/if}
+  {#each Array(Math.max(1, level)) as _, index (index)}<ZapIcon />{/each}
+ </span>
+{/snippet}
+
+<div class="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-1 text-sm" aria-busy={busy}>
+	<div class="flex w-24 shrink-0 items-center gap-1">
 		<ClockIcon class="size-4 shrink-0" aria-hidden="true" />
 		<InlineEdit
 			numeric value={task.estimate_minutes == null ? '' : String(task.estimate_minutes)}
@@ -97,8 +101,8 @@
 	</div>
 	<Select.Root type="single" items={energyOptions} disabled={busy}
 		bind:value={() => task.energy ?? 'none', (value) => { void changeEnergy(value); }}>
-		<Select.Trigger variant="metadata" aria-label={`Energia da tarefa: ${energy.label}`} title={`Energia: ${energy.label} — editar`} size={compact ? 'sm' : 'default'} aria-invalid={!!energyError}>
-			<energy.icon aria-hidden="true" />
+		<Select.Trigger variant={compact ? "quiet" : "metadata"} aria-label={`Energia da tarefa: ${energy.label}`} title={`Energia: ${energy.label} — editar`} size={compact ? 'sm' : 'default'} aria-invalid={!!energyError}>
+			{@render energyDisplay(energy.level)}
 			{#if !compact}<span>{task.energy ? energy.label : 'Energia'}</span>{/if}
 		</Select.Trigger>
 		<Select.Content align="start">
@@ -106,7 +110,7 @@
 				<Select.GroupHeading>Energia da tarefa</Select.GroupHeading>
 				{#each energyOptions as option (option.value)}
 					<Select.Item value={option.value} label={option.label}>
-						<option.icon aria-hidden="true" />{option.label}
+						{@render energyDisplay(option.level)}{option.label}
 					</Select.Item>
 				{/each}
 			</Select.Group>
@@ -115,7 +119,7 @@
 	<Popover.Root bind:open={feelingOpen} onOpenChange={(open) => {
 		if (open) { feeling = task.feeling; feelingError = ''; }
 	}}>
-		<Popover.Trigger class={cn(buttonVariants({ variant: 'metadata', size: compact ? 'icon' : 'default' }), 'max-w-full min-w-0')}
+		<Popover.Trigger class={cn(buttonVariants({ variant: compact ? 'ghost' : 'metadata', size: compact ? 'icon' : 'default' }), 'max-w-full min-w-0')}
 			disabled={busy} title={task.feeling || 'Adicionar sentimento'} aria-label={task.feeling ? `Sentimento: ${task.feeling}. Editar` : 'Adicionar sentimento sobre a tarefa'}>
 			<MessageCircleIcon aria-hidden="true" />
 			{#if !compact}<span class="max-w-64 truncate">{task.feeling || 'Sentimento'}</span>{/if}
@@ -148,3 +152,9 @@
 	{#if busy}<span class="text-xs text-muted-foreground" role="status">Salvando…</span>{/if}
 </div>
 {#if energyError}<p class="mt-1 text-sm text-destructive" role="alert">{energyError}</p>{/if}
+
+<style>
+ .energy-level { display: inline-flex; align-items: center; gap: 1px; color: var(--primary); white-space: nowrap; }
+ .energy-level span { margin-right: 2px; font-size: 12px; font-weight: var(--heavy); }
+ .energy-level :global(svg) { width: 14px; height: 14px; fill: currentColor; }
+</style>

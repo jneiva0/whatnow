@@ -96,22 +96,24 @@
 	data-task={task.id}
 	class={['sticker card', tier ?? (listed ? 'listed' : 'unplanned'), {'action-card': actionView, 'has-step': actionView && !!nextStep, closed: task.status !== 'open', linked: linked.ids.includes(task.id)}]}
 >
+	<div class="main">
+		<div class="card-heading">
 	{#if task.status === 'open'}
 		<input type="checkbox" aria-label={actionView ? `Concluir tarefa: ${task.title}` : 'Mark done'} onchange={complete} />
 	{:else}
 		<span class="mark" aria-label={task.status}>{task.status === 'done' ? '✓' : '✕'}</span>
 	{/if}
-	<div class="main">
 		<button
 			class="body"
 			onclick={() => (listed ? editor.open(task.id) : (expanded = !expanded))}
 			disabled={!listed && !card.rationale && !task.notes}
 			aria-expanded={listed ? undefined : expanded}
 		>
-			<span class="title">{task.title}</span>{#if actionView && (task.notes || card.rationale)}<span class="context-toggle">{expanded ? 'Ocultar contexto' : 'Ver contexto'}</span>{/if}
+			<span class="title">{task.title}</span>{#if !listed && (task.notes || card.rationale)}<span class="context-toggle">{expanded ? 'Ocultar contexto' : 'Ver contexto'}</span>{/if}
 		</button>
-		<div class="metadata-row"><div class="metadata-values"><TaskMetadata {task} compact={actionView} /></div>{#if actionView}{@render taskMenu()}{/if}</div>
-			{#if task.notes && !expanded && !actionView}<span class="notes">{task.notes}</span>{/if}
+		<div class="metadata-row"><div class="metadata-values"><TaskMetadata {task} compact /></div>{@render taskMenu()}</div>
+		</div>
+
 			{#if card.rationale}<span class={['why', {shown: expanded}]}>{card.rationale}</span>{/if}
 		<!-- Expanded notes sit outside the button, so their links work and their text can be copied. -->
 		{#if task.notes && expanded}
@@ -152,18 +154,16 @@
             <ExecutionSteps taskId={task.id} eligible={canStart} preview />
           {:else}
             <div class="execution">
-                <div class="step-progress">{#if nextStep}<span class="next-action">{nextStep.description}</span><span class="next-time">{timerText(nextActual)} / {nextStep.estimate_minutes == null ? '—' : timerText(nextStep.estimate_minutes * 60000)}{running ? ' · Em foco' : ''}</span>{/if}<span class={['total-time', {secondary: !!nextStep}]}>{nextStep ? 'Total ' : ''}{timerText(actual)} / {estimate.minutes == null ? '—' : timerText(estimate.minutes * 60000)}{estimate.partial ? '+' : ''}</span></div>
+                {#if nextStep}<span class="next-action">{nextStep.description}</span><span class="next-time">{timerText(nextActual)} / {nextStep.estimate_minutes == null ? '—' : timerText(nextStep.estimate_minutes * 60000)}{running ? ' · Em foco' : ''}</span>{:else}<span class="next-action total-time">{timerText(actual)} / {estimate.minutes == null ? '—' : timerText(estimate.minutes * 60000)}{estimate.partial ? '+' : ''}</span>{/if}
                 {#if !steps.length || nextStep || running}<PlayToggle running={!!running} disabled={(!canStart && !running) || execution.busy} label={running ? `Pausar ${task.title}` : `Começar ${task.title}`} onclick={toggleFocus} />{/if}
                 <a class="focus-icon" href={`/focus?task=${task.id}${nextStep ? `&step=${nextStep.id}` : ''}`} aria-label={`Abrir foco de ${task.title}`} title="Abrir foco"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M8 21H3v-5"/><circle cx="12" cy="12" r="3"/></svg></a>
             </div>
-            <details class="card-steps"><summary>{steps.length ? `${completed}/${steps.length} passos` : 'Adicionar passos'}{steps.length && !nextStep ? ' · Todos concluídos' : ''}</summary><ExecutionSteps taskId={task.id} eligible={canStart} /></details>
+            <details class="card-steps"><summary>{steps.length ? `${completed}/${steps.length} passos` : 'Adicionar passos'}{steps.length && !nextStep ? ' · Todos concluídos' : ''}{#if nextStep}<span class="summary-total">Total {timerText(actual)} / {estimate.minutes == null ? '—' : timerText(estimate.minutes * 60000)}{estimate.partial ? '+' : ''}</span>{/if}</summary><ExecutionSteps taskId={task.id} eligible={canStart} /></details>
           {/if}
         {/if}
 	</div>
 	{#if task.status === 'dropped'}
 		<button class="btn" onclick={restore}>Restore</button>
-	{:else if task.status === 'open'}
-        {#if !actionView}{@render taskMenu()}{/if}
 	{/if}
 </article>
 {/snippet}
@@ -174,21 +174,32 @@
 </ContextMenu.Root>
 
 <style>
- .metadata-row { display: flex; align-items: flex-start; gap: 4px 8px; min-width: 0; }
+ .card-heading { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: center; gap: 0 10px; }
+ .card-heading .body { min-width: 0; min-height: 44px; align-content: center; overflow-wrap: anywhere; }
+ .metadata-row { display: flex; align-items: flex-start; gap: 4px; min-width: 0; }
  .metadata-values { flex: 1; min-width: 0; }
  .action-card .metadata-row { justify-content: space-between; }
- .action-card .body { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+ .card .body { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
  .action-card.has-step .title { font-size: 14px; font-weight: 500; color: var(--ink-soft); }
  .context-toggle { font-size: 12px; text-decoration: underline; text-underline-offset: 3px; color: var(--ink-soft); }
  .action-card { gap: 8px; }
- .action-card > input { flex-shrink: 0; }
+
 
  .steps-ready { margin: 8px 0 0; font-size: 13px; }
  .focus-icon { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; color: var(--ink); }
-	.execution { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
-	.step-progress { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; font-variant-numeric: tabular-nums; }
- .next-action { font-size: 16px; font-weight: 650; overflow-wrap: anywhere; } .next-time, .total-time { font-size: 18px; } .total-time.secondary { font-size: 12px; color: var(--ink-soft); }
- .execution { border-top: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); padding-top: 12px; }
+	.execution { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; margin-top: 4px; }
+ .next-action { flex: 1; min-width: 0; font-size: 16px; font-weight: 650; overflow-wrap: anywhere; }
+ .next-time, .total-time { font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+ .summary-total { float: right; margin-left: 8px; color: var(--ink-soft); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+ @media (max-width: 600px) {
+  .card-heading { grid-template-columns: 20px minmax(0, 1fr); }
+  .metadata-row { grid-column: 2; }
+  .execution { flex-wrap: wrap; gap: 0 4px; }
+  .execution .next-action { flex-basis: 100%; }
+  .execution .next-time { margin-right: auto; }
+ }
+
+ .execution { border-top: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); padding-top: 4px; }
 	.card-steps { font-size: 13px; }
 	.card-steps summary { cursor: pointer; min-height: 36px; padding-block: 7px; overflow-wrap: anywhere; }
 	.card {
@@ -222,7 +233,7 @@
 	input[type='checkbox'] {
 		width: 20px;
 		height: 20px;
-		margin-top: 2px;
+		margin: 0;
 		accent-color: var(--primary);
 	}
 	.main {
@@ -299,8 +310,7 @@
 		display: none;
 		font-size: 13px;
 	}
-	.why.shown,
-	.card:not(.action-card):hover .why {
+	.why.shown {
 		display: block;
 	}
 </style>

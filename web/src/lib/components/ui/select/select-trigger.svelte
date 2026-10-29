@@ -12,7 +12,7 @@
 		...restProps
 	}: WithoutChild<SelectPrimitive.TriggerProps> & {
 		size?: "sm" | "default";
-		variant?: "default" | "metadata";
+		variant?: "default" | "metadata" | "quiet";
 	} = $props();
 </script>
 
@@ -23,11 +23,12 @@
 	class={cn(
 		"flex w-fit min-h-11 min-w-0 items-center justify-between gap-2 rounded-md [border-width:var(--stroke)] border-input bg-card px-3 py-1.5 text-sm text-card-foreground outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-invalid:border-destructive data-placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
 		variant === "metadata" && "border border-border/25 bg-card/60 hover:border-border hover:bg-accent data-[state=open]:bg-accent",
+		variant === "quiet" && "border-transparent bg-transparent hover:bg-accent data-[state=open]:bg-accent",
 		size === "sm" && "px-2",
 		className
 	)}
 	{...restProps}
 >
 	{@render children?.()}
-	<ChevronDownIcon class="text-muted-foreground size-4 pointer-events-none" />
+	{#if variant !== "quiet"}<ChevronDownIcon class="text-muted-foreground size-4 pointer-events-none" />{/if}
 </SelectPrimitive.Trigger>

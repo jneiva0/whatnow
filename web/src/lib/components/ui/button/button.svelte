@@ -15,7 +15,7 @@
 				destructive: "border-border bg-destructive text-destructive-foreground shadow-control hover:bg-destructive/90",
 				link: "text-primary underline-offset-4 hover:underline",
 				inline: "w-full justify-start whitespace-normal wrap-anywhere text-left [font:inherit] text-foreground cursor-text hover:bg-muted hover:border-input",
-				"inline-number": "w-full justify-end whitespace-normal text-right [font:inherit] text-foreground cursor-text hover:bg-muted hover:border-input tabular-nums",
+				"inline-number": "w-full justify-end whitespace-nowrap text-right [font:inherit] text-foreground cursor-text hover:bg-muted hover:border-input tabular-nums",
 				playback: "rounded-[var(--pill)] bg-[var(--play-background,transparent)] text-[var(--play-ink,var(--foreground))] hover:bg-accent",
 				"playback-active": "rounded-[var(--pill)] bg-[var(--play-background,var(--accent))] text-[var(--play-ink,var(--foreground))] hover:bg-accent",
 			},

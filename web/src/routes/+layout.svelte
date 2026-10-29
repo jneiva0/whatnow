@@ -1,5 +1,6 @@
 <script lang="ts">
 	import './layout.css';
+	import ActiveFocusBar from '#lib/components/ActiveFocusBar.svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -29,5 +30,6 @@
 	<title>whatnow</title>
 </svelte:head>
 
+{#if page.url.pathname !== '/focus'}<ActiveFocusBar />{/if}
 {@render children()}
 {#if !editor.creating && editor.taskId === null}<Toasts />{/if}

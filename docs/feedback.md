@@ -1,5 +1,43 @@
 # Feedback de uso — execução no Whatnow
 
+## Retorno de uso — 29/10/2026
+
+Implementação autorizada posteriormente: João pediu aproveitar a faixa para
+compactar os cartões e metadados, mantendo display discreto e edição ao clicar.
+Pediu ainda dedicado / total, restante em destaque e separador como progresso.
+Esses refinamentos estão implementados nesta rodada; a escolha contextual em
+Ações continua como próxima fatia, distinta da apresentação compacta.
+
+Fonte: relato direto de João após testar a aba Ações e instalar no celular.
+
+- **PWA aceito por enquanto:** instalado e funcionando no celular. Resta uma
+  faixa azul no espaço adicional da janela standalone, percebida como possível
+  fundo do chat. É um pequeno bug de viewport; a origem no chat é hipótese,
+  ainda não reproduzida ou diagnosticada.
+- **Foco fora da tela Foco:** ao voltar ao Dia, João não encontra indicação do
+  timer em andamento. Pede indicação fixa no topo com o foco atual, conforme
+  a intenção original de continuidade. Requisito registrado; não implementado
+  nesta rodada de feedback.
+- **Ações não deixa claro por onde começar:** João capturou um ritual para
+  destravar (beber água, fazer xixi, meditar, beber mais água). Os passos vieram
+  corretos, mas a tarefa foi para Não planejado e ficou no fim ou difícil de
+  encontrar em Ações. Não foi feito um pedido adicional pelo chat.
+- **Discrepância de produto:** a apresentação ainda privilegia prioridades,
+  enquanto a direção inclui ações pequenas e viáveis para iniciar e continuar.
+  O exemplo de água em um minuto não estabelece ordenação universal pelo menor
+  tempo nem autoriza transformar o ritual em rotina obrigatória.
+
+Verificação de fonte: `actionCards` em `web/src/lib/plan.ts` concatena must,
+should, could e não planejado, filtra elegibilidade e promove apenas a tarefa
+em execução. Não classifica por duração ou contexto de ajuda. Isso explica a
+posição baixa; não comprova por que uma tarefa específica teria desaparecido.
+
+Próximo recorte proposto: tornar o foco ativo continuamente visível e definir
+como Ações apresenta uma próxima ação contextual, incluindo tarefas não
+planejadas, sem exigir uma conversa extra. Prioridades continuam disponíveis
+para planejamento. A forma de seleção/apresentação ainda precisa ser definida;
+nenhum novo ranking ou fluxo foi implementado neste registro.
+
 Fonte: correções explícitas de João durante QA em 25/10/2026, delegadas pela conversa `01a17327-9bf8-79b2-a173-dd587d532f5b`. Registro contínuo do QA. A primeira rodada apenas capturou os achados; João autorizou implementação, pediu pausa para esboço e depois autorizou retomar com as correções visuais abaixo. Estados distinguem implementação, verificação técnica e aceite visual/funcional pelo uso. Preview e dados devem ser preservados.
 
 ## Aba Ações — refinamentos registrados em 27/10/2026

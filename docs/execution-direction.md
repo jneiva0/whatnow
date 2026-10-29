@@ -1,5 +1,103 @@
 # Execução assistida — direção e diagnóstico
 
+## Retomada de 29/10 — plano autorizado
+
+### Ponto de retomada — manter o plano visível
+
+João pediu explicitamente preservar o plano geral enquanto traz feedback pontual,
+pois pode esquecer onde estávamos. Novos refinamentos entram na fatia atual sem
+substituir silenciosamente o objetivo. Ao fechar uma rodada, informar o que foi
+entregue e qual é a próxima fatia deste plano.
+
+- **Objetivo:** ajudar a escolher uma ação viável, começar e continuar.
+- **Em fechamento:** faixa persistente de foco e cartões compactos, com os
+  refinamentos de tempo/energia/layout pedidos durante o uso.
+- **Próxima fatia:** escolha contextual em Ações, incluindo Não planejado e
+  capturas para destravar, sem exigir pedido extra pelo chat. Definir a menor
+  solução coerente usando as regras/fatos do Go e o planejador existente.
+- **Depois:** avaliar continuidade pelo uso. Migração ampla, calibração histórica
+  e voz permanecem posteriores; o pequeno bug PWA não assume a prioridade.
+
+João confirmou instalação PWA funcionando, com pequeno bug de faixa azul no
+viewport standalone ainda sem diagnóstico. O aceite de Ações revelou que a
+ordem por prioridades não esclarece qual ação começar; o ritual capturado para
+destravar ficou em Não planejado. Relato completo em `feedback.md`.
+
+1. Entregar faixa persistente com ação em execução, tempo acumulado, pausa e
+   retorno ao Foco fora dessa tela, consumindo o estado compartilhado existente.
+2. Compactar cartões e metadados: aproveitar a mesma linha quando houver espaço,
+   energia como indicador que abre seleção ao clicar, estimativa editável ao
+   clicar e contexto sob expansão explícita. Preservar passos e controles.
+3. Próxima fatia de produto: fazer Ações apresentar uma escolha contextual útil
+   incluindo Não planejado, sem exigir pedido extra no chat. A forma de seleção
+   ainda está aberta; não implementar ordenação universal por menor duração.
+
+Os itens 1–2 estão implementados nesta rodada. O item 3 permanece planejado;
+compactar cartões não resolve por si só a escolha da próxima ação. Migração ampla,
+calibração histórica e voz continuam posteriores.
+
+### Próxima implementação — escolha contextual em Ações
+
+#### Critérios e dados incompletos — proposta explicada em 29/10
+
+João pediu esclarecer prioridade versus energia/tempo/sentimento e o caso de
+cadastros incompletos antes de prosseguir. O contrato abaixo é a proposta de
+implementação, não evidência de que a qualidade dessas escolhas já foi validada.
+
+- Prioridade orienta compromissos do dia; sugestão escolhe a ação viável agora.
+  Sugerir uma ação de Não planejado não altera seu nível de prioridade.
+- Energia da tarefa é esforço esperado; pique do dia/contexto atual representa
+  a disponibilidade relatada de João. Sentimento da tarefa e humor do momento
+  também são distintos. Não inferir um a partir do outro nem perpetuar um relato
+  transitório como estado atual.
+- Campos ausentes são desconhecidos, sem impedir execução nem criar punição
+  automática. A IA pode interpretar a descrição para sugerir, mas não apresentar
+  duração/energia inferidas como fatos preenchidos, inventar sentimento ou salvar
+  metadados durante uma consulta de próxima ação. Captura/decomposição já podem
+  propor estimativas aproximadas e constituem operações diferentes.
+- Considerar compromissos/prazos, bloqueios, próximos passos, disponibilidade e
+  pedido atual em conjunto. Ações curtas podem ajudar a iniciar trabalho relevante;
+  menor duração não é ordenação universal. Metadados da tarefa não se transferem
+  mecanicamente a cada passo. Tempo registrado não comprova trabalho concluído.
+- Recomendar uma ação existente com justificativa curta. Tarefa concreta funciona
+  sem passos ou metadados; tarefa vaga pode precisar da organização já existente.
+  A recomendação não deve fingir ter criado um passo apenas por descrevê-lo.
+
+Escopo técnico: ampliar o contexto/instruções e contratos do planejador Go já
+existente; validação de IDs, elegibilidade e comandos permanece no serviço.
+Frontend controla solicitação, validade da resposta e apresentação, sem pontuação
+local própria. Inicialmente não há necessidade demonstrada de novo schema ou fila.
+Antes da entrega, verificar casos com todos os metadados ausentes, parcialidade,
+conflito entre prioridade e esforço, relato atual versus histórico e falha da IA.
+
+Plano preparado após o fechamento dos cartões, em 29/10. É a próxima fatia do
+objetivo de ajudar a começar; os refinamentos visuais acima não a substituem.
+
+1. **Expor uma escolha concreta na própria aba Ações.** Reaproveitar
+   `Planner.NextAction` e `/whatnow`, que já consideram tarefas elegíveis dentro
+   e fora do plano. Mostrar ação, tarefa/contexto, estimativa e justificativa curta,
+   com Começar e Outra sugestão, sem exigir que João repita o pedido pelo chat.
+   Se há execução ativa, dar continuidade a ela antes de propor uma troca.
+2. **Manter contexto e continuidade.** Conferir o percurso captura → sugestão
+   para o pedido de destravar chegar à seleção. Atualizar sugestões que perderam
+   validade após conclusão/edição, sem reescolher a cada tick ou apagar a escolha
+   enquanto João interage. Usar as operações/fatos Go existentes; qualquer lacuna
+   de contexto deve ser resolvida na fronteira responsável, não com ranking local
+   duplicado. Não adotar menor duração como regra universal nem garantir que um
+   ritual específico sempre vença.
+3. **Verificar o ciclo completo em dados descartáveis.** Cobrir ritual não
+   planejado com tarefas prioritárias concorrentes, tarefa já concreta sem passos,
+   foco ativo, ação bloqueada/concluída, falha do provedor e atualização após
+   concluir. A lista manual continua utilizável durante falha da sugestão.
+   Diferenciar contratos com modelo simulado de qualidade com provedor real.
+4. **Entregar uma fatia revisável.** Changelog e commits coesos, estado de
+   implementação/validação explícito e próximo recorte de uso curto. Preservar
+   timers, dados, undo e sincronização; não criar nova fila ou planejamento paralelo.
+
+Primeira ação técnica: consolidar o ciclo de vida da sugestão hoje local ao
+`+page.svelte` e definir como a entrada em Ações pede uma escolha sem chamadas
+repetidas. O plano acima ainda não foi implementado nesta rodada de alinhamento.
+
 Atualizado em 27/10/2026. Fonte: feedback direto de João nesta conversa e leitura do código. O estado atual está na seção abaixo; as seções de diagnóstico e entregas posteriores preservam o histórico e suas evidências, sem transformar antigas próximas ações em pendências atuais.
 
 ## Estado atual — voltar ao produto
